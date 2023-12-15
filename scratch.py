@@ -65,8 +65,8 @@ adprop = propagator.prop(wl,lant,6)
 adprop.get_init_sign()
 print(adprop.signs)
 
-zs = np.linspace(0,z_ex,300)
-dz=10
+zs = np.linspace(0,z_ex/10,10)
+dz=50
 coupling_mats = []
 for z in zs:
     coupling_mat = adprop.compute_coupling_matrix(z,dz)
@@ -76,8 +76,14 @@ coupling_mats = np.array(coupling_mats)
 
 for i in range(coupling_mats.shape[1]):
     for j in range(coupling_mats.shape[2]):
-        plt.plot(zs,coupling_mats[:,i,j])
+        if i <= j:
+            continue
+        if i == 2 and j == 1:
+            plt.plot(zs,coupling_mats[:,i,j],label=str(i)+str(j),ls='dashed')
+        else:
+            plt.plot(zs,coupling_mats[:,i,j],label=str(i)+str(j))
 
+plt.legend(loc='best',frameon=False)
 plt.show()
 
 """

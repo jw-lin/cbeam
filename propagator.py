@@ -51,7 +51,7 @@ class prop:
         v *= (signs * self.signs)[:,None]
         return
 
-    def compute_coupling_matrix(self,z,dz):
+    def compute_coupling_matrix(self,z,dz,plot=False):
         isect_mesh,isect_dict = self.wvg.make_intersection_mesh(z,dz)
 
         # current position
@@ -69,16 +69,17 @@ class prop:
         self.adjust_sign(_B,_v)
 
         dvdz = (_v-v)/dz
-        """
-        for i,_dv in enumerate(dvdz):
-            fig,axs = plt.subplots(1,3)
-            plot_eigenvector(isect_mesh,_dv,show=False,ax=axs[2])
-            plot_eigenvector(isect_mesh,v[i],show=False,ax=axs[0])
-            plot_eigenvector(isect_mesh,_v[i],show=False,ax=axs[1])
-            plt.show()
-        """
 
-        coupling_matrix = (B.dot(dvdz.T)).T.dot(v.T)
+        if plot:
+            fig,axs = plt.subplots(1,3,sharey=True,figsize=(12,4))
+            plot_eigenvector(isect_mesh,dvdz[2],show=False,ax=axs[2])
+            plot_eigenvector(isect_mesh,v[2],show=False,ax=axs[0])
+            plot_eigenvector(isect_mesh,_v[2],show=False,ax=axs[1])
+            plt.show()
+
+        vavg = (v+_v)/2
+
+        coupling_matrix = (B.dot(dvdz.T)).T.dot(vavg.T) # should try to exploit symmetry, cut calcs by ~2
         return coupling_matrix
 
         

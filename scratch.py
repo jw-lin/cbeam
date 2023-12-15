@@ -62,18 +62,21 @@ lant = optics.linear_lantern(core_pos,ms_rcores,rclad,rjack,[ncore]*6,nclad,njac
 # linearity test
 import propagator
 adprop = propagator.prop(wl,lant,6)
+adprop.get_init_sign()
+print(adprop.signs)
 
-dzs = np.linspace(1,10,30)
+zs = np.linspace(0,z_ex,300)
+dz=10
 coupling_mats = []
-for dz in dzs:
-    coupling_mat = adprop.compute_coupling_matrix(0,dz)
+for z in zs:
+    coupling_mat = adprop.compute_coupling_matrix(z,dz)
     coupling_mats.append(coupling_mat)
 
 coupling_mats = np.array(coupling_mats)
 
 for i in range(coupling_mats.shape[1]):
     for j in range(coupling_mats.shape[2]):
-        plt.plot(dzs,np.abs(coupling_mats[:,i,j]))
+        plt.plot(zs,coupling_mats[:,i,j])
 
 plt.show()
 

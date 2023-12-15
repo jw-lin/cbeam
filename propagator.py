@@ -2,13 +2,14 @@ import numpy as np
 from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,plot_eigenvector
 from optics import waveguide
 from scipy.interpolate import UnivariateSpline
-
+import matplotlib.pyplot as plt
 class prop:
     def __init__(self,wl,wvg:waveguide,Nmax):
         self.wvg = wvg
         self.wl = wl
         self.Nmax = Nmax
         self.k = 2*np.pi/wl
+        self.signs = None
     
     def get_prop_constants(self,z_arr,sparse=True):
         betas = []
@@ -32,6 +33,23 @@ class prop:
         out = [_pfunc(bfunc_int) for bfunc_int in betafunc_ints]
 
         return out
+    
+    def get_init_sign(self):
+
+        self.wvg.update(0)
+        mesh = self.wvg.make_mesh()
+        self.wvg.assign_IOR()
+        A,B = construct_AB(mesh,self.wvg.IOR_dict,self.k,sparse=True)
+        w,v,N = solve_sparse(A,B,mesh,self.wl,self.wvg.IOR_dict,num_modes=self.Nmax)
+        signs = np.sign(np.sum(B.dot(v.T),axis=0))
+        self.signs = signs
+        return
+    
+    def adjust_sign(self,B,v):
+        assert self.signs is not None, "run get_init_sign() first"
+        signs = np.sign(np.sum(B.dot(v.T),axis=0))
+        v *= (signs * self.signs)[:,None]
+        return
 
     def compute_coupling_matrix(self,z,dz):
         isect_mesh,isect_dict = self.wvg.make_intersection_mesh(z,dz)
@@ -46,18 +64,20 @@ class prop:
         _w,_v,_N  = solve_sparse(_A,_B,isect_mesh,self.wl,isect_dict,num_modes=self.Nmax)
         #print(w)
 
-        #for vec in v:
-        #    plot_eigenvector(isect_mesh,vec,show=True)
-        for i in range(v.shape[0]):
-            if np.sum(np.abs(v[i]-_v[i])) < np.sum(np.abs(v[i]+_v[i])):
-                continue
-            else:
-                _v[i]*=-1
-        dvdz = v-_v
+        # make signs consistent
+        self.adjust_sign(B,v)
+        self.adjust_sign(_B,_v)
 
-        #plot_eigenvector(isect_mesh,v[1],False,False)
-        #plot_eigenvector(isect_mesh,_v[1],False,False)
-        #plot_eigenvector(isect_mesh,dvdz[1],False,False)
+        dvdz = (_v-v)/dz
+        """
+        for i,_dv in enumerate(dvdz):
+            fig,axs = plt.subplots(1,3)
+            plot_eigenvector(isect_mesh,_dv,show=False,ax=axs[2])
+            plot_eigenvector(isect_mesh,v[i],show=False,ax=axs[0])
+            plot_eigenvector(isect_mesh,_v[i],show=False,ax=axs[1])
+            plt.show()
+        """
+
         coupling_matrix = (B.dot(dvdz.T)).T.dot(v.T)
         return coupling_matrix
 

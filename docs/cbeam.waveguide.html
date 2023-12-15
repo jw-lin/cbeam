@@ -1,0 +1,1265 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cbeam.waveguide &#8212; cbeam 0.0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="_static/documentation_options.js?v=e645c8fa"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cbeam.waveguide';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cbeam.propagator" href="cbeam.propagator.html" />
+    <link rel="prev" title="reference" href="reference.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">cbeam 0.0.1 documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. evaluating fields</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="reference.html">reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">cbeam.waveguide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbeam.propagator.html">cbeam.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbeam.FEval.html">cbeam.FEval</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/cbeam.waveguide.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>cbeam.waveguide</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveguide-class">Waveguide class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide"><code class="docutils literal notranslate"><span class="pre">Waveguide</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.__init__"><code class="docutils literal notranslate"><span class="pre">Waveguide.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.assign_IOR"><code class="docutils literal notranslate"><span class="pre">Waveguide.assign_IOR()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.isolate"><code class="docutils literal notranslate"><span class="pre">Waveguide.isolate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.make_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.make_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.make_mesh_bndry_ref"><code class="docutils literal notranslate"><span class="pre">Waveguide.make_mesh_bndry_ref()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.plot_boundaries"><code class="docutils literal notranslate"><span class="pre">Waveguide.plot_boundaries()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.plot_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.plot_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.update"><code class="docutils literal notranslate"><span class="pre">Waveguide.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.max_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.max_mesh_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_power"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_power</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_scale"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.min_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.min_mesh_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.vectorized_transform"><code class="docutils literal notranslate"><span class="pre">Waveguide.vectorized_transform</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.z_ex"><code class="docutils literal notranslate"><span class="pre">Waveguide.z_ex</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.z_invariant"><code class="docutils literal notranslate"><span class="pre">Waveguide.z_invariant</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes-that-inherit-from-waveguide">classes that inherit from <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.CircularStepIndexFiber"><code class="docutils literal notranslate"><span class="pre">CircularStepIndexFiber</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.CircularStepIndexFiber.__init__"><code class="docutils literal notranslate"><span class="pre">CircularStepIndexFiber.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.RectangularStepIndexFiber"><code class="docutils literal notranslate"><span class="pre">RectangularStepIndexFiber</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.RectangularStepIndexFiber.__init__"><code class="docutils literal notranslate"><span class="pre">RectangularStepIndexFiber.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Dicoupler"><code class="docutils literal notranslate"><span class="pre">Dicoupler</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Dicoupler.__init__"><code class="docutils literal notranslate"><span class="pre">Dicoupler.__init__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Dicoupler.plot_paths"><code class="docutils literal notranslate"><span class="pre">Dicoupler.plot_paths()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Tricoupler"><code class="docutils literal notranslate"><span class="pre">Tricoupler</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Tricoupler.__init__"><code class="docutils literal notranslate"><span class="pre">Tricoupler.__init__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Tricoupler.plot_paths"><code class="docutils literal notranslate"><span class="pre">Tricoupler.plot_paths()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.PhotonicLantern"><code class="docutils literal notranslate"><span class="pre">PhotonicLantern</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.PhotonicLantern.__init__"><code class="docutils literal notranslate"><span class="pre">PhotonicLantern.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.TestPhotonicLantern"><code class="docutils literal notranslate"><span class="pre">TestPhotonicLantern</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prim3d-class">Prim3D class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D"><code class="docutils literal notranslate"><span class="pre">Prim3D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.__init__"><code class="docutils literal notranslate"><span class="pre">Prim3D.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.make_points_at_z"><code class="docutils literal notranslate"><span class="pre">Prim3D.make_points_at_z()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.transform_point_inside"><code class="docutils literal notranslate"><span class="pre">Prim3D.transform_point_inside()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.update"><code class="docutils literal notranslate"><span class="pre">Prim3D.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.preserve_shape"><code class="docutils literal notranslate"><span class="pre">Prim3D.preserve_shape</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes-that-inherit-from-prim3d">classes that inherit from <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Pipe"><code class="docutils literal notranslate"><span class="pre">Pipe</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Pipe.__init__"><code class="docutils literal notranslate"><span class="pre">Pipe.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.BoxPipe"><code class="docutils literal notranslate"><span class="pre">BoxPipe</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.BoxPipe.__init__"><code class="docutils literal notranslate"><span class="pre">BoxPipe.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prim2d-class">Prim2D class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D"><code class="docutils literal notranslate"><span class="pre">Prim2D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.__init__"><code class="docutils literal notranslate"><span class="pre">Prim2D.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.boundary_dist"><code class="docutils literal notranslate"><span class="pre">Prim2D.boundary_dist()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.make_points"><code class="docutils literal notranslate"><span class="pre">Prim2D.make_points()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.nearest_boundary_point"><code class="docutils literal notranslate"><span class="pre">Prim2D.nearest_boundary_point()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.plot_mesh"><code class="docutils literal notranslate"><span class="pre">Prim2D.plot_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.update"><code class="docutils literal notranslate"><span class="pre">Prim2D.update()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes-that-inherit-from-prim2d">classes that inherit from <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Circle"><code class="docutils literal notranslate"><span class="pre">Circle</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Circle.make_points"><code class="docutils literal notranslate"><span class="pre">Circle.make_points()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Rectangle"><code class="docutils literal notranslate"><span class="pre">Rectangle</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Rectangle.make_points"><code class="docutils literal notranslate"><span class="pre">Rectangle.make_points()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2DUnion"><code class="docutils literal notranslate"><span class="pre">Prim2DUnion</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2DUnion.__init__"><code class="docutils literal notranslate"><span class="pre">Prim2DUnion.__init__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2DUnion.make_points"><code class="docutils literal notranslate"><span class="pre">Prim2DUnion.make_points()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="cbeam-waveguide">
+<h1>cbeam.waveguide<a class="headerlink" href="#cbeam-waveguide" title="Link to this heading">#</a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#waveguide-class" id="id1">Waveguide class</a></p></li>
+<li><p><a class="reference internal" href="#prim3d-class" id="id2">Prim3D class</a></p></li>
+<li><p><a class="reference internal" href="#prim2d-class" id="id3">Prim2D class</a></p></li>
+</ul>
+</nav>
+<p>This page contains the documentation for the <code class="docutils literal notranslate"><span class="pre">waveguide</span></code> submodule, which functionally defines different kinds of waveguides, enables the creation of custom waveguides, and handles mesh generation for finite element analysis.</p>
+<section id="waveguide-class">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Waveguide class</a><a class="headerlink" href="#waveguide-class" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Waveguide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prim3Dgroups</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide" title="Link to this definition">#</a></dt>
+<dd><p>a Waveguide is a collection of prim3D objects (primitive 3D shapes like
+circular pipes and boxes), organized into layers as a nested list.
+the refractive index of earlier layers is overwritten by later layers.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prim3Dgroups</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.__init__" title="Link to this definition">#</a></dt>
+<dd><p>initialize a Waveguide object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>prim3Dgroups</strong> – a (potentially) nested list of prim3D objects. later
+top-level elements overwrite earlier ones, in terms
+of refractive index.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.assign_IOR">
+<span class="sig-name descname"><span class="pre">assign_IOR</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.assign_IOR" title="Link to this definition">#</a></dt>
+<dd><p>build a dictionary which maps all material labels in the Waveguide mesh
+to the corresponding refractive index value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.isolate">
+<span class="sig-name descname"><span class="pre">isolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.isolate" title="Link to this definition">#</a></dt>
+<dd><p>create a refractive index dictionary that sets all channels except one to the background index.
+‘channels’ are assumed to be stored in the last list of self.prim3Dgroups.
+override this if your waveguide is different.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>k</strong> – index of the channel to isolate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.make_mesh">
+<span class="sig-name descname"><span class="pre">make_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">writeto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.make_mesh" title="Link to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>construct a finite element mesh for the waveguide at current z (default 0).</dt><dd><p>currently aliased to make_mesh_bndry_ref().</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>writeto</strong> (<em>str</em><em> or </em><em>None</em>) – filename for mesh (no extension). if None, no file is saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.make_mesh_bndry_ref">
+<span class="sig-name descname"><span class="pre">make_mesh_bndry_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">writeto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.make_mesh_bndry_ref" title="Link to this definition">#</a></dt>
+<dd><p>construct a mesh with boundary refinement at material interfaces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>writeto</strong> (<em>str</em><em> or </em><em>None</em>) – filename for mesh (no extension). if None, no file is saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.plot_boundaries">
+<span class="sig-name descname"><span class="pre">plot_boundaries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.plot_boundaries" title="Link to this definition">#</a></dt>
+<dd><p>plot the boundaries of all prim3Dgroups. For unioned primitives, all boundaries of
+the original parts of the union are plotted in a lighter color.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.plot_mesh">
+<span class="sig-name descname"><span class="pre">plot_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IOR_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.plot_mesh" title="Link to this definition">#</a></dt>
+<dd><p>plot a mesh and associated refractive index distribution</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> – the z coordinate for the mesh we want to plot. if None, z=0.</p></li>
+<li><p><strong>mesh</strong> – the mesh to be plotted. if None, we auto-compute a mesh using default values</p></li>
+<li><p><strong>IOR_dict</strong> – dictionary that assigns each named region in the mesh to a refractive index value</p></li>
+<li><p><strong>alpha</strong> – transparency of mesh lines</p></li>
+<li><p><strong>ax</strong> – optionally, pass in a matplotlib axis for the plotter</p></li>
+<li><p><strong>plot_points</strong> – controls if the mesh nodes will be plotted</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.transform" title="Link to this definition">#</a></dt>
+<dd><p>spatial transformation that should work with most meshes. kinda slow to compute currently, could be.
+general idea: for a point (x0,y0) find the two nearest primitives at z0. this point, plus the two closest points to
+to it, each constrained to lie a primitive boundary, define a triangle. At z, the primitive boundaries move, and as such
+two of the triangle vertices move. The idea is to place the third point of the triangle, which is (x,y), to
+preserve triangle similarity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x0</strong> – (scalar or vector, if self.vectorized_transform) x coord. at z0</p></li>
+<li><p><strong>y0</strong> – (scalar or vector, if self.vectorized_transform) y coord. at z0</p></li>
+<li><p><strong>z0</strong> – reference z coord.</p></li>
+<li><p><strong>z</strong> – new z coord.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>a tuple containing:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>x (scalar or vector): the transformed x coordinate at z.</p></li>
+<li><p>y (scalar or vector): the transformed y coordinate at z.</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.transform_mesh">
+<span class="sig-name descname"><span class="pre">transform_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.transform_mesh" title="Link to this definition">#</a></dt>
+<dd><p>use the transformation law to create a new, transformed
+mesh from the reference mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh0</strong> – the reference mesh (meshio object).</p></li>
+<li><p><strong>z0</strong> – the z coordinate corresponding to mesh0 (typically 0).</p></li>
+<li><p><strong>z</strong> – the desired z coordinate of the transformed mesh.</p></li>
+<li><p><strong>mesh</strong> – a mesh object to store the new mesh. if None, a new mesh</p></li>
+<li><p><strong>generated.</strong> (<em>object is</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.update" title="Link to this definition">#</a></dt>
+<dd><p>update the mesh boundaries to the given z coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>float</em>) – desired z coordinate. note that all waveguides are
+updated to z=0 upon initialization.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.max_mesh_size">
+<span class="sig-name descname"><span class="pre">max_mesh_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10.0</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.max_mesh_size" title="Link to this definition">#</a></dt>
+<dd><p>maximum allowed mesh size (~ triangle side length)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.mesh_dist_power">
+<span class="sig-name descname"><span class="pre">mesh_dist_power</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.mesh_dist_power" title="Link to this definition">#</a></dt>
+<dd><p>mesh boundary refinement power scaling factor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.mesh_dist_scale">
+<span class="sig-name descname"><span class="pre">mesh_dist_scale</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.mesh_dist_scale" title="Link to this definition">#</a></dt>
+<dd><p>mesh boundary refinement linear distance scaling factor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.min_mesh_size">
+<span class="sig-name descname"><span class="pre">min_mesh_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.min_mesh_size" title="Link to this definition">#</a></dt>
+<dd><p>minimum allowed mesh size (~ triangle side length)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.vectorized_transform">
+<span class="sig-name descname"><span class="pre">vectorized_transform</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.vectorized_transform" title="Link to this definition">#</a></dt>
+<dd><p>whether or not the transform() function may take vector input. False for the default transform()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.z_ex">
+<span class="sig-name descname"><span class="pre">z_ex</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.z_ex" title="Link to this definition">#</a></dt>
+<dd><p>length of the waveguide</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.z_invariant">
+<span class="sig-name descname"><span class="pre">z_invariant</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.z_invariant" title="Link to this definition">#</a></dt>
+<dd><p>whether or not this waveguide changes shape w/ z</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="classes-that-inherit-from-waveguide">
+<h3>classes that inherit from <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code><a class="headerlink" href="#classes-that-inherit-from-waveguide" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.CircularStepIndexFiber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">CircularStepIndexFiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.CircularStepIndexFiber" title="Link to this definition">#</a></dt>
+<dd><p>generic class for a straight, circular step index fiber</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.CircularStepIndexFiber.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.CircularStepIndexFiber.__init__" title="Link to this definition">#</a></dt>
+<dd><p>initialize a circular step index fiber waveguide</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rcore</strong> – radius of core</p></li>
+<li><p><strong>rclad</strong> – radius of cladding</p></li>
+<li><p><strong>ncore</strong> – refractive index of the core</p></li>
+<li><p><strong>nclad</strong> – refractive index of the cladding</p></li>
+<li><p><strong>core_res</strong> – how many line segments to divide the core boundary into, default 16</p></li>
+<li><p><strong>clad_res</strong> – how many line segments to divide the cladding boundary into, default 32</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.RectangularStepIndexFiber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">RectangularStepIndexFiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xw_clad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yw_clad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.RectangularStepIndexFiber" title="Link to this definition">#</a></dt>
+<dd><p>generic class for a straight, rectangular step index fiber</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.RectangularStepIndexFiber.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xw_clad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yw_clad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.RectangularStepIndexFiber.__init__" title="Link to this definition">#</a></dt>
+<dd><p>intialize a waveguide with a rectangular core and cladding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xw</strong> – width of the rectangular core</p></li>
+<li><p><strong>yw</strong> – height of the rectangular core</p></li>
+<li><p><strong>xw_clad</strong> – width of the cladding</p></li>
+<li><p><strong>yw_clad</strong> – height of the cladding</p></li>
+<li><p><strong>ncore</strong> – refractive index of the core</p></li>
+<li><p><strong>nclad</strong> – refractive index of the cladding</p></li>
+<li><p><strong>core_mesh_size</strong> – target mesh size inside the core; default is min(xw,yw)/10</p></li>
+<li><p><strong>clad_mesh_size</strong> – target mesh size in the cladding; default is min(xw_clad,yw_clad)/10</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Dicoupler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Dicoupler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcore1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcore2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Dicoupler" title="Link to this definition">#</a></dt>
+<dd><p>generic class for 2x2 directional couplers made of pipes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Dicoupler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcore1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcore2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Dicoupler.__init__" title="Link to this definition">#</a></dt>
+<dd><p>initialize a directional coupler waveguide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rcore1</strong> – the core radius of the left single mode channel</p></li>
+<li><p><strong>rcore2</strong> – the core radius of the right single mode channel</p></li>
+<li><p><strong>ncore1</strong> – the index of the left channel</p></li>
+<li><p><strong>ncore2</strong> – the index of the right channel</p></li>
+<li><p><strong>dmax</strong> – the starting core separation</p></li>
+<li><p><strong>dmin</strong> – the minimum core separation</p></li>
+<li><p><strong>nclad</strong> – the cladding index</p></li>
+<li><p><strong>coupling_length</strong> – the approximate length in z over which the core separation is dmin</p></li>
+<li><p><strong>a</strong> – the approximate bend length</p></li>
+<li><p><strong>core_res</strong> – the # of segments used to resolve the core-cladding interface</p></li>
+<li><p><strong>core_mesh_size</strong> – the target mesh size inside cores</p></li>
+<li><p><strong>clad_mesh_size</strong> – the target mesh size inside the cladding</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Dicoupler.plot_paths">
+<span class="sig-name descname"><span class="pre">plot_paths</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Dicoupler.plot_paths" title="Link to this definition">#</a></dt>
+<dd><p>plot the single-mode channel paths</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Tricoupler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Tricoupler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Tricoupler" title="Link to this definition">#</a></dt>
+<dd><p>generic class for symmetric equilateral tricouplers made of pipes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Tricoupler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncore</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Tricoupler.__init__" title="Link to this definition">#</a></dt>
+<dd><p>initialize a tricoupler waveguide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rcore</strong> – the core radius, shared for all single mode channels</p></li>
+<li><p><strong>ncore</strong> – the refractive index for all single mode channels</p></li>
+<li><p><strong>dmax</strong> – the diameter of the circle containing the center of each channel, at max separation</p></li>
+<li><p><strong>dmin</strong> – the diameter of the circle containing the center of each channel, at min separation</p></li>
+<li><p><strong>nclad</strong> – the cladding index</p></li>
+<li><p><strong>coupling_length</strong> – the approximate length in z over which the core separation is dmin</p></li>
+<li><p><strong>a</strong> – the approximate bend length</p></li>
+<li><p><strong>core_res</strong> – the # of segments used to resolve the core-cladding interface</p></li>
+<li><p><strong>core_mesh_size</strong> – the target mesh size inside cores</p></li>
+<li><p><strong>clad_mesh_size</strong> – the target mesh size inside the cladding</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Tricoupler.plot_paths">
+<span class="sig-name descname"><span class="pre">plot_paths</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Tricoupler.plot_paths" title="Link to this definition">#</a></dt>
+<dd><p>plot the single-mode channel paths</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.PhotonicLantern">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">PhotonicLantern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rjack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">njack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_ex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taper_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jack_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.PhotonicLantern" title="Link to this definition">#</a></dt>
+<dd><p>generic class for photonic lanterns</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.PhotonicLantern.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rjack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">njack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_ex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taper_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jack_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.PhotonicLantern.__init__" title="Link to this definition">#</a></dt>
+<dd><p>initialize a photonic lantern waveguide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>core_pos</strong> – an Nx2 array of (x,y) core positions at z=0</p></li>
+<li><p><strong>rcores</strong> – an array of core radii at z=0</p></li>
+<li><p><strong>rclad</strong> – the cladding radius at z=0</p></li>
+<li><p><strong>rjack</strong> – the jacket radius at z=0 (this sets the outer simulation boundary)</p></li>
+<li><p><strong>ncores</strong> – an array of refractive indices for the cores</p></li>
+<li><p><strong>nclad</strong> – the cladding refractive index</p></li>
+<li><p><strong>njack</strong> – the jacket refractive index</p></li>
+<li><p><strong>z_ex</strong> – the lantern length</p></li>
+<li><p><strong>taper_factor</strong> – the amount the lantern scales by, going from z=0 -&gt; z=z_ex</p></li>
+<li><p><strong>core_res</strong> – the number of line segments to resolve each core-cladding boundary with</p></li>
+<li><p><strong>clad_res</strong> – the number of line segments to resolve the cladding-jacket boundary</p></li>
+<li><p><strong>jack_res</strong> – the number of line segments to resolve the outer jacket boundary</p></li>
+<li><p><strong>core_mesh_size</strong> – the target side length for triangles inside a lantern core, away from the boundary</p></li>
+<li><p><strong>clad_mesh_size</strong> – the target side length for triangles inside the lantern cladding, away from the boundary</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.TestPhotonicLantern">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">TestPhotonicLantern</span></span><a class="headerlink" href="#cbeam.waveguide.TestPhotonicLantern" title="Link to this definition">#</a></dt>
+<dd><p>shorthand for doctesting</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="prim3d-class">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Prim3D class</a><a class="headerlink" href="#prim3d-class" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim3D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Prim3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prim2D</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cbeam.waveguide.Prim2D" title="cbeam.waveguide.Prim2D"><span class="pre">Prim2D</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim3D" title="Link to this definition">#</a></dt>
+<dd><p>a Prim3D (3D primitive) is a function of z that returns a Prim2D.
+it can be used to represent tapering pipes, boxes, etc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim3D.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prim2D</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cbeam.waveguide.Prim2D" title="cbeam.waveguide.Prim2D"><span class="pre">Prim2D</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim3D.__init__" title="Link to this definition">#</a></dt>
+<dd><p>initialize a Prim3D object. this default behavior is often
+overwritten by inheriting classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prim2D</strong> (<a class="reference internal" href="#cbeam.waveguide.Prim2D" title="cbeam.waveguide.Prim2D"><em>Prim2D</em></a>) – a prim2D object (e.g. Circle, Rectangle).</p></li>
+<li><p><strong>label</strong> (<em>str</em>) – a string label to attach to the 2D primitive.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim3D.make_points_at_z">
+<span class="sig-name descname"><span class="pre">make_points_at_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim3D.make_points_at_z" title="Link to this definition">#</a></dt>
+<dd><p>make points of prim2D at given z coord. should be implemented by
+inheriting classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>float</em>) – the desired z coordinate</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an Nx2 array of points corresponding to the boundary at z.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim3D.transform_point_inside">
+<span class="sig-name descname"><span class="pre">transform_point_inside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim3D.transform_point_inside" title="Link to this definition">#</a></dt>
+<dd><p>for a point (x0,y0) inside the boundary at z0, compute a new point (x,y) at z, accounting
+for the z-variation of the Prim3D. should be implemented by inheriting classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x0</strong> (<em>float</em>) – reference x coordinate inside the boundary at z0</p></li>
+<li><p><strong>y0</strong> (<em>float</em>) – reference y coordinate inside the boundary at z0</p></li>
+<li><p><strong>z0</strong> (<em>float</em>) – reference z coordiante</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – new z coordinate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>a tuple containing:</dt><dd><ul class="simple">
+<li><p>x1 : the new x coordinate at z</p></li>
+<li><p>y1 : the new y coordinate at z</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim3D.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim3D.update" title="Link to this definition">#</a></dt>
+<dd><p>update self.prim2D to the desired z coordinate.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim3D.preserve_shape">
+<span class="sig-name descname"><span class="pre">preserve_shape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#cbeam.waveguide.Prim3D.preserve_shape" title="Link to this definition">#</a></dt>
+<dd><p>whether or not the boundary may be deformed when advancing in z.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="classes-that-inherit-from-prim3d">
+<h3>classes that inherit from <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code><a class="headerlink" href="#classes-that-inherit-from-prim3d" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Pipe">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Pipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rfunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfunc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Pipe" title="Link to this definition">#</a></dt>
+<dd><p>a Pipe is a 3D primitive with circular cross section at all z.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Pipe.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rfunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfunc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Pipe.__init__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – the refractive index inside the pipe</p></li>
+<li><p><strong>label</strong> – a string name to attach to this pipe</p></li>
+<li><p><strong>res</strong> – the number of line segments used to resolve the circle</p></li>
+<li><p><strong>rfunc</strong> – function that returns a circular radius for a given z, or scalar for constant behavior</p></li>
+<li><p><strong>cfunc</strong> – a function that returns a center position (xc,yc) for a given z, or tuple for constant behavior</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.BoxPipe">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">BoxPipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xwfunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ywfunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfunc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.BoxPipe" title="Link to this definition">#</a></dt>
+<dd><p>an box whose width, height, and center can scale with z.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.BoxPipe.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xwfunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ywfunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfunc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.BoxPipe.__init__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – refractive index</p></li>
+<li><p><strong>label</strong> – string identifier for this waveguide part</p></li>
+<li><p><strong>xwfunc</strong> – a function controlling the width of the box wrt z, or scalar for constant x width</p></li>
+<li><p><strong>ywfunc</strong> – a function controlling the height of the box wrt z, or scalar for constant y width</p></li>
+<li><p><strong>cfunc</strong> – a function controlling the center of the box, or a tuple for constant center location (x0,y0)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="prim2d-class">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Prim2D class</a><a class="headerlink" href="#prim2d-class" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Prim2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D" title="Link to this definition">#</a></dt>
+<dd><p>a Prim2D (2D primitive) is an an array of N (x,y) points, shape (N,2), that denote a closed curve (so, a polygon).
+inside the closed curve, the primitive has refractive index n.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.__init__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.boundary_dist">
+<span class="sig-name descname"><span class="pre">boundary_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.boundary_dist" title="Link to this definition">#</a></dt>
+<dd><p>this function computes the distance between the point (x,y) and the boundary of the primitive. negative distances -&gt; inside the boundary, while positive -&gt; outside
+note that this doesn’t need to be exact. the “distance” just needs to be positive outside the boundary, negative inside the boundary, and go to 0 as you approach the boundary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.make_points">
+<span class="sig-name descname"><span class="pre">make_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.make_points" title="Link to this definition">#</a></dt>
+<dd><p>make an Nx2 array of points for marking the primitive boundary,
+according to some args.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.nearest_boundary_point">
+<span class="sig-name descname"><span class="pre">nearest_boundary_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.nearest_boundary_point" title="Link to this definition">#</a></dt>
+<dd><p>this function computes the point on the boundary that is closest to a point (x,y).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.plot_mesh">
+<span class="sig-name descname"><span class="pre">plot_mesh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.plot_mesh" title="Link to this definition">#</a></dt>
+<dd><p>a quick check to see what this object looks like. generates a mesh with default parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.update" title="Link to this definition">#</a></dt>
+<dd><p>update the primitive according to some args and return an Nx2 array of points.
+the default behavior is to manually pass in a points array. more specific primitives
+inheriting from Prim2D should implement their own update().</p>
+</dd></dl>
+
+</dd></dl>
+
+<section id="classes-that-inherit-from-prim2d">
+<h3>classes that inherit from <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code><a class="headerlink" href="#classes-that-inherit-from-prim2d" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Circle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Circle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Circle" title="Link to this definition">#</a></dt>
+<dd><p>a Circle primitive, defined by radius, center, and number of sides
+(so actually a regular polygon lol). initialize using only
+the desired refractive index n, then use make_points() to generate
+the point array.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Circle.make_points">
+<span class="sig-name descname"><span class="pre">make_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Circle.make_points" title="Link to this definition">#</a></dt>
+<dd><p>make an Nx2 array of points for marking the primitive boundary,
+according to some args.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Rectangle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Rectangle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Rectangle" title="Link to this definition">#</a></dt>
+<dd><p>rectangle primitive, defined by corner points. initialize using only
+the desired refractive index n, then use make_points() to generate
+the point array.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Rectangle.make_points">
+<span class="sig-name descname"><span class="pre">make_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Rectangle.make_points" title="Link to this definition">#</a></dt>
+<dd><p>make an Nx2 array of points for marking the primitive boundary,
+according to some args.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2DUnion">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">Prim2DUnion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cbeam.waveguide.Prim2D" title="cbeam.waveguide.Prim2D"><span class="pre">Prim2D</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cbeam.waveguide.Prim2D" title="cbeam.waveguide.Prim2D"><span class="pre">Prim2D</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2DUnion" title="Link to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2DUnion.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cbeam.waveguide.Prim2D" title="cbeam.waveguide.Prim2D"><span class="pre">Prim2D</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cbeam.waveguide.Prim2D" title="cbeam.waveguide.Prim2D"><span class="pre">Prim2D</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2DUnion.__init__" title="Link to this definition">#</a></dt>
+<dd><p>initialize a boolean union of two primitives, p1 and p2.
+not fully tested.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Prim2DUnion.make_points">
+<span class="sig-name descname"><span class="pre">make_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2DUnion.make_points" title="Link to this definition">#</a></dt>
+<dd><p>make points corresponding to the boundary of the primitive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args1</strong> (<em>tuple</em>) – the arguments of make_points for the first primitive</p></li>
+<li><p><strong>args2</strong> (<em>tuple</em>) – the arguments of make_points for the second primitive</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="reference.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">reference</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cbeam.propagator.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">cbeam.propagator</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveguide-class">Waveguide class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide"><code class="docutils literal notranslate"><span class="pre">Waveguide</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.__init__"><code class="docutils literal notranslate"><span class="pre">Waveguide.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.assign_IOR"><code class="docutils literal notranslate"><span class="pre">Waveguide.assign_IOR()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.isolate"><code class="docutils literal notranslate"><span class="pre">Waveguide.isolate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.make_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.make_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.make_mesh_bndry_ref"><code class="docutils literal notranslate"><span class="pre">Waveguide.make_mesh_bndry_ref()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.plot_boundaries"><code class="docutils literal notranslate"><span class="pre">Waveguide.plot_boundaries()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.plot_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.plot_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.update"><code class="docutils literal notranslate"><span class="pre">Waveguide.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.max_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.max_mesh_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_power"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_power</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_scale"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.min_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.min_mesh_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.vectorized_transform"><code class="docutils literal notranslate"><span class="pre">Waveguide.vectorized_transform</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.z_ex"><code class="docutils literal notranslate"><span class="pre">Waveguide.z_ex</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.z_invariant"><code class="docutils literal notranslate"><span class="pre">Waveguide.z_invariant</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes-that-inherit-from-waveguide">classes that inherit from <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.CircularStepIndexFiber"><code class="docutils literal notranslate"><span class="pre">CircularStepIndexFiber</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.CircularStepIndexFiber.__init__"><code class="docutils literal notranslate"><span class="pre">CircularStepIndexFiber.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.RectangularStepIndexFiber"><code class="docutils literal notranslate"><span class="pre">RectangularStepIndexFiber</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.RectangularStepIndexFiber.__init__"><code class="docutils literal notranslate"><span class="pre">RectangularStepIndexFiber.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Dicoupler"><code class="docutils literal notranslate"><span class="pre">Dicoupler</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Dicoupler.__init__"><code class="docutils literal notranslate"><span class="pre">Dicoupler.__init__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Dicoupler.plot_paths"><code class="docutils literal notranslate"><span class="pre">Dicoupler.plot_paths()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Tricoupler"><code class="docutils literal notranslate"><span class="pre">Tricoupler</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Tricoupler.__init__"><code class="docutils literal notranslate"><span class="pre">Tricoupler.__init__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Tricoupler.plot_paths"><code class="docutils literal notranslate"><span class="pre">Tricoupler.plot_paths()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.PhotonicLantern"><code class="docutils literal notranslate"><span class="pre">PhotonicLantern</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.PhotonicLantern.__init__"><code class="docutils literal notranslate"><span class="pre">PhotonicLantern.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.TestPhotonicLantern"><code class="docutils literal notranslate"><span class="pre">TestPhotonicLantern</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prim3d-class">Prim3D class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D"><code class="docutils literal notranslate"><span class="pre">Prim3D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.__init__"><code class="docutils literal notranslate"><span class="pre">Prim3D.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.make_points_at_z"><code class="docutils literal notranslate"><span class="pre">Prim3D.make_points_at_z()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.transform_point_inside"><code class="docutils literal notranslate"><span class="pre">Prim3D.transform_point_inside()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.update"><code class="docutils literal notranslate"><span class="pre">Prim3D.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim3D.preserve_shape"><code class="docutils literal notranslate"><span class="pre">Prim3D.preserve_shape</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes-that-inherit-from-prim3d">classes that inherit from <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Pipe"><code class="docutils literal notranslate"><span class="pre">Pipe</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Pipe.__init__"><code class="docutils literal notranslate"><span class="pre">Pipe.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.BoxPipe"><code class="docutils literal notranslate"><span class="pre">BoxPipe</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.BoxPipe.__init__"><code class="docutils literal notranslate"><span class="pre">BoxPipe.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prim2d-class">Prim2D class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D"><code class="docutils literal notranslate"><span class="pre">Prim2D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.__init__"><code class="docutils literal notranslate"><span class="pre">Prim2D.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.boundary_dist"><code class="docutils literal notranslate"><span class="pre">Prim2D.boundary_dist()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.make_points"><code class="docutils literal notranslate"><span class="pre">Prim2D.make_points()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.nearest_boundary_point"><code class="docutils literal notranslate"><span class="pre">Prim2D.nearest_boundary_point()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.plot_mesh"><code class="docutils literal notranslate"><span class="pre">Prim2D.plot_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2D.update"><code class="docutils literal notranslate"><span class="pre">Prim2D.update()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes-that-inherit-from-prim2d">classes that inherit from <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Circle"><code class="docutils literal notranslate"><span class="pre">Circle</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Circle.make_points"><code class="docutils literal notranslate"><span class="pre">Circle.make_points()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Rectangle"><code class="docutils literal notranslate"><span class="pre">Rectangle</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Rectangle.make_points"><code class="docutils literal notranslate"><span class="pre">Rectangle.make_points()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2DUnion"><code class="docutils literal notranslate"><span class="pre">Prim2DUnion</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2DUnion.__init__"><code class="docutils literal notranslate"><span class="pre">Prim2DUnion.__init__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Prim2DUnion.make_points"><code class="docutils literal notranslate"><span class="pre">Prim2DUnion.make_points()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jon Lin
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jon Lin.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1094 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cbeam.propagator &#8212; cbeam 0.0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="_static/documentation_options.js?v=e645c8fa"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cbeam.propagator';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cbeam.FEval" href="cbeam.FEval.html" />
+    <link rel="prev" title="cbeam.waveguide" href="cbeam.waveguide.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">cbeam 0.0.1 documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. evaluating fields</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="reference.html">reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cbeam.waveguide.html">cbeam.waveguide</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">cbeam.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbeam.FEval.html">cbeam.FEval</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/cbeam.propagator.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>cbeam.propagator</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#propagator-class">Propagator class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.apply_phase"><code class="docutils literal notranslate"><span class="pre">Propagator.apply_phase()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.backpropagate"><code class="docutils literal notranslate"><span class="pre">Propagator.backpropagate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.characterize"><code class="docutils literal notranslate"><span class="pre">Propagator.characterize()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_change_of_basis"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_change_of_basis()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_cmats"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_cmats()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_isolated_basis"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_isolated_basis()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_modes"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_modes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_neffs"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_neffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.correct_degeneracy"><code class="docutils literal notranslate"><span class="pre">Propagator.correct_degeneracy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.generate_mesh"><code class="docutils literal notranslate"><span class="pre">Propagator.generate_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.get_cmat"><code class="docutils literal notranslate"><span class="pre">Propagator.get_cmat()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.get_int_neff"><code class="docutils literal notranslate"><span class="pre">Propagator.get_int_neff()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.get_neff"><code class="docutils literal notranslate"><span class="pre">Propagator.get_neff()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.inner_product"><code class="docutils literal notranslate"><span class="pre">Propagator.inner_product()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_field"><code class="docutils literal notranslate"><span class="pre">Propagator.make_field()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_interp_funcs"><code class="docutils literal notranslate"><span class="pre">Propagator.make_interp_funcs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_mesh_at_z"><code class="docutils literal notranslate"><span class="pre">Propagator.make_mesh_at_z()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_sign_consistent"><code class="docutils literal notranslate"><span class="pre">Propagator.make_sign_consistent()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_cfield"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_cfield()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_coupling_coeffs"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_coupling_coeffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_field"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_field()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_mode_powers"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_mode_powers()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_neff_diffs"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_neff_diffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_neffs"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_neffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_waveguide_mode"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_waveguide_mode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.propagate"><code class="docutils literal notranslate"><span class="pre">Propagator.propagate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.solve_at"><code class="docutils literal notranslate"><span class="pre">Propagator.solve_at()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.swap_modes"><code class="docutils literal notranslate"><span class="pre">Propagator.swap_modes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.to_channel_basis"><code class="docutils literal notranslate"><span class="pre">Propagator.to_channel_basis()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.WKB"><code class="docutils literal notranslate"><span class="pre">Propagator.WKB</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.cmat_correction_mode"><code class="docutils literal notranslate"><span class="pre">Propagator.cmat_correction_mode</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.degen_groups"><code class="docutils literal notranslate"><span class="pre">Propagator.degen_groups</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.fixed_zstep"><code class="docutils literal notranslate"><span class="pre">Propagator.fixed_zstep</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.max_zstep"><code class="docutils literal notranslate"><span class="pre">Propagator.max_zstep</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.min_zstep"><code class="docutils literal notranslate"><span class="pre">Propagator.min_zstep</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.solver"><code class="docutils literal notranslate"><span class="pre">Propagator.solver</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.zstep_tol"><code class="docutils literal notranslate"><span class="pre">Propagator.zstep_tol</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="cbeam-propagator">
+<h1>cbeam.propagator<a class="headerlink" href="#cbeam-propagator" title="Link to this heading">#</a></h1>
+<p>This page contains the documentation for the <code class="docutils literal notranslate"><span class="pre">propagator</span></code> submodule, which handles all things related to characterizing a <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code> and propagating light through it.</p>
+<section id="propagator-class">
+<h2>Propagator class<a class="headerlink" href="#propagator-class" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.propagator.</span></span><span class="sig-name descname"><span class="pre">Propagator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="cbeam.waveguide.html#cbeam.waveguide.Waveguide" title="cbeam.waveguide.Waveguide"><span class="pre">Waveguide</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator" title="Link to this definition">#</a></dt>
+<dd><p>class for coupled mode propagation of tapered waveguides</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.apply_phase">
+<span class="sig-name descname"><span class="pre">apply_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.apply_phase" title="Link to this definition">#</a></dt>
+<dd><p>apply <span class="math notranslate nohighlight">\(e^{i \beta_j z}\)</span> phase variation to the mode amplitude of eigenmode j
+with propagation constant <span class="math notranslate nohighlight">\(\beta_j\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> – mode amplitude vector</p></li>
+<li><p><strong>z</strong> – z coord. that u is evaluated at</p></li>
+<li><p><strong>zi</strong> (<em>opt.</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.backpropagate">
+<span class="sig-name descname"><span class="pre">backpropagate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.backpropagate" title="Link to this definition">#</a></dt>
+<dd><p>propagate a wavefront from the back of the waveguide to the front</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.characterize">
+<span class="sig-name descname"><span class="pre">characterize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.characterize" title="Link to this definition">#</a></dt>
+<dd><p>compute the modes and coupling coefficients of the currently loaded waveguide</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zi</strong> – initial z coordinate, default 0</p></li>
+<li><p><strong>zf</strong> – final z coordinate. if None, just return the value at zi</p></li>
+<li><p><strong>mesh</strong> – (optional) a mesh object if you don’t want to use the auto-generated, default mesh</p></li>
+<li><p><strong>tag</strong> – a string identifier which will be attached to any saved files</p></li>
+<li><p><strong>save</strong> – set True to save function output (z values, effective indices, modes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>a tuple containing:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>zs: array of z coordinates</p></li>
+<li><p>neffs: array of effective indices computed on zs; 0th axis is “z axis”</p></li>
+<li><p>vs: eigenmodes computed on zs; 0th axis is “z axis”</p></li>
+<li><p>cmats: coupling coefficients computed on zs; 0th axis is “z axis”</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.compute_change_of_basis">
+<span class="sig-name descname"><span class="pre">compute_change_of_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newbasis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.compute_change_of_basis" title="Link to this definition">#</a></dt>
+<dd><p>compute the (N x N) change of basis matrix between the current N-dimensional eigenbasis at z and a new basis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>newbasis</strong> – MxN array of N eigenmodes computed over M mesh points, which we want to expand in</p></li>
+<li><p><strong>z</strong> – z coordinate at which the currently loaded eigenbasis should be evaluated</p></li>
+<li><p><strong>u</strong> – (optional) Nx1 modal vector to express in new basis</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nmax x Nmax change of basis matrix and the vector u in the new basis, if u was provided.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>cob, _u</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.compute_cmats">
+<span class="sig-name descname"><span class="pre">compute_cmats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.compute_cmats" title="Link to this definition">#</a></dt>
+<dd><p>compute the coupling coefficient matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zs</strong> – array of z values for the mode array (next arg). if None, use self.zs</p></li>
+<li><p><strong>vs</strong> – array of eigenmodes</p></li>
+<li><p><strong>mesh</strong> – finite element mesh of the modes</p></li>
+<li><p><strong>tag</strong> – a string identifier which will be attached to any saved files</p></li>
+<li><p><strong>save</strong> – set True to save function output (z values, effective indices, modes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>coupling coefficient matrices calculated at each z value</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>cmats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.compute_isolated_basis">
+<span class="sig-name descname"><span class="pre">compute_isolated_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.compute_isolated_basis" title="Link to this definition">#</a></dt>
+<dd><p>compute the eigenbasis corresponding to “isolated” channels of the waveguide.
+this only makes sense for waveguides such as PhotonicLantern, Dicoupler, and Tricoupler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> – z coordinate of eigenbasis. if None, this defaults to the end of the waveguide.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the new basis</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.compute_modes">
+<span class="sig-name descname"><span class="pre">compute_modes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.compute_modes" title="Link to this definition">#</a></dt>
+<dd><p>compute the modes through the waveguide, using an adaptive stepping scheme. this requires
+greater accuracy in z than get_neffs() since mode shapes may change rapidly even if
+eigenvalues do not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zi</strong> – initial z coordinate, if None zi=0</p></li>
+<li><p><strong>zf</strong> – final z coordinate. if None zf is the waveguide length</p></li>
+<li><p><strong>mesh</strong> – (optional) a mesh object if you don’t want to use the auto-generated, default mesh</p></li>
+<li><p><strong>tag</strong> – a string identifier which will be attached to any saved files</p></li>
+<li><p><strong>save</strong> – set True to save function output (z values, effective indices, modes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>array of z coordinates
+neffs: array of effective indices computed on zs
+vs:modes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>zs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.compute_neffs">
+<span class="sig-name descname"><span class="pre">compute_neffs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.compute_neffs" title="Link to this definition">#</a></dt>
+<dd><p>compute the effective refractive indices through a waveguide, using an adaptive step scheme. also saves interpolation functions to self.neffs_funcs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zi</strong> – initial z coordinate</p></li>
+<li><p><strong>zf</strong> – final z coordinate. if None, just return the value at zi</p></li>
+<li><p><strong>tol</strong> – maximum error between an neff value computed at a proposed z step and the extrapolated value from previous points</p></li>
+<li><p><strong>mesh</strong> – (optional) a mesh object if you don’t want to use the auto-generated, default mesh</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>a tuple containing:</dt><dd><ul class="simple">
+<li><p>zs: array of z coordinates</p></li>
+<li><p>neffs: array of effective indices computed on zs</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.correct_degeneracy">
+<span class="sig-name descname"><span class="pre">correct_degeneracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.correct_degeneracy" title="Link to this definition">#</a></dt>
+<dd><p>used least-squares minimization to transform modes _v so that they match v. mutates _v</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group</strong> – a list of mode indexes setting which modes are to be considered degenerate.</p></li>
+<li><p><strong>v</strong> – the mode basis we want to match</p></li>
+<li><p><strong>_v</strong> – the mode basis we want to transform. We are allowed to apply a unitary transformation over the
+modes specified by group.</p></li>
+<li><p><strong>q</strong> (<em>opt.</em>) – if not None, q is taken as the transformation matrix. if None, q is computed through lsq min.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>a tuple containing:</dt><dd><ul class="simple">
+<li><p>v: the original mode basis</p></li>
+<li><p>_v: the transformed mode basis</p></li>
+<li><p>q: the change-of-basis matrix</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.generate_mesh">
+<span class="sig-name descname"><span class="pre">generate_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">writeto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.generate_mesh" title="Link to this definition">#</a></dt>
+<dd><p>generate a mesh for the loaded waveguide according to class attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>writeto</strong> (<em>str</em><em> or </em><em>None</em>) – set to a str (the filename) to write the mesh to file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.get_cmat">
+<span class="sig-name descname"><span class="pre">get_cmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.get_cmat" title="Link to this definition">#</a></dt>
+<dd><p>using interpolation, compute the cross-coupling matrix at z</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.get_int_neff">
+<span class="sig-name descname"><span class="pre">get_int_neff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.get_int_neff" title="Link to this definition">#</a></dt>
+<dd><p>compute the antiderivative of the mode effective indices at z</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.get_neff">
+<span class="sig-name descname"><span class="pre">get_neff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.get_neff" title="Link to this definition">#</a></dt>
+<dd><p>using interpolation, compute the array of mode effective indices at z</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.inner_product">
+<span class="sig-name descname"><span class="pre">inner_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.inner_product" title="Link to this definition">#</a></dt>
+<dd><p>compute the inner product (or overlap integral) between fields v1 &amp; v2, which are on the same mesh.
+this requires mesh information, either by passing in the mesh explicitly or by
+passing in the B matrix. this is the matrix on the RHS of the generalized
+eigenvalue problem and can be calculated e.g. with wavesolve.FEsolver.construct_B()</p>
+<p>the inner product is v1.T * B * v2 , where * is matrix mul.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.make_field">
+<span class="sig-name descname"><span class="pre">make_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode_amps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.make_field" title="Link to this definition">#</a></dt>
+<dd><p>construct the finite element field corresponding to the modal vector u and the eigenbasis at z.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_amps</strong> – the modal vector expressing the field (with the fast e^{i beta z}) phase oscillation factored</p></li>
+<li><p><strong>z</strong> – the z coordinate corresponding to u</p></li>
+<li><p><strong>plot</strong> (<em>opt.</em>) – set True to auto-plot the norm of the field.</p></li>
+<li><p><strong>apply_phase</strong> (<em>bool</em>) – whether the <span class="math notranslate nohighlight">\(e^{i\beta_j z}\)</span> phase factor
+needs to be applied to mode_amps; default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the field evaluated on the mesh nodes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.make_interp_funcs">
+<span class="sig-name descname"><span class="pre">make_interp_funcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_neff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_cmat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_v</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.make_interp_funcs" title="Link to this definition">#</a></dt>
+<dd><p>construct interpolation functions for coupling matrices and mode effective indices,
+loaded into self.cmats and self.neffs, which were computed on an array of z values self.zs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.make_mesh_at_z">
+<span class="sig-name descname"><span class="pre">make_mesh_at_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.make_mesh_at_z" title="Link to this definition">#</a></dt>
+<dd><p>make the mesh corresponding to the waveguide cross-section at z.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> – z coordinate for the mesh.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the corresponding mesh at z.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(meshio mesh)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.make_sign_consistent">
+<span class="sig-name descname"><span class="pre">make_sign_consistent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.make_sign_consistent" title="Link to this definition">#</a></dt>
+<dd><p>alter the eigenmodes _v, assumed to be similar to v, so that they
+have consistent overall sign with v.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.plot_cfield">
+<span class="sig-name descname"><span class="pre">plot_cfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.plot_cfield" title="Link to this definition">#</a></dt>
+<dd><p>plot a complex-valued field evaluated a finite element mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field</strong> – the complex field to be plotted</p></li>
+<li><p><strong>z</strong> – the z value along the waveguide corresponding to field. alternatively, explicitly pass the mext arg</p></li>
+<li><p><strong>mesh</strong> – the finite element mesh corresponding to field</p></li>
+<li><p><strong>fig</strong> – matplotlib figure and axis objects; if None, a new fig,ax is created</p></li>
+<li><p><strong>ax</strong> – matplotlib figure and axis objects; if None, a new fig,ax is created</p></li>
+<li><p><strong>show_mesh</strong> – shows the edges of the FE mesh in the plot</p></li>
+<li><p><strong>res</strong> – the field will be evaluated on an res x res grid to form the plot</p></li>
+<li><p><strong>tree</strong> – explicitly pass in the BVH tree for the FE mesh (you don’t need to do this unless you want more speed)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.plot_coupling_coeffs">
+<span class="sig-name descname"><span class="pre">plot_coupling_coeffs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.plot_coupling_coeffs" title="Link to this definition">#</a></dt>
+<dd><p>plot coupling coefficient matrix vs z values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.plot_field">
+<span class="sig-name descname"><span class="pre">plot_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.plot_field" title="Link to this definition">#</a></dt>
+<dd><p>plot a real-valued finite element field, evaluated on the points of the mesh corresponding to the waveguide cross-section at z.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field</strong> – the finite element field to plot, e.g. the output of make_field() or an eigenmode (a row of self.vs)</p></li>
+<li><p><strong>z</strong> – the z coordinate corresponding to field</p></li>
+<li><p><strong>mesh</strong> (<em>opt.</em>) – the mesh object defining the points that field is evaluated on. If None, a mesh will be auto-generated</p></li>
+<li><p><strong>ax</strong> (<em>opt.</em>) – a matplotlib axis where the plot should go. if not None, you will need to call matplotlib.pyplot.show() manually</p></li>
+<li><p><strong>show_mesh</strong> (<em>opt.</em>) – whether or not to draw the mesh in the plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.plot_mode_powers">
+<span class="sig-name descname"><span class="pre">plot_mode_powers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.plot_mode_powers" title="Link to this definition">#</a></dt>
+<dd><p>plot mode powers against <span class="math notranslate nohighlight">\(z\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zs</strong> – array of <span class="math notranslate nohighlight">\(z\)</span> values.</p></li>
+<li><p><strong>us</strong> – array of mode amplitudes, e.g. from propagate(). the first axis corresponds to z.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.plot_neff_diffs">
+<span class="sig-name descname"><span class="pre">plot_neff_diffs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.plot_neff_diffs" title="Link to this definition">#</a></dt>
+<dd><p>plot the difference between the effective index of each mode and that of the fundamental, on y-semilog</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.plot_neffs">
+<span class="sig-name descname"><span class="pre">plot_neffs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.plot_neffs" title="Link to this definition">#</a></dt>
+<dd><p>plot the effective indices of the eigenmodes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.plot_waveguide_mode">
+<span class="sig-name descname"><span class="pre">plot_waveguide_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.plot_waveguide_mode" title="Link to this definition">#</a></dt>
+<dd><p>plot the real-valued eigenmode &lt;idx&gt; of the current waveguide, from modes saved in self.vs .
+this plot comes with a z-slider, which can be moved to see how mode changes along the guide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>idx</strong> – the index of the mode to be plotted (mode 0,1,2…)</p></li>
+<li><p><strong>fig</strong> – matplotlib figure object; if None, one will be made</p></li>
+<li><p><strong>ax</strong> – matplotlib axis objects; if None, one will be made</p></li>
+<li><p><strong>animate</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the slider object. a reference to the slider needs to be kept to prevent garbage collection from removing it.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(matplotlib.widgets.slider)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.propagate">
+<span class="sig-name descname"><span class="pre">propagate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.propagate" title="Link to this definition">#</a></dt>
+<dd><p>propagate a launch wavefront, expressed in the basis of initial eigenmodes, to z = zf</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u0</strong> – the launch field, expressed as mode amplitudes of the initial eigenmode basis.</p></li>
+<li><p><strong>zi</strong> – the initial z coordinate corresponding to u0. if None, use the initial z value used in characterize().</p></li>
+<li><p><strong>zf</strong> – the final z coordinate to propagate through to. if None, use the final z value used in characterize().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>a tuple containing:</dt><dd><ul class="simple">
+<li><p>zs: the array of z values used by the ODE solver</p></li>
+<li><p>u: the mode amplitudes of the wavefront, evaluated along za, with <span class="math notranslate nohighlight">\(e^{i\beta_j z}\)</span> phase factored <em>out</em>.</p></li>
+<li><p>uf: the final mode amplitudes of the wavefront, with <span class="math notranslate nohighlight">\(e^{i\beta_j z}\)</span> phase factored <em>in</em>.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.solve_at">
+<span class="sig-name descname"><span class="pre">solve_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.solve_at" title="Link to this definition">#</a></dt>
+<dd><p>solve for waveguide modes at given z value. returns effective indices and eigenmodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>float</em>) – z coordinate along the waveguide for the solve</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>a tuple containing:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>neff : an array of effective indices</p></li>
+<li><p>v : an array of eigenmodes, dimensions NxM for N modes and M mesh points</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.swap_modes">
+<span class="sig-name descname"><span class="pre">swap_modes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_w</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.swap_modes" title="Link to this definition">#</a></dt>
+<dd><p>swap modes in _v so they match their arrangement in v - useful for tracking
+modes through eigenvalue crossings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> – the mode basis we want to match</p></li>
+<li><p><strong>_v</strong> – the mode basis we want to swap</p></li>
+<li><p><strong>_w</strong> – the eigenvalues of _v, which also need to be swapped.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>a tuple containing:</dt><dd><ul class="simple">
+<li><p>the swapped mode array</p></li>
+<li><p>the swapped eigenvalue array</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.to_channel_basis">
+<span class="sig-name descname"><span class="pre">to_channel_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.propagator.Propagator.to_channel_basis" title="Link to this definition">#</a></dt>
+<dd><p>convert mode amplitude vector to basis of channel eigenmodes.
+this only makes sense if the waveguide has defined output channels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>uf</strong> – mode amplitude vector (phase factored <em>in</em>)</p></li>
+<li><p><strong>z</strong> – z coordinate. if None, z is set to the end of the waveguide.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the vector of mode amplitudes in output channel basis.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(vector)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.WKB">
+<span class="sig-name descname"><span class="pre">WKB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.WKB" title="Link to this definition">#</a></dt>
+<dd><p>whether to add the WKB-like correction to the coupled mode equations (usually negligible)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.cmat_correction_mode">
+<span class="sig-name descname"><span class="pre">cmat_correction_mode</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'from_interp'</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.cmat_correction_mode" title="Link to this definition">#</a></dt>
+<dd><p>mode for coupling matrix calculation, “from_wvg” or “from_interp”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.degen_groups">
+<span class="sig-name descname"><span class="pre">degen_groups</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.degen_groups" title="Link to this definition">#</a></dt>
+<dd><p>used to explicitly specify degenerate mode groups in the guide; this can greatly speed up computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.fixed_zstep">
+<span class="sig-name descname"><span class="pre">fixed_zstep</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.fixed_zstep" title="Link to this definition">#</a></dt>
+<dd><p>set to a numeric value to use a fixed zstep</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.max_zstep">
+<span class="sig-name descname"><span class="pre">max_zstep</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">640.0</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.max_zstep" title="Link to this definition">#</a></dt>
+<dd><p>maximum z step value when computing modes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.min_zstep">
+<span class="sig-name descname"><span class="pre">min_zstep</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.25</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.min_zstep" title="Link to this definition">#</a></dt>
+<dd><p>minimum z step value when computing modes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.solver">
+<span class="sig-name descname"><span class="pre">solver</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'RK45'</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.solver" title="Link to this definition">#</a></dt>
+<dd><p>solving method for scipy’s solve_ivp, default “RK45”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.propagator.Propagator.zstep_tol">
+<span class="sig-name descname"><span class="pre">zstep_tol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#cbeam.propagator.Propagator.zstep_tol" title="Link to this definition">#</a></dt>
+<dd><p>controls how adaptive stepping level. lower = more steps (better z resolution)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="cbeam.waveguide.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">cbeam.waveguide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cbeam.FEval.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">cbeam.FEval</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#propagator-class">Propagator class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.apply_phase"><code class="docutils literal notranslate"><span class="pre">Propagator.apply_phase()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.backpropagate"><code class="docutils literal notranslate"><span class="pre">Propagator.backpropagate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.characterize"><code class="docutils literal notranslate"><span class="pre">Propagator.characterize()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_change_of_basis"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_change_of_basis()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_cmats"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_cmats()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_isolated_basis"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_isolated_basis()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_modes"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_modes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.compute_neffs"><code class="docutils literal notranslate"><span class="pre">Propagator.compute_neffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.correct_degeneracy"><code class="docutils literal notranslate"><span class="pre">Propagator.correct_degeneracy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.generate_mesh"><code class="docutils literal notranslate"><span class="pre">Propagator.generate_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.get_cmat"><code class="docutils literal notranslate"><span class="pre">Propagator.get_cmat()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.get_int_neff"><code class="docutils literal notranslate"><span class="pre">Propagator.get_int_neff()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.get_neff"><code class="docutils literal notranslate"><span class="pre">Propagator.get_neff()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.inner_product"><code class="docutils literal notranslate"><span class="pre">Propagator.inner_product()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_field"><code class="docutils literal notranslate"><span class="pre">Propagator.make_field()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_interp_funcs"><code class="docutils literal notranslate"><span class="pre">Propagator.make_interp_funcs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_mesh_at_z"><code class="docutils literal notranslate"><span class="pre">Propagator.make_mesh_at_z()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.make_sign_consistent"><code class="docutils literal notranslate"><span class="pre">Propagator.make_sign_consistent()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_cfield"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_cfield()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_coupling_coeffs"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_coupling_coeffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_field"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_field()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_mode_powers"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_mode_powers()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_neff_diffs"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_neff_diffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_neffs"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_neffs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.plot_waveguide_mode"><code class="docutils literal notranslate"><span class="pre">Propagator.plot_waveguide_mode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.propagate"><code class="docutils literal notranslate"><span class="pre">Propagator.propagate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.solve_at"><code class="docutils literal notranslate"><span class="pre">Propagator.solve_at()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.swap_modes"><code class="docutils literal notranslate"><span class="pre">Propagator.swap_modes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.to_channel_basis"><code class="docutils literal notranslate"><span class="pre">Propagator.to_channel_basis()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.WKB"><code class="docutils literal notranslate"><span class="pre">Propagator.WKB</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.cmat_correction_mode"><code class="docutils literal notranslate"><span class="pre">Propagator.cmat_correction_mode</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.degen_groups"><code class="docutils literal notranslate"><span class="pre">Propagator.degen_groups</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.fixed_zstep"><code class="docutils literal notranslate"><span class="pre">Propagator.fixed_zstep</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.max_zstep"><code class="docutils literal notranslate"><span class="pre">Propagator.max_zstep</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.min_zstep"><code class="docutils literal notranslate"><span class="pre">Propagator.min_zstep</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.solver"><code class="docutils literal notranslate"><span class="pre">Propagator.solver</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.propagator.Propagator.zstep_tol"><code class="docutils literal notranslate"><span class="pre">Propagator.zstep_tol</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jon Lin
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jon Lin.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

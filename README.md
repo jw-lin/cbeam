@@ -1,0 +1,1 @@
+this is (will be) a propagator for slowly-varying and weakly-guiding waveguides (near-adiabatic, hence the "slow"). kind of ironic because if everything goes to plan this should be way faster than `lightbeam` lol

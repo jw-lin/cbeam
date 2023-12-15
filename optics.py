@@ -10,7 +10,11 @@ def boolean_fragment(geom:pygmsh.occ.Geometry,object,tool):
     """
     object_copy = geom.copy(object)
     tool_copy = geom.copy(tool)
-    intersection = geom.boolean_intersection([object_copy,tool_copy])
+    try:
+        intersection = geom.boolean_intersection([object_copy,tool_copy])
+    except:
+        # no intersection - make first element None to signal
+        return [None,object,tool]
 
     object = geom.boolean_difference(object,intersection,delete_first=True,delete_other=False)
     tool = geom.boolean_difference(tool,intersection,delete_first=True,delete_other=False)
@@ -220,7 +224,23 @@ class waveguide:
                 _group = elmnts[i+1]
                 for j,fragroup in enumerate(group):
                     for _fragroup in _group:
-                        fragroup = geom.boolean_difference(fragroup,_fragroup,delete_first=True,delete_other=False)
+                        idx = 0
+                        _idx = 0
+                        if type(fragroup) == list and fragroup[0] is None:
+                            idx = 1
+                        if type(_fragroup) == list and _fragroup[0] is None:
+                            _idx = 1
+
+                        if type(fragroup) == list:
+                            if type(_fragroup) == list:
+                                fragroup[idx:] = geom.boolean_difference(fragroup[idx:],_fragroup[_idx:],delete_first=True,delete_other=False)
+                            else:
+                                fragroup[idx:] = geom.boolean_difference(fragroup[idx:],_fragroup,delete_first=True,delete_other=False)
+                        else:
+                            if type(_fragroup) == list:
+                                fragroup = geom.boolean_difference(fragroup,_fragroup[_idx:],delete_first=True,delete_other=False)
+                            else:
+                                fragroup = geom.boolean_difference(fragroup,_fragroup,delete_first=True,delete_other=False)
 
             #add labels
 
@@ -237,7 +257,8 @@ class waveguide:
                             fragroup01.append(sublayer[0])
                             fragroup1.append(sublayer[1])
                         elif len(sublayer)==3:
-                            fragroup01.append(sublayer[0])
+                            if sublayer[0] is not None:
+                                fragroup01.append(sublayer[0])
                             fragroup0.append(sublayer[1])
                             fragroup1.append(sublayer[2])
                         else:

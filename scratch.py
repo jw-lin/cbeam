@@ -59,8 +59,25 @@ lant = optics.linear_lantern(core_pos,ms_rcores,rclad,rjack,[ncore]*6,nclad,njac
 #lant.advance_IOR(_dict)
 #plot_mesh(_m,_dict)
 
+# linearity test
 import propagator
 adprop = propagator.prop(wl,lant,6)
+
+dzs = np.linspace(1,10,30)
+coupling_mats = []
+for dz in dzs:
+    coupling_mat = adprop.compute_coupling_matrix(0,dz)
+    coupling_mats.append(coupling_mat)
+
+coupling_mats = np.array(coupling_mats)
+
+for i in range(coupling_mats.shape[1]):
+    for j in range(coupling_mats.shape[2]):
+        plt.plot(dzs,np.abs(coupling_mats[:,i,j]))
+
+plt.show()
+
+"""
 
 z_arr = np.linspace(0,z_ex,60)
 phase_delay_funcs = adprop.get_phase_funcs(z_arr)
@@ -77,7 +94,7 @@ plt.show()
 #mat = adprop.compute_coupling_matrix(50,10)
 #plt.imshow(mat)
 #plt.show()
-
+"""
 
 """
 m = lant.make_mesh()

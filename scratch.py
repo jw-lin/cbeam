@@ -43,7 +43,7 @@ ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset
 
 core_pos = np.array([xpos_i,ypos_i]).T
 
-lant = optics.linear_lantern(core_pos,ms_rcores,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,12)
+lant = optics.linear_lantern(core_pos,ms_rcores,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,12,clad_res=32)
 #lant = optics.linear_lantern(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,12)
 #lant.update(0)
 #dict = lant.assign_IOR()
@@ -63,13 +63,13 @@ lant = optics.linear_lantern(core_pos,ms_rcores,rclad,rjack,[ncore]*6,nclad,njac
 import propagator
 adprop = propagator.prop(wl,lant,6)
 adprop.get_init_sign()
-print(adprop.signs)
 
-zs = np.linspace(0,z_ex/10,10)
-dz=50
+#zs = np.linspace(0,z_ex/10,10)
+zs = np.arange(10000,15000,50)
+dz=25
 coupling_mats = []
 for z in zs:
-    coupling_mat = adprop.compute_coupling_matrix(z,dz)
+    coupling_mat = adprop.compute_coupling_matrix(z,dz,plot=False)
     coupling_mats.append(coupling_mat)
 
 coupling_mats = np.array(coupling_mats)

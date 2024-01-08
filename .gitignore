@@ -1,2 +1,7 @@
 __pycache__
+settings.json
 *.cpython
+*.npy
+*.msh
+BVHtree/.CondaPkg/
+Manifest.toml

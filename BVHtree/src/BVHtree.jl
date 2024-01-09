@@ -1,7 +1,6 @@
 module BVHtree
 
 # simple bounding volume hierarchy (BVH) tree for triangles
-using NPZ
 using PythonCall
 
 struct leaf

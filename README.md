@@ -1,6 +1,6 @@
 # Overview
 
-this is (will be) a propagator for slowly-varying and weakly-guiding waveguides (quasi-adiabatic, hence the "slow"). kind of ironic because if everything goes to plan this should be way faster than `lightbeam` lol.
+this is (will be) a propagator for slowly-varying and weakly-guiding waveguides.
 
 ## dependencies
 Python: `numpy`,`scipy`,`juliacall`,`wavesolve`,`pygmsh`,`meshio`,`matplotlib`
@@ -11,7 +11,7 @@ General: `Gmsh`
 
 ## details
 
-this package uses a coupled-mode approach to simulate propagation through waveguides. some notes: 
+this package uses a coupled-mode approach to simulate propagation through waveguides (hence the name). some notes: 
 
 1. currently, only tapered waveguides, whose cross-sectional geometries are assumed to scale uniformly with propagation distance, are supported.
 2. eigenmodes are computed using `wavesolve`, a finite element mode solver, which in turn uses a sparse solver from `scipy` to solve the generalized eigenvalue problem.

@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 # 5. run make_interp_funcs() to set up the interpolation functions
 # 6. run propagate()
 
+# example below
+
 ### lantern params ###
 
 wl = 1.55
@@ -33,62 +35,66 @@ ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset
 
 core_pos = np.array([xpos_i,ypos_i]).T
 
-# standard lantern
+# 1. create a waveguide (standard lantern()
 lant = optics.photonic_lantern(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res=60,clad_res=150,jack_res=30,clad_mesh_size=1.)
 
-## standard PL results ... 
-# tag '0' core res 50 clad res 150 jack res 30 clad mesh size 1 interp error 5e-4 : 1588 seconds
-# tag '1' core res 40 -> output is not fully symmetrcic : 824 seconds
-# tag '2' core res 50 clad res 120 -> output is not fully symmetric : 796 seconds
-# tag '3' same as std0 i think ? : 1450 seconds
-# tag '4' interp error 1e-3 -> output is not fully symmetric (worst so far): 1223 seconds
-# tag '5' core res 60 : 1139 seconds -> max ~0.01 difference in power between outer ports
-# tag '6' core res 60 interp error 2.5e-4 : 1512 seconds -> max ~0.005 difference
-
 import propagator
+
+# 2. initialize the propagator
 adprop = propagator.prop(wl,lant,6)
 
-#zs,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,20000,save=True,tag="6",max_interp_error=2.5e-4)
+# 3. run prop_setup()
+zs,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag="6",max_interp_error=2.5e-4)
 
+# 4. load the results of prop_setup() from local
 adprop.load(tag="6")
 
-plt.plot(adprop.za,adprop.neff[:,0][:,None]-adprop.neff[:,1:])
+plt.plot(adprop.za,adprop.neff[:,0][:,None]-adprop.neff[:,1:]) # plotting effective index profiles relative to mode 0
 for z in adprop.za:
     plt.axvline(x=z,alpha=0.1,color='k')
+plt.title("neff-neff[0]")
 plt.show()
 
-plt.plot(adprop.za,adprop.neff[:,:-1]-adprop.neff[:,1:])
+plt.plot(adprop.za,adprop.neff[:,:-1]-adprop.neff[:,1:]) # plotting difference in effective index between adjacent modes
+plt.title("neff differences")
 plt.show()
 
 
-for j in range(6):
+for j in range(6): # plotting cross-coupling matrix
     for i in range(j):
         plt.plot(adprop.za,adprop.cmat[:,i,j],label=str(i)+str(j))
 for z in adprop.za:
     plt.axvline(x=z,alpha=0.1,color='k',zorder=-100)
 plt.legend(loc='best')
+plt.title("cross-coupling matrix")
 plt.show()
 
 from wavesolve.fe_solver import plot_eigenvector
 w = np.power(adprop.neff,2)*adprop.k**2
 
-for i in range(5):
+for i in range(5): # looking at differences in eigenvalue (k^2 neff^2)
     plt.semilogy(adprop.za, w[:,i]-w[:,i+1],label=str(i)+str(i+1))
     
 plt.semilogy(adprop.za,w[:,0]-w[:,-1],color='k')
 plt.axhline(y=1e-4,color='k',ls='dashed')
 plt.legend(loc='best')
+plt.title("eigenvalue differences")
 plt.show()
 
+# 5. make interpolation functions
 adprop.make_interp_funcs()
 
-u0 = np.array([1,0,0,0,0,0],dtype=np.complex128)
+u0 = np.array([1,0,0,0,0,0],dtype=np.complex128) # launch LP01
 
-z,u,uf,v = adprop.propagate(u0,20000)
+# 6. propagate
+z,u,uf,v = adprop.propagate(u0,z_ex)
+
 print("final mode amplitudes: ")
 print(np.abs(uf))
 print(np.angle(uf))
-for i in range(6):
+
+
+for i in range(6): # plotting evolution in mode power
     plt.plot(z,np.power(np.abs(u[i]),2),label='mode '+str(i))
 
 plt.plot(z,np.sum(np.power(np.abs(u),2),axis=0),color='k',zorder=-100,label="total power",ls='dashed')
@@ -100,15 +106,13 @@ plt.ylabel("power")
 plt.legend(loc='best')
 plt.show()
 
-fig,axs = plt.subplots(1,2)
+fig,axs = plt.subplots(1,2) # plotting evolution in real and imaginary part of mode amplitude
 for i in range(6):
     axs[0].plot(z,np.real(u[i]),label='mode '+str(i))
     axs[1].plot(z,np.imag(u[i]),label='mode '+str(i))
     axs[0].legend(loc='best')
     axs[1].legend(loc='best')
 plt.show()
-#mesh = lant.make_mesh_bndry_ref(size_scale_fac=0.5,min_mesh_size=0.2,max_mesh_size=10.,_power=1)
-#mesh = lant.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.3,max_mesh_size=10.,_power=1)
 
 mesh = adprop.mesh
 print("final modes: ")
@@ -133,3 +137,11 @@ axs[2].set_title("norm")
 plt.show()
 
 
+## standard PL result notes ... 
+# tag '0' core res 50 clad res 150 jack res 30 clad mesh size 1 interp error 5e-4 : 1588 seconds
+# tag '1' core res 40 -> output is not fully symmetrcic : 824 seconds
+# tag '2' core res 50 clad res 120 -> output is not fully symmetric : 796 seconds
+# tag '3' same as std0 i think ? : 1450 seconds
+# tag '4' interp error 1e-3 -> output is not fully symmetric (worst so far): 1223 seconds
+# tag '5' core res 60 : 1139 seconds -> max ~0.01 difference in power between outer ports
+# tag '6' core res 60 interp error 2.5e-4 : 1512 seconds -> max ~0.005 difference

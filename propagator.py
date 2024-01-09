@@ -1,8 +1,8 @@
 import numpy as np
-from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,plot_eigenvector,isinside
+from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse
 from optics import waveguide
 from scipy.interpolate import UnivariateSpline
-import BVHtree
+import FEinterp
 import copy
 from scipy.integrate import solve_ivp
 from scipy.linalg import norm
@@ -204,7 +204,7 @@ class prop:
         mesh.points = points0*scale_facm
         w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
         tripoints = mesh.points[mesh.cells[1].data,:2]
-        meshtree = BVHtree.create_tree(tripoints[:,:3,:])
+        meshtree = FEinterp.create_tree(tripoints[:,:3,:])
 
         # plus step
         _mesh.points = points0*scale_facp
@@ -224,7 +224,7 @@ class prop:
 
         vinterp = np.copy(_v)
 
-        triidxs,interpweights = BVHtree.get_idxs_and_weights(_mesh.points,meshtree)
+        triidxs,interpweights = FEinterp.get_idxs_and_weights(_mesh.points,meshtree)
 
         mask = (triidxs != -1)
         for k,vec in enumerate(v):
@@ -297,6 +297,7 @@ class prop:
                 if z == zf:
                     break
                 z = min(zf,z+zstep0)
+                print("current z: {0} / {1} ; current zstep: {2}".format(z,zf,zstep0),end="\r",flush=True)
                 continue
 
             # construct spline to test if current z step is small enough
@@ -315,9 +316,9 @@ class prop:
                 if err<0.1*max_interp_error:
                     zstep0*=2
                 z = min(zf,z+zstep0) 
-                print("\rcurrent z: ",z," / ",zf," ; ","current zstep: ",zstep0,end="",flush=True)
+                print("current z: {0} / {1} ; current zstep: {2}".format(z,zf,zstep0),end="\r",flush=True)
             else:
-                print("\rcurrent z: ",z," ; tol. not met, reducing step",end="",flush=True)             
+                print("current z: {0} / {1}; tol. not met, reducing step".format(z,zf),end="\r",flush=True)             
                 z -= zstep0
                 zstep0/=2
                 z += zstep0

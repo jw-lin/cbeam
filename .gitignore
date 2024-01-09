@@ -5,3 +5,4 @@ settings.json
 *.msh
 BVHtree/.CondaPkg/
 Manifest.toml
+data/

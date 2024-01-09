@@ -1,4 +1,4 @@
-module BVHtree
+module FEinterp
 
 # simple bounding volume hierarchy (BVH) tree for triangles
 using PythonCall
@@ -126,20 +126,6 @@ function det(u::Vector{Float64},v::Vector{Float64})
     return u[1]*v[2] - u[2]*v[1]
 end
 
-"""
-function inside(point::Vector{Float64},tri::Array{Float64,2})
-    v1 = tri[1,:]
-    v2 = tri[2,:] - tri[1,:]
-    v3 = tri[3,:] - tri[1,:]
-
-    a = (det(point,v3) - det(v1,v3)) / det(v2,v3)
-    b = -(det(point,v2) - det(v1,v2)) / det(v2,v3)
-
-    return (a>=-eps) & (b>=-eps) & (a+b<=1+eps)
-end
-"""
-
-# CCW ordering
 function inside(point::Vector{Float64},tri::Array{Float64,2},_eps=1e-12)::Bool
     x,y = point
     dot1 = (tri[2,2]-tri[1,2])*(x-tri[1,1]) + (tri[1,1]-tri[2,1])*(y-tri[1,2])
@@ -260,4 +246,4 @@ function get_interp_weights(new_points::PyArray{Float64,2},_tritree::tritree)
     return (_triidxs,_weights)
 end
 
-end # module BVHtree
+end # module FEinterp

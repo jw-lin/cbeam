@@ -3,18 +3,18 @@ from juliacall import Pkg as jlPkg
 import numpy as np
 
 
-jlPkg.activate("BVHtree") 
-jl.seval("using BVHtree")
+jlPkg.activate("FEinterp") 
+jl.seval("using FEinterp")
 
 def create_tree(tripoints):
-    return jl.BVHtree.construct_tritree(tripoints)
+    return jl.FEinterp.construct_tritree(tripoints)
 
 def query(point,tree):
-    jl_idx = jl.BVHtree.query(point,tree)
+    jl_idx = jl.FEinterp.query(point,tree)
     return jl_idx-1
 
 def get_idxs_and_weights(new_points,tree):
-    triidxs,interpweights = jl.BVHtree.get_interp_weights(new_points,tree)
+    triidxs,interpweights = jl.FEinterp.get_interp_weights(new_points,tree)
     return np.array(triidxs)-1,np.array(interpweights)
 
 

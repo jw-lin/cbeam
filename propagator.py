@@ -297,7 +297,7 @@ class prop:
                 if z == zf:
                     break
                 z = min(zf,z+zstep0)
-                print("current z: {0} / {1} ; current zstep: {2}".format(z,zf,zstep0),end="\r",flush=True)
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
                 continue
 
             # construct spline to test if current z step is small enough
@@ -316,9 +316,9 @@ class prop:
                 if err<0.1*max_interp_error:
                     zstep0*=2
                 z = min(zf,z+zstep0) 
-                print("current z: {0} / {1} ; current zstep: {2}".format(z,zf,zstep0),end="\r",flush=True)
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
             else:
-                print("current z: {0} / {1}; tol. not met, reducing step".format(z,zf),end="\r",flush=True)             
+                print("\rcurrent z: {0} / {1}; tol. not met, reducing step        ".format(z,zf),end='',flush=True)             
                 z -= zstep0
                 zstep0/=2
                 z += zstep0

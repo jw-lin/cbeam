@@ -1,21 +1,7 @@
 import pygmsh
 import numpy as np
 import matplotlib.pyplot as plt
-import sys, os
 import gmsh
-
-class HandlePrint():
-    def __init__(self):
-        self.initial_stout = sys.stderr
-
-    def blockPrint(self):
-        sys.stderr = open(os.devnull, 'w')
-        
-    # Restore
-    def resetPrint(self):
-        sys.stderr = self.initial_stout
-
-handleprint = HandlePrint()
 
 def boolean_fragment(geom:pygmsh.occ.Geometry,object,tool):
     """ fragment the tool and the object, and return the fragments in the following order:
@@ -134,6 +120,9 @@ def linear_taper(final_scale,z_ex):
     return _inner_
 
 class waveguide:
+    """ a waveguide is a collection of prim3Ds, organized into layers. the refractive index 
+    of earler layers is overwritten by later layers.
+    """
     skip_layers=[0]
     
     def __init__(self,prim3Dgroups):
@@ -148,7 +137,7 @@ class waveguide:
     def make_mesh(self,algo=6):
         """ construct a finite element mesh for the waveguide cross-section at the currently set 
             z coordinate, which in turn is set through self.update(z). note that meshes will not 
-            vary continuously with z. this can only be guaranteed by manually applying a transformatin
+            vary continuously with z. this can only be guaranteed by manually applying a transformation
             to the mesh points which takes it from z1 -> z2.
         """
         with pygmsh.occ.Geometry() as geom:
@@ -171,7 +160,7 @@ class waveguide:
             return mesh
     
     def make_mesh_bndry_ref(self,algo=6,min_mesh_size=0.05,max_mesh_size=1.,size_scale_fac=0.25,_power=1,_align=False,writeto=None):
-        """ construct with boundary refinement at material interfaces."""
+        """ construct a mesh with boundary refinement at material interfaces."""
         with pygmsh.occ.Geometry() as geom:
             
             # flat array of all 2D primitives, skipping layers as needed
@@ -239,7 +228,7 @@ class waveguide:
     def plot_mesh(self,mesh=None,IOR_dict=None, verts=3,alpha=0.3):
         """ plot a mesh and associated refractive index distribution
         Args:
-        mesh: the mesh to be plotted. if None, we auto-compute
+        mesh: the mesh to be plotted. if None, we auto-compute a mesh using default values
         IOR_dict: dictionary that assigns each named region in the mesh to a refractive index value
         """
         
@@ -288,7 +277,11 @@ class waveguide:
         plt.show()
     
     def make_intersection_mesh(self,z,dz):
-        """ construct a mesh around the union of waveguide boundaries computed at z and z+dz """
+        """ construct a mesh around the union of waveguide boundaries computed at z and z+dz.
+            returns both the mesh and a custom dictionary mapping regions of the mesh to
+            refractive indices. to advance the refractive index profile from z to z+dz
+            use self.advance_IOR() to update the dictionary.
+        """
         IOR_dict={}
 
         skip_layers = self.skip_layers
@@ -390,6 +383,10 @@ class waveguide:
         return mesh,IOR_dict
     
     def advance_IOR(self,IOR_dict):
+        """ take a refractive index dictionary corresponding to the refractive index profile
+        evaluated at some z for some 'intersection mesh' and update it so it reflects the 
+        refractive index at z+dz.
+        """
         IORs = [g[0]._prim2D.n for g in self.prim3Dgroups]
         for key in IOR_dict.keys():
             if key[-1]=="1":

@@ -11,7 +11,15 @@ import meshio
 import os
 
 class prop:
+    """ class for coupled mode propagation of tapered waveguides """
     def __init__(self,wl,wvg:waveguide,Nmax:int,save_dir=None):
+        """
+        ARGS:
+        wl: propagation wavelength
+        wvg: waveguide to propagate through
+        Nmax: the number of propagating modes throughout the waveguide
+        save_dir: directory path to save output computations. default is './data/'
+        """
         self.wvg = wvg
         self.wl = wl
         self.Nmax = Nmax
@@ -62,13 +70,24 @@ class prop:
         mat = (B.dot(_v.T)).T.dot(v.T) 
         return mat
     
-    def make_sign_consistent_same_mesh(self,v,_v):
+    def make_sign_consistent(self,v,_v):
+        """ alter the eigenmodes _v, assumed to be similar to v, so that they 
+        have consistent overall sign with v. """
+
         flip_mask = np.sum(np.abs(v-_v),axis=1) > np.sum(np.abs(v+_v),axis=1)
         _v[flip_mask] *= -1
         return flip_mask
     
     def est_cross_term(self,B,v,_v,dz,vm=None):
-        dvdz = (_v-v)/dz
+        """ estimate the inner product between eigenmode derivatives and eigenmodes.
+        ARGS:
+        B: the B matrix ('mass matrix') in the generalized eigenvalue problem, used to solve for instantaneous eigenmodes
+        v: an (N,M) array of N eigenmodes computed over M mesh points
+        _v: the instanteous eigenmodes computed at a distance dz after where v was computed
+        dz: the z distance separating the two sets of eigenmodes
+        vm: the eigenmode basis halfway between v and _v. if None, this is approximated by averaging v and _v
+        """
+        dvdz = (_v-v)/dz # centered finite difference
         if vm is None:
             vavg = (v+_v)/2.
         else:
@@ -194,10 +213,10 @@ class prop:
 
         # sign correction
         if vlast is None:
-            self.make_sign_consistent_same_mesh(v,_v)
+            self.make_sign_consistent(v,_v)
         else:
-            self.make_sign_consistent_same_mesh(vlast,v)
-            self.make_sign_consistent_same_mesh(vlast,_v)
+            self.make_sign_consistent(vlast,v)
+            self.make_sign_consistent(vlast,_v)
 
         vlast = 0.5*(v+_v)
 
@@ -218,7 +237,7 @@ class prop:
 
     def prop_setup(self,zi,zf,max_interp_error=3e-4,dz0=1,min_zstep=1,save=False,tag=""):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
-            for the waveguide loaded into self.wvg, in the interval z \in [zi,zf]. Uses an adaptive 
+            for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
         ARGS:
             zi: initial z coordinate for waveguide modelling (doesn't have to be 0)
@@ -306,7 +325,7 @@ class prop:
         vs = np.array(vs).T
         
         if save:
-            self.save(zs,cmats,neffs,vs,mesh,tag=tag)
+            self.save(zs,cmats,neffs,vs,tag=tag)
         print("time elapsed: ",time.time()-start_time)
 
         self.cmat = cmats
@@ -330,7 +349,7 @@ class prop:
         if not os.path.exists(self.save_dir+'/meshes'):
             os.makedirs(self.save_dir+'/meshes')
 
-    def save(self,zs,cmats,neffs,vs,mesh,tag=""):
+    def save(self,zs,cmats,neffs,vs,tag=""):
         ps = "" if tag == "" else "_"+tag
         np.save(self.save_dir+'/cplcoeffs/cplcoeffs'+ps,cmats)
         np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
@@ -346,6 +365,9 @@ class prop:
         self.mesh = meshio.read(self.save_dir+'/meshes/mesh'+ps+'.msh')
     
     def make_interp_funcs(self):
+        """ construct interpolation functions for coupling matrices and mode effective indices,
+            loaded into self.cmat and self.neff, which were computed on an array of z values self.za.
+        """
         za = self.za
         def make_c_func(i,j):
             assert i < j, "i must be < j in make_interp_funcs()"
@@ -364,6 +386,7 @@ class prop:
         self.neff_int_funcs = [neff_func.antiderivative() for neff_func in neff_funcs]
     
     def compute_cmat(self,z):
+        """ using interpolation, compute the cross-coupling matrix at z """
         out = np.zeros((self.Nmax,self.Nmax))
         k = 0
         for j in range(1,self.Nmax):
@@ -375,12 +398,25 @@ class prop:
         return out
     
     def compute_neff(self,z):
+        """ using interpolation, compute the array of mode effective indices at z """
         return np.array([neff(z) for neff in self.neff_funcs])
     
     def compute_int_neff(self,z):
+        """ compute the antiderivative of the mode effective indices at z"""
         return np.array([neffi(z) for neffi in self.neff_int_funcs])
 
     def propagate(self,u0,zf):
+        """ propagate a launch wavefront, expressed in the basis of initial eigenmodes, to z = zf 
+        ARGS:
+        u0: the launch field, expressed as mode amplitudes of the initial eigenmode basis
+        zf: the z coordinate to propagate through to.
+
+        RETURNS:
+        za: the array of z values used by the ODE solver (RK23)
+        u: the mode amplitudes of the wavefront, evaluated along za
+        uf: the final mode amplitudes of the wavefront, accounting for overall phase evolution of the eigenmodes
+        v: the final wavefront, computed over the finite element mesh
+        """
         zi = self.za[0]
         def deriv(z,u):
             neffs = self.compute_neff(z)

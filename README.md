@@ -20,7 +20,7 @@ this package uses a coupled-mode approach to simulate propagation through wavegu
 5. to interpolate quickly between different finite element meshes, `coupledbeam` includes a small `Julia` package which accelerates mesh point queries by storing mesh triangles in a bounding volume hierarchy (BVH) tree. 
 
 ## more installation details
-the `pythoncall` installation is a little weird. once you have the code cloned (and assuming you have a Julia install), go into `coupledbeam`'s the root directory and start up a Julia REPL. from here run
+the `pythoncall` installation is a little weird. once you have the code cloned (and assuming you have a Julia install), go into `coupledbeam`'s root directory and start up a Julia REPL. from here run
 
 ```
 using Pkg

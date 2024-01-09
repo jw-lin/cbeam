@@ -17,7 +17,7 @@ this package uses a coupled-mode approach to simulate propagation through wavegu
 2. eigenmodes are computed using `wavesolve`, a finite element mode solver, which in turn uses a sparse method from `scipy` to solve the generalized eigenvalue problem.
 3. meshes are generated using `Gmsh` and `pygmsh`; boundary layer refinement at interfaces between regions with different refractive index is supported.
 4. derivatives of eigenmodes are estimated using centered finite difference (as opposed to perturbation theory).
-5. the $z$ stepsize is chosen adaptively
+5. the $z$ step size is chosen adaptively, by comparing values at a proposed next $z$ step with an prediction obtained by extrapolating from previous values.
 6. to interpolate quickly between different finite element meshes, `coupledbeam` includes a small Julia package called `FEinterp` which accelerates mesh point queries by storing mesh triangles in a bounding volume hierarchy (BVH) tree. 
 
 (aside: interpolation really isn't the right word for #6, since a field defined over a finite element mesh has a definite value at every point within the mesh, not just at the mesh nodes. you just have to find which mesh triangle contains a given point).

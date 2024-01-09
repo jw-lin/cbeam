@@ -146,6 +146,11 @@ class waveguide:
                 prim.update(z)
 
     def make_mesh(self,algo=6):
+        """ construct a finite element mesh for the waveguide cross-section at the currently set 
+            z coordinate, which in turn is set through self.update(z). note that meshes will not 
+            vary continuously with z. this can only be guaranteed by manually applying a transformatin
+            to the mesh points which takes it from z1 -> z2.
+        """
         with pygmsh.occ.Geometry() as geom:
             # make the polygons
             polygons = [[geom.add_polygon(p._prim2D.points) for p in group] for group in self.prim3Dgroups]
@@ -166,7 +171,7 @@ class waveguide:
             return mesh
     
     def make_mesh_bndry_ref(self,algo=6,min_mesh_size=0.05,max_mesh_size=1.,size_scale_fac=0.25,_power=1,_align=False,writeto=None):
-
+        """ construct with boundary refinement at material interfaces."""
         with pygmsh.occ.Geometry() as geom:
             
             # flat array of all 2D primitives, skipping layers as needed
@@ -225,6 +230,8 @@ class waveguide:
             return mesh
 
     def assign_IOR(self):
+        """ build a dictionary which maps all material labels in the waveguide mesh
+            to the corresponding refractive index value """
         for group in self.prim3Dgroups:
             self.IOR_dict[group[0].label] = group[0]._prim2D.n
         return self.IOR_dict
@@ -281,7 +288,7 @@ class waveguide:
         plt.show()
     
     def make_intersection_mesh(self,z,dz):
-        
+        """ construct a mesh around the union of waveguide boundaries computed at z and z+dz """
         IOR_dict={}
 
         skip_layers = self.skip_layers
@@ -390,20 +397,10 @@ class waveguide:
             if key[-1]=="0":
                 idx = IORs.index(IOR_dict[key])
                 IOR_dict[key] = IORs[idx-1]
-        return IOR_dict
-    
-    def backstep_IOR_half(self,IOR_dict):
-        IORs = [g[0]._prim2D.n for g in self.prim3Dgroups]
-        for key in IOR_dict.keys():
-            if key[-1]=="1":
-                idx = IORs.index(IOR_dict[key])
-                IOR_dict[key] = 0.5*(IOR_dict[key[:-1]+"2"]+IORs[idx-1])
-            if key[-1]=="0":
-                idx = IORs.index(IOR_dict[key])
-                IOR_dict[key] = 0.5*(IOR_dict[key[:-1]+"2"]+IORs[idx])
-        return IOR_dict        
+        return IOR_dict      
 
-class linear_lantern(waveguide):
+class linear_lantern_dep(waveguide):
+    ''' this is deprecated - keeping for future reference though. '''
     def __init__(self,core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,corecirc_res = 10,clad_res=16,jack_res=32):
 
         self.skip_layers=[0,2]
@@ -464,13 +461,28 @@ class linear_lantern(waveguide):
         
         super().__init__(els)
     
-class linear_lantern2(waveguide):
+class photonic_lantern(waveguide):
+    ''' generic class for photonic lanterns '''
     def __init__(self,core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res=64,jack_res=32,core_mesh_size=0.05,clad_mesh_size=0.2):
-
+        ''' ARGS: 
+            core_pos: an array of core positions at z=0
+            rcores: an array of core radii at z=0
+            rclad: the cladding radius at z=0
+            rjack: the jacket radius at z=0 (this sets the outer simulation boundary)
+            ncores: an array of refractive indices for the cores
+            nclad: the cladding refractive index
+            njack: the jacket refractive index
+            z_ex: the lantern length
+            taper_factor: the amount the lantern scales by, going from z=0 -> z=z_ex
+            core_res: the number of line segments to resolve each core-cladding boundary with
+            clad_res: the number of line segments to resolve the cladding-jacket boundary
+            jack_res: the number of line segments to resolve the outer jacket boundary
+            core_mesh_size: the target side length for triangles inside a lantern core, away from the boundary
+            clad_mesh_size: the target side length for triangles inside the lantern cladding, away from the boundary
+        '''
         self.skip_layers=[0]
         taper_func = linear_taper(taper_factor,z_ex)
         self.taper_func = taper_func
-        #resfunc = lambda z: int(np.ceil(core_res*np.sqrt(taper_func(z))))
         resfunc = lambda z: core_res
         cores = []
 

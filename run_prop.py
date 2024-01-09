@@ -34,7 +34,7 @@ ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset
 core_pos = np.array([xpos_i,ypos_i]).T
 
 # standard lantern
-lant = optics.linear_lantern2(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res=60,clad_res=150,jack_res=30,clad_mesh_size=1.)
+lant = optics.photonic_lantern(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res=60,clad_res=150,jack_res=30,clad_mesh_size=1.)
 
 ## standard PL results ... 
 # tag '0' core res 50 clad res 150 jack res 30 clad mesh size 1 interp error 5e-4 : 1588 seconds

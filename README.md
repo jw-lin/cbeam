@@ -19,7 +19,7 @@ this package uses a coupled-mode approach to simulate propagation through wavegu
 4. derivatives of eigenmodes are estimated using centered finite difference (as opposed to perturbation theory).
 5. to interpolate quickly between different finite element meshes, `coupledbeam` includes a small `Julia` package which accelerates mesh point queries by storing mesh triangles in a bounding volume hierarchy (BVH) tree. 
 
-## more installation details
+## installation help
 the `pythoncall` installation is a little weird. once you have the code cloned (and assuming you have a Julia install), go into `coupledbeam`'s root directory and start up a Julia REPL. from here run
 
 ```

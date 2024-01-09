@@ -2,40 +2,37 @@ import numpy as np
 from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,plot_eigenvector,isinside
 from optics import waveguide
 from scipy.interpolate import UnivariateSpline
-import matplotlib.pyplot as plt
 import BVHtree
-from scipy.sparse.linalg import lobpcg
 import copy
 from scipy.integrate import solve_ivp
-from progress.bar import Bar
-from wavesolve.mesher import plot_mesh
 from scipy.linalg import norm
 import time
 import meshio
-from itertools import permutations
-
-def solve_sparse_lobpcg(A,B,x0):
-    """ sparse solver for generalized eigenvalue problem Ax = lambda Bx with initial guess x0 """
-    w,v = lobpcg(A,x0,B,largest=True,tol=1e-6)
-    return w,v.T
+import os
 
 class prop:
-    def __init__(self,wl,wvg:waveguide,Nmax):
+    def __init__(self,wl,wvg:waveguide,Nmax:int,save_dir=None):
         self.wvg = wvg
         self.wl = wl
         self.Nmax = Nmax
         self.k = 2*np.pi/wl
 
         self.cmat = None
-        self.beta = None
-        self.vi = None
-        self.vf = None
+        self.neff = None
+        self.vs = None
 
         self.cmat_funcs = None
-        self.beta_funcs = None
+        self.neff_funcs = None
+
+        if save_dir is None:
+            self.save_dir = './data'
+        else:
+            self.save_dir = save_dir
+
+        self.check_and_make_folders()
     
     def get_prop_constants(self,z_arr,sparse=True):
-        betas = []
+        neffs = []
         self.wvg.update(z_arr[0])
         mesh = self.wvg.make_mesh()
         IOR_dict = self.wvg.assign_IOR()
@@ -43,51 +40,9 @@ class prop:
             scale_fac = self.wvg.taper_func(z)/self.wvg.taper_func(z_arr[i])
             mesh.points *= scale_fac
             w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=sparse,Nmax=self.Nmax)
-            betas.append(get_eff_index(self.wl,w))
-        betas = np.array(betas)
-        return betas
-
-    def get_phase_funcs(self,z_arr,sparse=True):
-        betas = self.get_prop_constants(z_arr,sparse)
-        betafuncs = [UnivariateSpline(z_arr,beta,s=0) for beta in betas.T]
-        betafunc_ints = [func.antiderivative() for func in betafuncs]
-        def _pfunc(func):
-            def _inner_(z):
-                return func(z)-func(0)
-            return _inner_
-        out = [_pfunc(bfunc_int) for bfunc_int in betafunc_ints]
-
-        return out
-    
-    def get_init_sign(self):
-
-        self.wvg.update(0)
-        mesh = self.wvg.make_mesh()
-        self.wvg.assign_IOR()
-        A,B = construct_AB(mesh,self.wvg.IOR_dict,self.k,sparse=True)
-        w,v,N = solve_sparse(A,B,mesh,self.wl,self.wvg.IOR_dict,num_modes=self.Nmax)
-        signs = np.sign(np.sum(B.dot(v.T),axis=0))
-        self.signs = signs
-        return
-    
-    def adjust_sign(self,B,v):
-        assert self.signs is not None, "run get_init_sign() first"
-        signs = np.sign(np.sum(B.dot(v.T),axis=0))
-        v *= (signs * self.signs)[:,None]
-        return
-
-    def adjust_sign_2(self,v,set=False):
-        v_int = np.sum(v,axis=1)
-
-        if self.last_v_int is None:
-            self.last_v_int = v_int
-            return
-
-        flipmask = np.abs(v_int - self.last_v_int) > np.abs(-v_int - self.last_v_int)
-        v[flipmask,:] *= -1
-        v_int[flipmask] *= -1
-        if set:
-            self.last_v_int = v_int
+            neffs.append(get_eff_index(self.wl,w))
+        neffs = np.array(neffs)
+        return neffs
     
     def compute_overlap_matrix(self,z,dz):
         isect_mesh,isect_dict = self.wvg.make_intersection_mesh(z,dz)
@@ -120,15 +75,15 @@ class prop:
             vavg = vm
         return (B.dot(dvdz.T)).T.dot(vavg.T)
 
-    def find_degenerate_groups(self,betas,min_dif=1e-4):
+    def find_degenerate_groups(self,neffs,min_dif=1e-4):
         groups = []
         idxs = []
-        for i in range(len(betas)):
+        for i in range(len(neffs)):
             group = []
             if i in idxs:
                 continue
-            for j in range(i+1,len(betas)):
-                if betas[i] - betas[j] < min_dif:
+            for j in range(i+1,len(neffs)):
+                if neffs[i] - neffs[j] < min_dif:
                     if not group:
                         group.append(i)
                         idxs.append(i)
@@ -138,19 +93,19 @@ class prop:
                 groups.append(group)
         return groups
 
-    def find_degenerate_groups_2(self,betas,min_dif=1e-4):
+    def find_degenerate_groups_2(self,neffs,min_dif=1e-4):
         """ any eigenvalues w/in min_dif are treated as degenerate. a chain of eigenvalues
             with adjacent differences all less than min_dif are treated as a single 
             degenerate group.
         """
         groups = []
         idxs = []
-        for i in range(len(betas)):
+        for i in range(len(neffs)):
             if i in idxs:
                 continue
             group = [i]
-            for j in range(i+1,len(betas)):
-                if betas[group][-1] - betas[j] < min_dif:
+            for j in range(i+1,len(neffs)):
+                if neffs[group][-1] - neffs[j] < min_dif:
                     group.append(j)
                     idxs.append(j) 
             groups.append(group)
@@ -167,7 +122,7 @@ class prop:
             _v[g] = _vq[:,i]
         return v,_v,q
 
-    def update_degen_groups(self,betas,min_dif,last_degen_groups):
+    def update_degen_groups(self,neffs,min_dif,last_degen_groups):
         """ this func assumes the degenerate groups can only become larger
             (so the eigenvalues of the waveguide are converging with propagation.)
             i believe this is the only way for the problem to be well defined.
@@ -175,11 +130,11 @@ class prop:
         degen_groups = copy.deepcopy(last_degen_groups)
         degen_groups_flat = [x for gr in degen_groups for x in gr]
 
-        # look for adjacent beta values not already in a group and fit them together
-        for i in range(1,len(betas)):
+        # look for adjacent neff values not already in a group and fit them together
+        for i in range(1,len(neffs)):
             if i in degen_groups_flat or i-1 in degen_groups_flat:
                 continue
-            if betas[i-1]-betas[i] < min_dif:
+            if neffs[i-1]-neffs[i] < min_dif:
                 # find the correct index to insert at
                 if len(degen_groups) == []:
                     degen_groups.append([i-1,i])
@@ -190,18 +145,18 @@ class prop:
                 degen_groups_flat.append(i-1)
                 degen_groups_flat.append(i)
 
-        # look at beta values not already in a group and try to fit them into each degen group
-        for i in range(len(betas)):
-            b = betas[i]
+        # look at neff values not already in a group and try to fit them into each degen group
+        for i in range(len(neffs)):
+            b = neffs[i]
             if i in degen_groups_flat:
                 continue
             elif len(degen_groups) == 0:
                 continue
             for gr in degen_groups:
-                if i < gr[0] and b-betas[gr[-1]] < min_dif:
+                if i < gr[0] and b-neffs[gr[-1]] < min_dif:
                     gr.insert(0,i)
                     break
-                elif i > gr[-1] and betas[gr[0]] - b < min_dif:
+                elif i > gr[-1] and neffs[gr[0]] - b < min_dif:
                     gr.append(i)
                     break
 
@@ -209,7 +164,7 @@ class prop:
         if len(degen_groups)>1:
             i = 1
             while i < len(degen_groups):
-                if betas[degen_groups[i-1][0]] - betas[degen_groups[i][-1]] < min_dif:
+                if neffs[degen_groups[i-1][0]] - neffs[degen_groups[i][-1]] < min_dif:
                     biggroup = degen_groups[i-1]+degen_groups[i]
                     degen_groups[i] = biggroup
                     degen_groups.pop(i-1)
@@ -217,519 +172,12 @@ class prop:
                     i+=1
         return degen_groups
 
-
-    def avg_degen_beta(self,groups,betas):
+    def avg_degen_neff(self,groups,neffs):
         for gr in groups:
-            betas[gr] = np.mean(betas[gr]) 
-        return betas
-        
-    def compute_cmats(self,z_arr,w_thresh=3e-3):
-        cmats = np.zeros((z_arr.shape[0],self.Nmax,self.Nmax))
-        dz = z_arr[1]-z_arr[0]
-        z = z_arr[0]
+            neffs[gr] = np.mean(neffs[gr]) 
+        return neffs                            
 
-        # step 0
-        isect_mesh,isect_dict = self.wvg.make_intersection_mesh(z,dz)
-
-        # current position
-        A,B = construct_AB(isect_mesh,isect_dict,self.k,sparse=True)
-        w,v,N = solve_sparse(A,B,isect_mesh,self.k,isect_dict,num_modes=self.Nmax)
-
-        # next position
-        isect_dict = self.wvg.advance_IOR(isect_dict)
-        _A,_B = construct_AB(isect_mesh,isect_dict,self.k,sparse=True)
-        _w,_v,_N  = solve_sparse(_A,_B,isect_mesh,self.k,isect_dict,num_modes=self.Nmax) 
-        
-        degen_groups = self.find_degenerate_groups(w,w_thresh)
-
-        for gr in degen_groups:
-            v,_v,q = self.correct_degeneracy(gr,v,_v)
-        
-        self.make_sign_consistent_same_mesh(v,_v)
-    
-        cmats[0,:] = self.est_cross_term(B,v,_v,dz)
-
-        for j,z in enumerate(z_arr[1:]):
-            i = j+1
-            dz = z_arr[i]-z_arr[i-1]
-            z = z_arr[i]
-
-            next_isect_mesh,next_isect_dict = self.wvg.make_intersection_mesh(z,dz)
-
-            tripoints_all = isect_mesh.points[isect_mesh.cells[1].data,:2]
-            meshtree = BVHtree.create_tree(tripoints_all[:,:3,:])
-                    
-            # interpolate old v onto new mesh
-            vlast = np.empty((_v.shape[0],next_isect_mesh.points.shape[0]),dtype=np.float64)
-            triidxs,interpweights = BVHtree.get_idxs_and_weights(next_isect_mesh.points,meshtree)
-            for k,vec in enumerate(_v):
-                vlast[k,:] = fast_interpolate(vec,isect_mesh,triidxs,interpweights)
-
-            A,B = construct_AB(next_isect_mesh,next_isect_dict,self.k,sparse=True)
-            w,v,N = solve_sparse(A,B,next_isect_mesh,self.k,next_isect_dict,num_modes=self.Nmax)
-
-            # next position
-            next_isect_dict = self.wvg.advance_IOR(next_isect_dict)
-            _A,_B = construct_AB(next_isect_mesh,next_isect_dict,self.k,sparse=True)
-            _w,_v,_N  = solve_sparse(_A,_B,next_isect_mesh,self.k,next_isect_dict,num_modes=self.Nmax)
-
-            #degen_groups = self.find_degenerate_groups(w,w_thresh)
-            #print(degen_groups)
-            #print(_w)
-
-            for gr in degen_groups:
-                vlast,v,q = self.correct_degeneracy(gr,vlast,v)
-                v,_v,_q = self.correct_degeneracy(gr,v,_v)
-
-            self.make_sign_consistent_same_mesh(vlast,v)
-            self.make_sign_consistent_same_mesh(v,_v)
-
-            plot = True
-            if plot:
-                fig,axs = plt.subplots(3,6,sharey=True)
-                plot_eigenvector(next_isect_mesh,v[0],ax=axs[0,0],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,v[1],ax=axs[0,1],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,v[2],ax=axs[0,2],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,v[3],ax=axs[0,3],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,v[4],ax=axs[0,4],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,v[5],ax=axs[0,5],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[0],ax=axs[1,0],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[1],ax=axs[1,1],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[2],ax=axs[1,2],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[3],ax=axs[1,3],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[4],ax=axs[1,4],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[5],ax=axs[1,5],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[0]-v[0],ax=axs[2,0],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[1]-v[1],ax=axs[2,1],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[2]-v[2],ax=axs[2,2],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[3]-v[3],ax=axs[2,3],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[4]-v[4],ax=axs[2,4],show=False,show_mesh=False)
-                plot_eigenvector(next_isect_mesh,_v[5]-v[5],ax=axs[2,5],show=False,show_mesh=False)
-                plt.show()
-            
-            cmats[i,:,:] = self.est_cross_term(B,v,_v,dz)  
-            isect_mesh = next_isect_mesh
-        return cmats                                 
-
-    def prop_setup(self,z_arr,w_thresh=3e-4,initfromzero=True,fixed_degen=None,save=False):
-        cmats = np.zeros((z_arr.shape[0],self.Nmax,self.Nmax))
-        betas = np.zeros((z_arr.shape[0],self.Nmax))
-        dz = z_arr[1]-z_arr[0]
-        #dz = 50
-        z = z_arr[0]
-
-        # step 0
-        if initfromzero:
-            self.wvg.update(0)
-            mesh = self.wvg.make_mesh()
-            _mesh = self.wvg.make_mesh() # copy
-            dict = self.wvg.assign_IOR()
-            scale_fac = self.wvg.taper_func(z)/self.wvg.taper_func(0)
-            mesh.points *= scale_fac
-            _mesh.points *= scale_fac
-        else:
-            self.wvg.update(z)
-            mesh = self.wvg.make_mesh()
-            _mesh = self.wvg.make_mesh() # copy
-            dict = self.wvg.assign_IOR()
-
-        # current position
-        w,v,N = solve_waveguide(mesh,self.wl,dict,sparse=True,Nmax=self.Nmax)
-
-        v_init = np.copy(v)
-    
-        if fixed_degen is None:
-            degen_groups = self.find_degenerate_groups(w,w_thresh)
-        else:
-            degen_groups = fixed_degen
-
-        # put points into tree
-        tripoints = mesh.points[mesh.cells[1].data,:2]
-        meshtree = BVHtree.create_tree(tripoints[:,:3,:])
-        betas[0,:] = get_eff_index(self.wl,w)
-        for i in range(1,len(z_arr)):
-            z = z_arr[i]
-            dz = z - z_arr[i-1]
-            scale_fac = self.wvg.taper_func(z)/self.wvg.taper_func(z_arr[i-1])
-
-            # rescale mesh points
-            _mesh.points *= scale_fac
-
-            # put points into tree
-            _tripoints = _mesh.points[_mesh.cells[1].data,:2]
-            _meshtree = BVHtree.create_tree(_tripoints[:,:3,:])
-
-            # solve on scaled mesh
-            _w,_v,_N = solve_waveguide(_mesh,self.wl,dict,sparse=True,Nmax=self.Nmax)
-            
-            # create an intersection mesh
-            isect_mesh,isect_dict = self.wvg.make_intersection_mesh(z,dz)
-            
-            # interpolate both the last and current vectors onto this mesh
-            vi = np.empty((self.Nmax,isect_mesh.points.shape[0]),dtype=np.float64)
-
-            triidxs,interpweights = BVHtree.get_idxs_and_weights(isect_mesh.points,meshtree)
-            for k,vec in enumerate(v):
-                vi[k,:] = fast_interpolate(vec,mesh,triidxs,interpweights)
-
-            _vi = np.empty((self.Nmax,isect_mesh.points.shape[0]),dtype=np.float64)
-
-            _triidxs,_interpweights = BVHtree.get_idxs_and_weights(isect_mesh.points,_meshtree)
-            for k,vec in enumerate(_v):
-                _vi[k,:] = fast_interpolate(vec,_mesh,_triidxs,_interpweights)
-
-            # correct for sign
-            flip_mask = self.make_sign_consistent_same_mesh(vi,_vi)
-            _v[flip_mask,:]*=-1
-
-            #_degen_groups = self.find_degenerate_groups(_w,w_thresh)
-            if fixed_degen is None:
-                _degen_groups = self.update_degen_groups(_w,w_thresh,degen_groups)
-            else:
-                _degen_groups = degen_groups
-
-            # correct degeneracy - forward direction
-            for gr in _degen_groups:
-                vi,_vi,q = self.correct_degeneracy(gr,vi,_vi)
-                v,_v,q = self.correct_degeneracy(gr,v,_v,q)
-            
-            # correct degeneracy - backward direction
-            #for gr in degen_groups:
-            #    _vi,vi,q = self.correct_degeneracy(gr,_vi,vi)
-            #   _v,v,q = self.correct_degeneracy(gr,_v,v,q)
-
-            A,B = construct_AB(isect_mesh,isect_dict,self.k,sparse=True)
-
-            plot=False
-            print(degen_groups)
-            if plot:
-                fig,axs = plt.subplots(3,6)
-                for j in range(6):
-                    plot_eigenvector(isect_mesh,vi[j],ax=axs[0,j],show=False)
-                    plot_eigenvector(isect_mesh,_vi[j],ax=axs[1,j],show=False)
-                    plot_eigenvector(isect_mesh,vi[j]-_vi[j],ax=axs[2,j],show=False)
-                plt.show()
-
-            # compute cross term
-            cmats[i,:,:] = self.est_cross_term(B,vi,_vi,dz) 
-            fig,axs = plt.subplots(1,2)
-            axs[0].imshow(cmats[i,:,:])
-            axs[1].imshow(np.abs(cmats[i,:,:]+cmats[i,:,:].T))
-            plt.show()
-
-            # save beta
-            _betas = get_eff_index(self.wl,_w)
-            self.avg_degen_beta(degen_groups,_betas)
-            betas[i,:] = _betas[:]
-
-            # recycle some computations
-            meshtree = _meshtree
-            mesh.points = np.copy(_mesh.points)
-            v = _v
-            w = _w 
-            degen_groups = _degen_groups
-        v_final = np.copy(_v)
-        if save:
-            np.save("cmat",cmats[1:])
-            np.save("beta",betas)
-            np.save("vi",v_init)
-            np.save("vf",v_final)
-        print("final eigenmodes: ")
-        for i in range(self.Nmax):
-            plot_eigenvector(_mesh,v_final[i])
-        return cmats,betas,v_init,v_final   
-
-    def prop_setup2(self,z_arr,save=False,dz0=10,fixed_degen=None):
-        cmats = np.zeros((z_arr.shape[0],self.Nmax,self.Nmax))
-        betas = np.zeros((z_arr.shape[0],self.Nmax))
-
-        zi = z_arr[0]
-
-        self.wvg.update(0)
-
-        #always init the mesh from 0
-        isect_mesh,isect_dict = self.wvg.make_intersection_mesh(-dz0/2,dz0)
-
-        isect_mesh.points *= self.wvg.taper_func(zi)/self.wvg.taper_func(0)
-
-        _isect_dict = isect_dict.copy()
-        self.wvg.advance_IOR(_isect_dict)
-        vi = None
-        bar = Bar('Processing', max=len(z_arr))
-        vlast = None
-        _vlast = None
-        avg_vlast = None
-        for i,z in enumerate(z_arr):
-            total_scale_fac =  self.wvg.taper_func(z)/self.wvg.taper_func(z_arr[0])
-            if i>0:
-                scale_fac = self.wvg.taper_func(z)/self.wvg.taper_func(z_arr[i-1])
-            else:
-                scale_fac = 1
-            
-            isect_mesh.points *= scale_fac
-
-            # eigen solve
-            w,v,N = solve_waveguide(isect_mesh,self.wl,isect_dict,sparse=True,Nmax=self.Nmax)
-            _w,_v,_N = solve_waveguide(isect_mesh,self.wl,_isect_dict,sparse=True,Nmax=self.Nmax)
-
-            # sign correction
-            if vlast is None:
-                self.make_sign_consistent_same_mesh(v,_v)
-            else:
-                self.make_sign_consistent_same_mesh(vlast,v)
-                self.make_sign_consistent_same_mesh(_vlast,_v)
-
-                # degeneracy correction
-                if fixed_degen is not None:
-                    for gr in fixed_degen:
-                        self.correct_degeneracy(gr,vlast,v)
-                        self.correct_degeneracy(gr,_vlast,_v)
-
-            vlast = v
-            _vlast = _v
-            avg_vlast = 0.5*(v+_v)
-
-            # est deriv
-            A,B = construct_AB(isect_mesh,isect_dict,self.k,sparse=True)
-            cmats[i,:,:] = self.est_cross_term(B,v,_v,dz0*total_scale_fac) 
-    
-            # save initial
-            if i == 0:
-                vi = np.copy(avg_vlast)
-
-            # save beta
-            betas[i,:] = get_eff_index(self.wl,0.5*(w+_w))
-            print(betas[i,:])
-
-            plot=True
-            if plot:
-                fig,axs = plt.subplots(3,6)
-                for j in range(6):
-                    sgn = 1
-                    if j in [0,1,2,5]:
-                        sgn=-1
-                    plot_eigenvector(isect_mesh,v[j]*sgn,ax=axs[0,j],show=False)
-                    plot_eigenvector(isect_mesh,_v[j]*sgn,ax=axs[1,j],show=False)
-                    plot_eigenvector(isect_mesh,(v[j]-_v[j])*sgn,ax=axs[2,j],show=False)
-                plt.show()
-            bar.next()
-
-        vf = np.copy(avg_vlast)
-        
-        if save:
-            np.save("cmat",cmats)
-            np.save("beta",betas)
-            np.save("vi",vi)
-            np.save("vf",vf)
-        bar.finish()
-        return cmats,betas,vi,vf  
-
-    def prop_setup3(self,z_arr,save=False,dz0=1,tag=""):
-        cmats = np.zeros((z_arr.shape[0],self.Nmax,self.Nmax))
-        betas = np.zeros((z_arr.shape[0],self.Nmax))
-
-        zi = z_arr[0]
-
-        self.wvg.update(0)
-
-        #always init the mesh from 0
-        #mesh = self.wvg.make_mesh()
-        #_mesh = self.wvg.make_mesh()
-        #middle_mesh = self.wvg.make_mesh()
-        mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=0.5,min_mesh_size=0.2,max_mesh_size=10.,_power=1)
-        _mesh = copy.deepcopy(mesh)
-        middle_mesh = copy.deepcopy(mesh)
-
-        IOR_dict = self.wvg.assign_IOR()
-
-        points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
-        
-        vi = None
-        bar = Bar('Processing', max=len(z_arr))
-        vlast = None
-
-        for i,z in enumerate(z_arr):
-            scale_facm = self.wvg.taper_func(z-dz0/2)/self.wvg.taper_func(zi)
-            scale_facp = self.wvg.taper_func(z+dz0/2)/self.wvg.taper_func(zi)
-            scale_fac = self.wvg.taper_func(z)/self.wvg.taper_func(zi)
-
-            # minus step
-            mesh.points = points0*scale_facm
-            w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-            tripoints = mesh.points[mesh.cells[1].data,:2]
-            meshtree = BVHtree.create_tree(tripoints[:,:3,:])
-
-            # plus step
-            _mesh.points = points0*scale_facp
-            _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-            _tripoints = _mesh.points[_mesh.cells[1].data,:2]
-            _meshtree = BVHtree.create_tree(_tripoints[:,:3,:])
-
-            # interpolation onto middle mesh
-            middle_mesh.points = points0*scale_fac
-            #wm,vm,Nm = solve_waveguide(middle_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-            A,B = construct_AB(middle_mesh,IOR_dict,self.k,sparse=True)
-
-            vinterp = np.empty((self.Nmax,middle_mesh.points.shape[0]),dtype=np.float64)
-
-            triidxs,interpweights = BVHtree.get_idxs_and_weights(middle_mesh.points,meshtree)
-            for k,vec in enumerate(v):
-                vinterp[k,:] = fast_interpolate(vec,mesh,triidxs,interpweights)
-
-            _vinterp = np.empty((self.Nmax,middle_mesh.points.shape[0]),dtype=np.float64)
-
-            _triidxs,_interpweights = BVHtree.get_idxs_and_weights(middle_mesh.points,_meshtree)
-            for k,vec in enumerate(_v):
-                _vinterp[k,:] = fast_interpolate(vec,_mesh,_triidxs,_interpweights)
-
-            # sign correction
-            if vlast is None:
-                self.make_sign_consistent_same_mesh(vinterp,_vinterp)
-            else:
-                self.make_sign_consistent_same_mesh(vlast,vinterp)
-                self.make_sign_consistent_same_mesh(vlast,_vinterp)
-
-            vlast = 0.5*(vinterp+_vinterp)
-
-            # est deriv
-            #cmats[i,:,:] = 0.5* (self.est_cross_term(B,vinterp,vm,dz0/2,vm)+self.est_cross_term(B,vm,_vinterp,dz0/2,vm))
-            cmats[i,:,:] = self.est_cross_term(B,vinterp,_vinterp,dz0)
-            plt.imshow(cmats[i,:,:]+cmats[i,:,:].T)
-            plt.show()
-    
-            # save initial
-            if i == 0:
-                vi = np.copy(vlast)
-
-            # save beta
-            betas[i,:] = get_eff_index(self.wl,0.5*(w+_w))
-            #print(betas[i,:])
-            plot=True
-            if plot:
-                fig,axs = plt.subplots(3,6)
-                for j in range(6):
-                    plot_eigenvector(middle_mesh,vinterp[j],ax=axs[0,j],show=False)
-                    plot_eigenvector(middle_mesh,_vinterp[j],ax=axs[1,j],show=False)
-                    plot_eigenvector(middle_mesh,vinterp[j]-_vinterp[j],ax=axs[2,j],show=False)
-                plt.show()
-            bar.next()
-
-        vf = np.copy(vlast)
-        
-        if save:
-            np.save("cmat"+tag,cmats)
-            np.save("beta"+tag,betas)
-            np.save("vi"+tag,vi)
-            np.save("vf"+tag,vf)
-        bar.finish()
-        return cmats,betas,vi,vf  
-
-    def prop_setup4(self,z_arr,save=False,dz0=1,tag="",degen_cor=True):
-        thresh=7e-4
-        cmats = np.zeros((z_arr.shape[0],self.Nmax,self.Nmax))
-        betas = np.zeros((z_arr.shape[0],self.Nmax))
-
-        zi = z_arr[0]
-
-        self.wvg.update(0)
-
-        #always init the mesh from 0
-        #mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=0.5,min_mesh_size=0.2,max_mesh_size=10.,_power=1)
-        #mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.3,max_mesh_size=10.,_power=1)
-        mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,_power=1,write=True)
-        _mesh = copy.deepcopy(mesh)
-        #middle_mesh = copy.deepcopy(mesh)
-        #print("starting mesh: ")
-        
-        IOR_dict = self.wvg.assign_IOR()
-        #plot_mesh(mesh,IOR_dict)
-
-        points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
-        
-        vi = None
-        bar = Bar('Processing', max=len(z_arr))
-        vlast = None
-
-        for i,z in enumerate(z_arr):
-            scale_facm = self.wvg.taper_func(z-dz0/2)/self.wvg.taper_func(zi)
-            scale_facp = self.wvg.taper_func(z+dz0/2)/self.wvg.taper_func(zi)
-
-            # minus step
-            mesh.points = points0*scale_facm
-            w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-            tripoints = mesh.points[mesh.cells[1].data,:2]
-            meshtree = BVHtree.create_tree(tripoints[:,:3,:])
-
-            # plus step
-            _mesh.points = points0*scale_facp
-            _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-            _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
-
-            if degen_cor:
-                degen_groups = self.find_degenerate_groups_2(_w,thresh)
-                print(degen_groups)
-
-            # sign correction and degen correction
-            if vlast is None:
-                self.make_sign_consistent_same_mesh(v,_v)
-                if degen_cor:
-                    for gr in degen_groups:
-                        self.correct_degeneracy(gr,v,_v)
-            else:
-                self.make_sign_consistent_same_mesh(vlast,v)
-                self.make_sign_consistent_same_mesh(vlast,_v)
-                if degen_cor:
-                    for gr in degen_groups:
-                        self.correct_degeneracy(gr,vlast,v)
-                        self.correct_degeneracy(gr,vlast,_v)
-
-            vlast = 0.5*(v+_v)
-
-            # interpolation
-
-            vinterp = np.copy(_v)
-
-            triidxs,interpweights = BVHtree.get_idxs_and_weights(_mesh.points,meshtree)
-
-            mask = (triidxs != -1)
-            for k,vec in enumerate(v):
-                vinterp[k,:][mask] = fast_interpolate(vec,mesh,triidxs[mask],interpweights[mask])
-
-            # est deriv
-            #cmats[i,:,:] = 0.5* (self.est_cross_term(B,vinterp,vm,dz0/2,vm)+self.est_cross_term(B,vm,_vinterp,dz0/2,vm))
-            cmats[i,:,:] = self.est_cross_term(_B,vinterp,_v,dz0)
-
-            # save initial
-            if i == 0:
-                vi = np.copy(vlast)
-
-            # save beta
-            betas[i,:] = get_eff_index(self.wl,0.5*(w+_w))
-            #print(betas[i,:])
-
-            plot=False
-            if plot:
-                fig,axs = plt.subplots(3,6,sharex=True,sharey=True)
-                for j in range(6):
-                    plot_eigenvector(_mesh,vinterp[j],ax=axs[0,j],show=False)
-                    plot_eigenvector(_mesh,_v[j],ax=axs[1,j],show=False)
-                    plot_eigenvector(_mesh,vinterp[j]-_v[j],ax=axs[2,j],show=False)
-                plt.subplots_adjust(hspace=0,wspace=0)
-                plt.show()
-
-            bar.next()
-
-        vf = np.copy(vlast)
-        
-        if save:
-            np.save("cmat"+tag,cmats)
-            np.save("beta"+tag,betas)
-            np.save("vi"+tag,vi)
-            np.save("vf"+tag,vf)
-        bar.finish()
-        return cmats,betas,vi,vf  
-
-    def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,betas,zs,perm=None,vlast=None,cross=False):
+    def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None):
         scale_facm = self.wvg.taper_func(z-dz0/2)/self.wvg.taper_func(zi)
         scale_facp = self.wvg.taper_func(z+dz0/2)/self.wvg.taper_func(zi)
 
@@ -744,33 +192,12 @@ class prop:
         _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
         _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
 
-        # make a permutation if required
-        if cross and perm is not None:
-            v = v[perm]
-            _v = _v[perm]
-            w = w[perm]
-            _w = _w[perm]
-
         # sign correction
         if vlast is None:
             self.make_sign_consistent_same_mesh(v,_v)
         else:
             self.make_sign_consistent_same_mesh(vlast,v)
             self.make_sign_consistent_same_mesh(vlast,_v)
-
-        # check crossing
-        if cross and len(betas)>=4:
-            _perm = self.check_crossing(zs[-4:],np.array(betas)[-4:,:],z,(w+_w)/2)
-            if _perm is not None:
-                v = v[_perm]
-                _v = _v[_perm]
-                w = w[_perm]
-                _w = _w[_perm]
-                if perm is None:
-                    perm = _perm
-                else:
-                    print(perm,_perm)
-                    perm = np.array(perm)[_perm]
 
         vlast = 0.5*(v+_v)
 
@@ -786,48 +213,42 @@ class prop:
 
         # est deriv
         cmat = self.est_cross_term(_B,vinterp,_v,dz0)
-        betas = get_eff_index(self.wl,0.5*(w+_w))
-        return cmat,betas,vlast,perm
+        neffs = get_eff_index(self.wl,0.5*(w+_w))
+        return cmat,neffs,vlast
 
-    def prop_setup5(self,zi,zf,max_interp_error=1e-6,save=False,dz0=1,tag="",min_zstep=1):
-        """ compute the initial/final eigenmodes, eigenvalues, and cross-coupling coefficients for the 
-            waveguide loaded into self.wvg. waveguide evolution wrt z is assumed to be a linear and uniform 
-            scaling in x,y.
-
-        ARGS: 
-            zi: initial z coordinate (dyou can start computation in the middle of the wavguide)
+    def prop_setup(self,zi,zf,max_interp_error=3e-4,dz0=1,min_zstep=1,save=False,tag=""):
+        """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
+            for the waveguide loaded into self.wvg, in the interval z \in [zi,zf]. Uses an adaptive 
+            scheme (based on interpolation of previous data points) to choose the z step.
+        ARGS:
+            zi: initial z coordinate for waveguide modelling (doesn't have to be 0)
             zf: final z coordinate
-            max_interp_error: the z-step is chosen adaptively so that the norm of the cross-coupling 
-                              matrix is less than <max_interp_error> off the value predicted by cubic 
-                              spline extrapolation from the last 4 values of the cross-coupling matrix.
-            save: set True to save all results to file. you can load later with load(<tag>)
-            dz0: the default value to use in numerical estimation of eigenmode derivatives
-            tag: the unique string which will identify the files for this computation
-            min_zstep: if the adaptively chosen z-step falls below this threshhold, an exception is raised.
+            max_interp_error: how carefully we step forwards in z. lower -> smaller steps
+            dz0: the default delta-z used to numerically estimate eigenmode derivatives
+            min_zstep: if the adaptive scheme chooses a z-step less than this value, an exception is raised
+            save: set True to write outputs to file; they can be loaded with self.load()
+            tag: the unique string to associate to a computation, used to load() it later
         RETURNS:
-            za: array of z values
-            cmats: array of coupling coefficient matrices through the waveguide
-            betas: array of eigenvalues (effective indices) through the waveguide (yes beta is the wrong symbol for this)
-            vi: initial eigenmodes computed at z = zi
-            vf: final eigenmodes computed at z = zf
-            mesh: the finite element mesh used for the computation. vi and vf are computed on mesh.points                   
+            zs: array of z values
         """
-
         start_time = time.time()
-        zstep0 = 10
+        zstep0 = 10 # starting step
 
         cmats = []
         cmats_norm = []
-        betas = []
+        neffs = []
+        vs = []
         zs = []
 
         self.wvg.update(0)
 
         #always init the mesh from 0
+        ps = "_"+tag if tag is not None else ""
         if save:
-            meshwriteto="mesh"+tag
+            meshwriteto=self.save_dir+"/meshes/mesh"+ps
         else:
             meshwriteto=None
+        print("generating mesh...")
         mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,_power=1,writeto=meshwriteto)
         _mesh = copy.deepcopy(mesh)
         
@@ -835,20 +256,20 @@ class prop:
 
         points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
         
-        vi = None
         vlast = None
 
         z = zi
+        print("starting computation ...")
         while True:
             if zstep0<min_zstep:
                 print("comp. halted")
                 raise Exception("error: zstep has decreased below lower limit - eigenmodes may not be varying continuously")
             dz = min(zstep0/10,dz0)
-            cmat,beta,vlast_temp = self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,vlast=vlast)
+            cmat,neff,vlast_temp = self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast)
             cnorm = norm(cmat)
             if len(zs)<4:
                 cmats.append(cmat)
-                betas.append(beta)
+                neffs.append(neff)
                 cmats_norm.append(cnorm)
                 zs.append(z)
                 vlast = vlast_temp
@@ -859,169 +280,70 @@ class prop:
                 z = min(zf,z+zstep0)
                 continue
 
-            # construct spline
+            # construct spline to test if current z step is small enough
             spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
             err = np.abs(spl(z)-cnorm)
             if err<max_interp_error:
                 cmats.append(cmat)
-                betas.append(beta)
+                neffs.append(neff)
                 cmats_norm.append(cnorm)
                 zs.append(z)
                 vlast = vlast_temp
+                vs.append(vlast)
                 if z == zf:
                     break
                 # rescale zstep0
                 if err<0.1*max_interp_error:
                     zstep0*=2
-                z = min(zf,z+zstep0)
-                print("current z: ",z)
-                print("current zstep: ",zstep0)
+                z = min(zf,z+zstep0) 
+                print("\rcurrent z: ",z," / ",zf," ; ","current zstep: ",zstep0,end="",flush=True)
             else:
-                print(z,": tolerance not met, reducing ztep")
-                print("error: ",err)
-                # try again
+                print("\rcurrent z: ",z," ; tol. not met, reducing step",end="",flush=True)             
                 z -= zstep0
                 zstep0/=2
                 z += zstep0
-                
-        vf = np.copy(vlast)
+        
+        vs = np.array(vs).T
         
         if save:
-            np.save("cmat"+tag,np.array(cmats))
-            np.save("beta"+tag,np.array(betas))
-            np.save("vi"+tag,vi)
-            np.save("vf"+tag,vf)
-            np.save("za"+tag,np.array(zs))
+            self.save(zs,cmats,neffs,vs,mesh,tag=tag)
         print("time elapsed: ",time.time()-start_time)
-        return zs,cmats,betas,vi,vf,mesh
 
-    def check_crossing(self,last_zs,last_betas,z,beta,thresh=1e-9):
-        """ check if eigenvalues are crossing. if so, return the permuation that 
-            needs to be made. otherwise, return None. """
-        groups = self.find_degenerate_groups_2(last_betas[-1,:],min_dif=thresh)
-        mask = [len(gr)==1 for gr in groups]
-        if np.all(mask):
-            return None# beta vals are well separated, we don't need to do anything.
-        perms = copy.deepcopy(groups)
-        for j,gr in enumerate(groups):
-            if len(gr)==1:
-                continue
-            last_betas_gr = last_betas[:,gr]
-            spline_funcs = [UnivariateSpline(last_zs,b,s=0,k=3,ext=0) for b in last_betas_gr.T]
-            beta_interp = np.array([s(z) for s in spline_funcs])
-            # permute beta and look for best fit
-            resid = np.sum(np.power(beta[gr]-beta_interp,2))
-            best_perm = None
-            for i,perm in enumerate(permutations(gr)):
-                perm = list(perm)
-                if i == 0:
-                    continue # 0 perm is the original
-                _resid = np.sum(np.power(beta[perm]-beta_interp,2))
-                if _resid < resid:
-                    resid = _resid
-                    best_perm = perm
-            if best_perm is not None:
-                perms[j] = best_perm
-        return [p for perm in perms for p in perm] # flattened
+        self.cmat = cmats
+        self.neff = neffs
+        self.vs = vs
+        self.za = zs
+        self.mesh = mesh
+        return zs,cmats,neffs,vs,mesh
 
-    def prop_setup6(self,zi,zf,max_interp_error=3e-4,save=False,dz0=1,tag="",min_zstep=1,cross=False):
-        """ like 5 but we try to deal with eigenvalue crossing (unsuccessfully for now)             
-        """
+    def check_and_make_folders(self):
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+        if not os.path.exists(self.save_dir+'/eigenmodes'):
+            os.makedirs(self.save_dir+'/eigenmodes')
+        if not os.path.exists(self.save_dir+'/eigenvalues'):
+            os.makedirs(self.save_dir+'/eigenvalues')
+        if not os.path.exists(self.save_dir+'/cplcoeffs'):
+            os.makedirs(self.save_dir+'/cplcoeffs')
+        if not os.path.exists(self.save_dir+'/zvals'):
+            os.makedirs(self.save_dir+'/zvals')
+        if not os.path.exists(self.save_dir+'/meshes'):
+            os.makedirs(self.save_dir+'/meshes')
 
-        start_time = time.time()
-        zstep0 = 10
-
-        cmats = []
-        cmats_norm = []
-        betas = []
-        zs = []
-
-        self.wvg.update(0)
-
-        #always init the mesh from 0
-        if save:
-            meshwriteto="mesh"+tag
-        else:
-            meshwriteto=None
-        mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,_power=1,writeto=meshwriteto)
-        _mesh = copy.deepcopy(mesh)
-        
-        IOR_dict = self.wvg.assign_IOR()
-
-        points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
-        
-        vi = None
-        vlast = None
-        perm = None
-
-        z = zi
-        while True:
-            if zstep0<min_zstep:
-                print("comp. halted")
-                raise Exception("error: zstep has decreased below lower limit - eigenmodes may not be varying continuously")
-            dz = min(zstep0/10,dz0)
-            cmat,beta,vlast_temp,new_perm = self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,betas,zs,vlast=vlast,perm=perm,cross=cross)
-            cnorm = norm(cmat)
-            if len(zs)<4:
-                cmats.append(cmat)
-                betas.append(beta)
-                cmats_norm.append(cnorm)
-                zs.append(z)
-                vlast = vlast_temp
-                if z == zi:
-                    vi = np.copy(vlast)
-                if z == zf:
-                    break
-                z = min(zf,z+zstep0)
-                continue
-
-            # construct spline
-            spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
-            err = np.abs(spl(z)-cnorm)
-            if err<max_interp_error:
-                cmats.append(cmat)
-                betas.append(beta)
-                cmats_norm.append(cnorm)
-                zs.append(z)
-                vlast = vlast_temp
-                if z == zf:
-                    break
-                # rescale zstep0
-                if err<0.1*max_interp_error:
-                    zstep0*=2
-                z = min(zf,z+zstep0)
-                print("current z: ",z)
-                print("current zstep: ",zstep0)
-                perm = new_perm
-                print("current perm: ",perm)
-            else:
-                print(z,": tolerance not met, reducing ztep")
-                print("error: ",err)                
-                z -= zstep0
-                zstep0/=2
-                z += zstep0
-                
-        vf = np.copy(vlast)
-        
-        if save:
-            np.save("cmat"+tag,np.array(cmats))
-            np.save("beta"+tag,np.array(betas))
-            np.save("vi"+tag,vi)
-            np.save("vf"+tag,vf)
-            np.save("za"+tag,np.array(zs))
-        print("time elapsed: ",time.time()-start_time)
-        return zs,cmats,betas,vi,vf,mesh
+    def save(self,zs,cmats,neffs,vs,mesh,tag=""):
+        ps = "" if tag == "" else "_"+tag
+        np.save(self.save_dir+'/cplcoeffs/cplcoeffs'+ps,cmats)
+        np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
+        np.save(self.save_dir+'/eigenvalues/eigenvalues'+ps,neffs)
+        np.save(self.save_dir+'/zvals/zvals'+ps,zs)
 
     def load(self,tag=""):
-        self.cmat = np.load("cmat"+tag+".npy")
-        self.beta = np.load("beta"+tag+".npy")
-        self.vi = np.load("vi"+tag+".npy")
-        self.vf = np.load("vf"+tag+".npy")
-        try:
-            self.za = np.load("za"+tag+".npy")
-            self.mesh = meshio.read("mesh"+tag+".msh")
-        except:
-            pass
+        ps = "" if tag == "" else "_"+tag
+        self.cmat = np.load(self.save_dir+'/cplcoeffs/cplcoeffs'+ps+'.npy')
+        self.neff = np.load(self.save_dir+'/eigenvalues/eigenvalues'+ps+'.npy')
+        self.vs = np.load(self.save_dir+'/eigenmodes/eigenmodes'+ps+'.npy')
+        self.za = np.load(self.save_dir+'/zvals/zvals'+ps+'.npy')
+        self.mesh = meshio.read(self.save_dir+'/meshes/mesh'+ps+'.msh')
     
     def make_interp_funcs(self):
         za = self.za
@@ -1033,13 +355,13 @@ class prop:
             for i in range(j):
                 cmat_funcs.append(make_c_func(i,j))
         
-        beta_funcs = []
+        neff_funcs = []
         for i in range(self.Nmax):
-            beta_funcs.append(UnivariateSpline(za,self.beta[:,i],s=0))
+            neff_funcs.append(UnivariateSpline(za,self.neff[:,i],s=0))
     
         self.cmat_funcs = cmat_funcs
-        self.beta_funcs = beta_funcs
-        self.beta_int_funcs = [beta_func.antiderivative() for beta_func in beta_funcs]
+        self.neff_funcs = neff_funcs
+        self.neff_int_funcs = [neff_func.antiderivative() for neff_func in neff_funcs]
     
     def compute_cmat(self,z):
         out = np.zeros((self.Nmax,self.Nmax))
@@ -1052,26 +374,26 @@ class prop:
                 k+=1
         return out
     
-    def compute_beta(self,z):
-        return np.array([beta(z) for beta in self.beta_funcs])
+    def compute_neff(self,z):
+        return np.array([neff(z) for neff in self.neff_funcs])
     
-    def compute_int_beta(self,z):
-        return np.array([betai(z) for betai in self.beta_int_funcs])
+    def compute_int_neff(self,z):
+        return np.array([neffi(z) for neffi in self.neff_int_funcs])
 
     def propagate(self,u0,zf):
         zi = self.za[0]
         def deriv(z,u):
-            betas = self.compute_beta(z)
-            phases = self.k * (self.compute_int_beta(z)-self.compute_int_beta(zi))
+            neffs = self.compute_neff(z)
+            phases = self.k * (self.compute_int_neff(z)-self.compute_int_neff(zi))
             cmat = self.compute_cmat(z)
             phase_mat = np.exp(1.j * (phases[None,:] - phases[:,None]))
-            return -1./betas*np.dot(phase_mat*cmat,u*betas)
+            return -1./neffs*np.dot(phase_mat*cmat,u*neffs)
         
         sol = solve_ivp(deriv,(zi,zf),u0,'RK23')
         # multiply by phase factors
-        final_phase = np.exp(1.j*self.k*np.array(self.compute_int_beta(zf)-self.compute_int_beta(zi)))
+        final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase
-        v = np.sum(uf[:,None]*self.vf,axis=0)
+        v = np.sum(uf[:,None]*self.vs[-1,:],axis=0)
         return sol.t,sol.y,uf,v
 
 def fast_interpolate(v,inmesh,triidxs,interpweights):

@@ -1,9 +1,17 @@
 import numpy as np
-from wavesolve.mesher import plot_mesh,lantern_mesh_6PL,circ_points
 import optics
-from wavesolve.fe_solver import construct_AB,isinside
-from wavesolve.shape_funcs import apply_affine_transform,evaluate_basis_funcs
 import matplotlib.pyplot as plt
+
+### how to run ###
+
+# 1. create a waveguide using optics.py
+# 2. initialize a propagator object with the waveguide
+# 3. run prop_setup() to compute everything you need to model the lantern propagation
+# 4. alternatively, load an existing set of computation results with load()
+# 5. run make_interp_funcs() to set up the interpolation functions
+# 6. run propagate()
+
+### lantern params ###
 
 wl = 1.55
 taper_factor = 8
@@ -12,7 +20,7 @@ rclad = 10
 rjack = 30
 z_ex = 20000
 
-ms_rcores = np.array([7.35/2,8.5/2,8.5/2,9.6/2,9.6/2,10.7/2])/taper_factor
+# ms_rcores = np.array([7.35/2,8.5/2,8.5/2,9.6/2,9.6/2,10.7/2])/taper_factor
 
 nclad = 1.444
 ncore = nclad + 8.8e-3
@@ -25,27 +33,31 @@ ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset
 
 core_pos = np.array([xpos_i,ypos_i]).T
 
+# standard lantern
 lant = optics.linear_lantern2(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res=60,clad_res=150,jack_res=30,clad_mesh_size=1.)
-# std0 core res 50 clad res 150 jack res 30 clad mesh size 1 interp error 5e-4 : 1588 seconds
-# std1 core res 40 -> output is not fully symmetrcic : 824 seconds
-# std2 core res 50 clad res 120 -> output is not fully symmetric : 796 seconds
-# std3 same as std0 i think ? : 1450 seconds
-# std4 interp error 1e-3 -> output is not fully symmetric (worst so far): 1223 seconds
-# std5 core res 60 : 1139 seconds -> max ~0.01 difference in power between outer ports
-# std6 core res 60 interp error 2.5e-4 : 1512 seconds -> max ~0.005 difference
+
+## standard PL results ... 
+# tag '0' core res 50 clad res 150 jack res 30 clad mesh size 1 interp error 5e-4 : 1588 seconds
+# tag '1' core res 40 -> output is not fully symmetrcic : 824 seconds
+# tag '2' core res 50 clad res 120 -> output is not fully symmetric : 796 seconds
+# tag '3' same as std0 i think ? : 1450 seconds
+# tag '4' interp error 1e-3 -> output is not fully symmetric (worst so far): 1223 seconds
+# tag '5' core res 60 : 1139 seconds -> max ~0.01 difference in power between outer ports
+# tag '6' core res 60 interp error 2.5e-4 : 1512 seconds -> max ~0.005 difference
 
 import propagator
 adprop = propagator.prop(wl,lant,6)
 
-#zs,coupling_mats,betas,vi,vf,mesh = adprop.prop_setup6(0,20000,save=True,tag="std6",max_interp_error=2.5e-4)
+#zs,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,20000,save=True,tag="6",max_interp_error=2.5e-4)
 
-adprop.load(tag="std0")
-plt.plot(adprop.za,adprop.beta[:,0][:,None]-adprop.beta[:,1:])
+adprop.load(tag="6")
+
+plt.plot(adprop.za,adprop.neff[:,0][:,None]-adprop.neff[:,1:])
 for z in adprop.za:
     plt.axvline(x=z,alpha=0.1,color='k')
 plt.show()
 
-plt.plot(adprop.za,adprop.beta[:,:-1]-adprop.beta[:,1:])
+plt.plot(adprop.za,adprop.neff[:,:-1]-adprop.neff[:,1:])
 plt.show()
 
 
@@ -58,7 +70,7 @@ plt.legend(loc='best')
 plt.show()
 
 from wavesolve.fe_solver import plot_eigenvector
-w = np.power(adprop.beta,2)*adprop.k**2
+w = np.power(adprop.neff,2)*adprop.k**2
 
 for i in range(5):
     plt.semilogy(adprop.za, w[:,i]-w[:,i+1],label=str(i)+str(i+1))
@@ -101,19 +113,20 @@ plt.show()
 mesh = adprop.mesh
 print("final modes: ")
 fig,axs = plt.subplots(2,3,sharex=True,sharey=True)
-plot_eigenvector(mesh,adprop.vf[0],ax=axs[0,0],show=False)
-plot_eigenvector(mesh,adprop.vf[1],ax=axs[0,1],show=False)
-plot_eigenvector(mesh,adprop.vf[2],ax=axs[0,2],show=False)
-plot_eigenvector(mesh,adprop.vf[3],ax=axs[1,0],show=False)
-plot_eigenvector(mesh,adprop.vf[4],ax=axs[1,1],show=False)
-plot_eigenvector(mesh,adprop.vf[5],ax=axs[1,2],show=False)
+plot_eigenvector(mesh,adprop.vs[:,0,-1],ax=axs[0,0],show=False)
+plot_eigenvector(mesh,adprop.vs[:,1,-1],ax=axs[0,1],show=False)
+plot_eigenvector(mesh,adprop.vs[:,2,-1],ax=axs[0,2],show=False)
+plot_eigenvector(mesh,adprop.vs[:,3,-1],ax=axs[1,0],show=False)
+plot_eigenvector(mesh,adprop.vs[:,4,-1],ax=axs[1,1],show=False)
+plot_eigenvector(mesh,adprop.vs[:,5,-1],ax=axs[1,2],show=False)
 plt.show()
 
 print("final field: ")
 fig,axs = plt.subplots(1,3,sharey=True)
-plot_eigenvector(mesh,np.real(v),ax=axs[0],show=False)
-plot_eigenvector(mesh,np.imag(v),ax=axs[1],show=False)
-plot_eigenvector(mesh,np.abs(v),ax=axs[2],show=False)
+_v = np.sum(adprop.vs[:,:,-1]*uf[None,:],axis=1)
+plot_eigenvector(mesh,np.real(_v),ax=axs[0],show=False)
+plot_eigenvector(mesh,np.imag(_v),ax=axs[1],show=False)
+plot_eigenvector(mesh,np.abs(_v),ax=axs[2],show=False)
 axs[0].set_title("real part")
 axs[1].set_title("imag part")
 axs[2].set_title("norm")

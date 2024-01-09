@@ -1,4 +1,4 @@
-# Overview
+# overview
 
 this is (will be) a propagator for slowly-varying and weakly-guiding waveguides.
 

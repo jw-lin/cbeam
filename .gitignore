@@ -6,3 +6,5 @@ settings.json
 BVHtree/.CondaPkg/
 Manifest.toml
 data/
+analysis.py
+*.npz

@@ -1,14 +1,10 @@
 import numpy as np
-from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse
+from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,construct_B
 from optics import load_meshio_mesh
-from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import UnivariateSpline,interp1d
 import FEinterp
-import copy
+import copy,time,os
 from scipy.integrate import solve_ivp
-from scipy.linalg import norm
-import time
-import meshio
-import os
 
 class prop:
     """ class for coupled mode propagation of tapered waveguides """
@@ -28,9 +24,12 @@ class prop:
         self.cmat = None
         self.neff = None
         self.vs = None
+        self.tapervals = None
 
         self.cmat_funcs = None
         self.neff_funcs = None
+        self.v_func = None
+        self.taper_func = None
 
         if save_dir is None:
             self.save_dir = './data'
@@ -282,6 +281,7 @@ class prop:
         neffs = []
         vs = []
         zs = []
+        tapervals=[]
 
         self.wvg.update(0)
 
@@ -320,6 +320,7 @@ class prop:
                 neffs.append(neff)
                 cmats_norm.append(cnorm)
                 zs.append(z)
+                tapervals.append(self.wvg.taper_func(z))
                 vlast = vlast_temp
                 vs.append(vlast)
                 if z == zf:
@@ -336,6 +337,7 @@ class prop:
                 neffs.append(neff)
                 cmats_norm.append(cnorm)
                 zs.append(z)
+                tapervals.append(self.wvg.taper_func(z))
                 vlast = vlast_temp
                 vs.append(vlast)
                 if z == zf:
@@ -351,10 +353,10 @@ class prop:
                 zstep0/=2
                 z += zstep0
         
-        vs = np.array(vs).T
+        vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
         
         if save:
-            self.save(zs,cmats,neffs,vs,tag=tag)
+            self.save(zs,tapervals,cmats,neffs,vs,tag=tag)
         print("time elapsed: ",time.time()-start_time)
 
         self.cmat = cmats
@@ -362,7 +364,8 @@ class prop:
         self.vs = vs
         self.za = zs
         self.mesh = mesh
-        return zs,cmats,neffs,vs,mesh
+        self.tapervals = tapervals
+        return zs,tapervals,cmats,neffs,vs,mesh
 
     def check_and_make_folders(self):
         if not os.path.exists(self.save_dir):
@@ -377,13 +380,16 @@ class prop:
             os.makedirs(self.save_dir+'/zvals')
         if not os.path.exists(self.save_dir+'/meshes'):
             os.makedirs(self.save_dir+'/meshes')
+        if not os.path.exists(self.save_dir+'/tapervals'):
+            os.makedirs(self.save_dir+'/tapervals')
 
-    def save(self,zs,cmats,neffs,vs,tag=""):
+    def save(self,zs,tapervals,cmats,neffs,vs,tag=""):
         ps = "" if tag == "" else "_"+tag
         np.save(self.save_dir+'/cplcoeffs/cplcoeffs'+ps,cmats)
         np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
         np.save(self.save_dir+'/eigenvalues/eigenvalues'+ps,neffs)
         np.save(self.save_dir+'/zvals/zvals'+ps,zs)
+        np.save(self.save_dir+'/tapervals/tapervals'+ps,tapervals)
 
     def load(self,tag=""):
         ps = "" if tag == "" else "_"+tag
@@ -391,7 +397,11 @@ class prop:
         self.neff = np.load(self.save_dir+'/eigenvalues/eigenvalues'+ps+'.npy')
         self.vs = np.load(self.save_dir+'/eigenmodes/eigenmodes'+ps+'.npy')
         self.za = np.load(self.save_dir+'/zvals/zvals'+ps+'.npy')
-        self.mesh = load_meshio_mesh(self.save_dir+'/meshes/mesh'+ps)#meshio.read(self.save_dir+'/meshes/mesh'+ps+'.msh')
+        try:
+            self.tapervals = np.load(self.save_dir+'/tapervals/tapervals'+ps+".npy")
+        except: 
+            pass
+        self.mesh = load_meshio_mesh(self.save_dir+'/meshes/mesh'+ps)
         if self.Nmax==None:
             self.Nmax = self.neff.shape[1]
     
@@ -415,6 +425,12 @@ class prop:
         self.cmat_funcs = cmat_funcs
         self.neff_funcs = neff_funcs
         self.neff_int_funcs = [neff_func.antiderivative() for neff_func in neff_funcs]
+        try:
+            self.v_func = interp1d(self.za,self.vs,assume_sorted=True)
+        except:
+            pass
+        if self.tapervals is not None:
+            self.taper_func = UnivariateSpline(self.za,self.tapervals,s=0)
     
     def compute_cmat(self,z):
         """ using interpolation, compute the cross-coupling matrix at z """
@@ -456,13 +472,34 @@ class prop:
             phase_mat = np.exp(1.j * (phases[None,:] - phases[:,None]))
             return -1./neffs*np.dot(phase_mat*cmat,u*neffs)
         
-        sol = solve_ivp(deriv,(zi,zf),u0,'RK23')
+        sol = solve_ivp(deriv,(zi,zf),u0,'RK23') # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase
         v = np.sum(uf[None,:]*self.vs[:,:,-1],axis=1)
 
         return sol.t,sol.y,uf,v
+
+    def compute_change_of_basis(self,z,newbasis,u=None):
+        """ compute the (Nmax x Nmax) change of basis matrix between the current eigenbasis at z and a new basis 
+        ARGS: 
+        z: z coordinate at which the currently loaded eigenbasis should be evaluated
+        newbasis: MxN array of N eigenmodes computed over M mesh points, which we want to expand in
+        u: (optional) Nx1 modal vector to express in new basis
+
+        RETURNS:
+        cob: Nmax x Nmax change of basis matrix
+        _u: Nx1 modal vector corresponding to u expressed in the new basis. None, if u is not provided.
+        """
+        assert self.taper_func is not None,"run make_interp_funcs() first"
+        _mesh = copy.deepcopy(self.mesh)
+        _mesh.points *= self.taper_func(z)
+        B = construct_B(_mesh,sparse=True)
+        oldbasis = self.v_func(z)
+        cob = B.dot(newbasis).T.dot(oldbasis)
+        if u is not None:
+            return cob,np.dot(cob,u)
+        return cob,None
 
 def fast_interpolate(v,inmesh,triidxs,interpweights):
     idxs = inmesh.cells[1].data[triidxs]

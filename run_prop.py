@@ -1,9 +1,6 @@
 import numpy as np
 import optics
 import matplotlib.pyplot as plt
-from wavesolve.fe_solver import construct_AB,construct_B
-from scipy.sparse import save_npz,load_npz
-import meshio
 
 ### how to run ###
 
@@ -50,21 +47,11 @@ import propagator
 adprop = propagator.prop(wl,lant,6)
 
 # 3. run prop_setup()
-zs,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=False,tag=tag,max_interp_error=5e-4,fixed_degen=degen)
+zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,max_interp_error=5e-4,fixed_degen=degen)
 
 # 4. load the results of prop_setup() from local
 adprop.load(tag=tag)
 
-
-plt.plot(adprop.za,adprop.neff[:,0][:,None]-adprop.neff[:,1:]) # plotting effective index profiles relative to mode 0
-for z in adprop.za:
-    plt.axvline(x=z,alpha=0.1,color='k')
-plt.title("neff[0]-neff")
-plt.show()
-
-plt.plot(adprop.za,adprop.neff[:,:-1]-adprop.neff[:,1:]) # plotting difference in effective index between adjacent modes
-plt.title("neff differences")
-plt.show()
 
 for j in range(6): # plotting cross-coupling matrix
     for i in range(j):
@@ -142,7 +129,6 @@ axs[1].set_title("imag part")
 axs[2].set_title("norm")
 plt.show()
 
-
 ## standard PL result notes ... 
 # tag '0' core res 50 clad res 150 jack res 30 clad mesh size 1 interp error 5e-4 : 1588 seconds
 # tag '1' core res 40 -> output is not fully symmetrcic : 824 seconds
@@ -156,4 +142,4 @@ plt.show()
 # tag '9' core res 80 clad red 180 interp error 1e-4 clad mesh size 0.8 align true -> max ~0.0035 difference (1637 seconds)
 # tag '10' core res 50 clad red 150 interp error 1e-4 align true  -> max ~0.003 difference (1386 seconds)
 # tag '11' core res 50 clad red 150 interp error 5e-5
-# tag '12' fixed degen [[1,2],[3,4]] interp error 5e-4 
+# tag '12' fixed degen [[1,2],[3,4]] interp error 5e-4 -> similar results to 11 (863 seconds)

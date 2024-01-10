@@ -39,6 +39,7 @@ class prop:
         self.check_and_make_folders()
     
     def generate_mesh(self,size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,writeto=None):
+        self.wvg.update(0)
         return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto,_align=False)
 
     def get_neffs(self,zi,zf=None,max_interp_error=1e-5,mesh=None):
@@ -334,8 +335,6 @@ class prop:
             zs: array of z values
         """
 
-        update_tree = False
-
         start_time = time.time()
         zstep0 = 10 if fixed_step is None else fixed_step # starting step
 
@@ -346,9 +345,6 @@ class prop:
         zs = []
         tapervals=[]
 
-        self.wvg.update(0)
-
-        #always init the mesh from 0
         ps = "_"+tag if tag is not None else ""
         if save:
             meshwriteto=self.save_dir+"/meshes/mesh"+ps
@@ -358,6 +354,8 @@ class prop:
         mesh = self.generate_mesh(writeto=meshwriteto) if mesh is None else mesh
         _mesh = copy.deepcopy(mesh)
         
+        print("number of mesh points: ",mesh.points.shape[0])
+
         IOR_dict = self.wvg.assign_IOR()
 
         points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
@@ -556,7 +554,7 @@ class prop:
         """
         assert self.taper_func is not None,"run make_interp_funcs() first"
         _mesh = copy.deepcopy(self.mesh)
-        _mesh.points *= self.taper_func(z)
+        _mesh.points = self.mesh.points*self.taper_func(z)
         B = construct_B(_mesh,sparse=True)
         oldbasis = self.v_func(z)
         cob = B.dot(newbasis).T.dot(oldbasis)

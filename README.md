@@ -25,7 +25,7 @@ the `pythoncall` installation is a little weird. once you have the code cloned (
 
 ```
 using Pkg
-Pkg.activate("FEinterp")
+Pkg.activate("FEval")
 Pkg.add("PythonCall")
 exit()
 ```

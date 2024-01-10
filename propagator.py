@@ -263,8 +263,7 @@ class prop:
         # minus step
         mesh.points = points0*scale_facm
         w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-        tripoints = mesh.points[mesh.cells[1].data,:2]
-        meshtree = FEinterp.create_tree(tripoints[:,:3,:])
+        meshtree = FEinterp.create_tree(mesh.points,mesh.cells[1].data)
 
         # plus step
         _mesh.points = points0*scale_facp

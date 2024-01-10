@@ -16,6 +16,8 @@ end
 
 struct tritree # just need a way to store the array of triangle points
     _idxtree :: idxtree
+    points :: Array{Float64,2}
+    connections :: Array{Int64,2}
     tripoints :: Array{Float64,3}
 end
 
@@ -103,9 +105,16 @@ function construct_recursive(idxs::Array{Int64,1},bounds::Array{Float64,2},level
     end
 end
 
-function construct_tritree(tripoints::Union{Array{Float64,3},PyArray{Float64,3}} ,min_leaf_size=4)
-    if typeof(tripoints) <: PyArray
-        tripoints = pyconvert(Array{Float64,3},tripoints)
+function construct_tritree(points::PyArray{Float64,2},connections::PyArray{T,2} where T<:Integer,min_leaf_size=4)
+    points = pyconvert(Array{Float64,2},points)
+    connections = pyconvert(Array{UInt64,2},connections)
+
+    tripoints = Array{Float64,3}(undef,size(connections,1),size(connections,2),2)
+    for i in axes(connections,1)
+        for j in axes(connections,2)
+            tripoints[i,j,1] = points[connections[i,j],1]
+            tripoints[i,j,2] = points[connections[i,j],2]
+        end
     end
 
     xmins = minimum(tripoints[:,:,1],dims=2)
@@ -115,7 +124,7 @@ function construct_tritree(tripoints::Union{Array{Float64,3},PyArray{Float64,3}}
     bounds = hcat(xmins,xmaxs,ymins,ymaxs)
 
     idxs = Array(1:size(tripoints,1))
-    return tritree(construct_recursive(idxs,bounds,0,min_leaf_size),tripoints)
+    return tritree(construct_recursive(idxs,bounds,0,min_leaf_size),points,connections,tripoints)
 end 
 
 function inside(point::Vector{Float64},bbox::Vector{Float64})
@@ -217,7 +226,6 @@ function apply_affine_transform(vertices::Array{Float64,2},xy::Vector{Float64})
 end
 
 function get_interp_weights(new_points::PyArray{Float64,2},_tritree::tritree)
-    
     _old_points = _tritree.tripoints
     _new_points = pyconvert(Array{Float64,2},new_points)
     N = size(_new_points,1)
@@ -244,6 +252,83 @@ function get_interp_weights(new_points::PyArray{Float64,2},_tritree::tritree)
         end
     end
     return (_triidxs,_weights)
+end
+
+function evaluate(point::PyArray{Float64,1},field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_tritree::tritree)
+    dtype = eltype(field)
+    point = pyconvert(Vector{Float64},point)
+    field = pyconvert(Vector{dtype},field)
+    _triidx = query(point,_tritree)
+    val = 0.
+    if _triidx != 0
+        triverts = _tritree.tripoints[_triidx,:,:]
+        u,v = apply_affine_transform(triverts,point)
+        val += N1(u,v) * field[_tritree.connections[_triidx,1]]
+        val += N2(u) * field[_tritree.connections[_triidx,2]]
+        val += N3(v) * field[_tritree.connections[_triidx,3]]
+        val += N4(u,v) * field[_tritree.connections[_triidx,4]]
+        val += N5(u,v) * field[_tritree.connections[_triidx,5]]
+        val += N6(u,v) * field[_tritree.connections[_triidx,6]]
+    end
+    return val
+end
+
+function evaluate(point::PyArray{Float64,2},field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_tritree::tritree)
+    dtype = eltype(field)
+
+    point = pyconvert(Array{Float64,2},point)
+    field = pyconvert(Vector{dtype},field)
+
+    out = Vector{dtype}(undef,size(points,1))
+
+    for i in axes(point,1)
+        _point = point[i,:]
+        _triidx = query(_point,_tritree)
+        val = 0.
+        if _triidx != 0
+            triverts = _tritree.tripoints[_triidx,:,:]
+            u,v = apply_affine_transform(triverts,_point)
+            val += N1(u,v) * field[_tritree.connections[_triidx,1]]
+            val += N2(u) * field[_tritree.connections[_triidx,2]]
+            val += N3(v) * field[_tritree.connections[_triidx,3]]
+            val += N4(u,v) * field[_tritree.connections[_triidx,4]]
+            val += N5(u,v) * field[_tritree.connections[_triidx,5]]
+            val += N6(u,v) * field[_tritree.connections[_triidx,6]]
+        end
+        out[i] = val
+    end
+    return out
+end
+
+function evaluate(pointsx::PyArray{Float64,1},pointsy::PyArray{Float64,1},field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_tritree::tritree)
+
+    dtype = eltype(field)
+
+    pointsx = pyconvert(Vector{Float64},pointsx)
+    pointsy = pyconvert(Vector{Float64},pointsy)
+    field = pyconvert(Vector{dtype},field)
+
+    out = Array{dtype,2}(undef,size(pointsx,1),size(pointsy,1))
+
+    for i in eachindex(pointsx)
+        for j in eachindex(pointsy)
+            point = [pointsx[i],pointsy[j]]
+            _triidx = query(point,_tritree)
+            val = 0.
+            if _triidx != 0
+                triverts = _tritree.tripoints[_triidx,:,:]
+                u,v = apply_affine_transform(triverts,point)
+                val += N1(u,v) * field[_tritree.connections[_triidx,1]]
+                val += N2(u) * field[_tritree.connections[_triidx,2]]
+                val += N3(v) * field[_tritree.connections[_triidx,3]]
+                val += N4(u,v) * field[_tritree.connections[_triidx,4]]
+                val += N5(u,v) * field[_tritree.connections[_triidx,5]]
+                val += N6(u,v) * field[_tritree.connections[_triidx,6]]
+            end
+            out[i,j] = val
+        end
+    end
+    return out
 end
 
 end # module FEinterp

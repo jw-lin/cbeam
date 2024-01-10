@@ -1,6 +1,6 @@
 import numpy as np
 from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse
-from optics import waveguide
+from optics import load_meshio_mesh
 from scipy.interpolate import UnivariateSpline
 import FEinterp
 import copy
@@ -12,7 +12,7 @@ import os
 
 class prop:
     """ class for coupled mode propagation of tapered waveguides """
-    def __init__(self,wl,wvg:waveguide,Nmax:int,save_dir=None):
+    def __init__(self,wl,wvg=None,Nmax=None,save_dir=None):
         """
         ARGS:
         wl: propagation wavelength
@@ -196,7 +196,7 @@ class prop:
             neffs[gr] = np.mean(neffs[gr]) 
         return neffs                            
 
-    def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None):
+    def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,fixed_degen=[]):
         scale_facm = self.wvg.taper_func(z-dz0/2)/self.wvg.taper_func(zi)
         scale_facp = self.wvg.taper_func(z+dz0/2)/self.wvg.taper_func(zi)
 
@@ -214,9 +214,15 @@ class prop:
         # sign correction
         if vlast is None:
             self.make_sign_consistent(v,_v)
+            # degeneracy correction
+            for gr in fixed_degen:
+                self.correct_degeneracy(gr,v,_v)
         else:
             self.make_sign_consistent(vlast,v)
             self.make_sign_consistent(vlast,_v)
+            for gr in fixed_degen:
+                self.correct_degeneracy(gr,vlast,v)
+                self.correct_degeneracy(gr,vlast,_v)
 
         vlast = 0.5*(v+_v)
 
@@ -235,7 +241,22 @@ class prop:
         neffs = get_eff_index(self.wl,0.5*(w+_w))
         return cmat,neffs,vlast
 
-    def prop_setup(self,zi,zf,max_interp_error=3e-4,dz0=1,min_zstep=1,save=False,tag=""):
+    def compute_cmat_norm(self,cmat,fixed_degen=[]):
+        """ compute a matrix 'norm' that will be used to check accuracy in adaptive z-step scheme. """
+        ## when computing norm, ignore diagonal terms and any terms that are in a degenerate group, these are numerical noise
+        # this could be sped up ...
+        cnorm = 0
+        for i in range(self.Nmax):
+            for j in range(self.Nmax):
+                if i==j:
+                    continue
+                for gr in fixed_degen:
+                    if i in gr and j in gr:
+                        continue
+                cnorm += np.abs(cmat[i,j])
+        return cnorm
+    
+    def prop_setup(self,zi,zf,max_interp_error=3e-4,dz0=1,min_zstep=1,save=False,tag="",fixed_degen=[],fixed_step=None):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
@@ -247,11 +268,14 @@ class prop:
             min_zstep: if the adaptive scheme chooses a z-step less than this value, an exception is raised
             save: set True to write outputs to file; they can be loaded with self.load()
             tag: the unique string to associate to a computation, used to load() it later
+            fixed_degen: manually specify groups of degenerate modes (by index), improving convergence (hopefully)
+            fixed_step: manually set a fixed z step, ignoring the adaptive stepping scheme
+
         RETURNS:
             zs: array of z values
         """
         start_time = time.time()
-        zstep0 = 10 # starting step
+        zstep0 = 10 if fixed_step is None else fixed_step # starting step
 
         cmats = []
         cmats_norm = []
@@ -268,7 +292,7 @@ class prop:
         else:
             meshwriteto=None
         print("generating mesh...")
-        mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,_power=1,writeto=meshwriteto)
+        mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,_power=1,writeto=meshwriteto,_align=False)
         _mesh = copy.deepcopy(mesh)
         
         IOR_dict = self.wvg.assign_IOR()
@@ -283,17 +307,21 @@ class prop:
             if zstep0<min_zstep:
                 print("comp. halted")
                 raise Exception("error: zstep has decreased below lower limit - eigenmodes may not be varying continuously")
-            dz = min(zstep0/10,dz0)
-            cmat,neff,vlast_temp = self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast)
-            cnorm = norm(cmat)
-            if len(zs)<4:
+            if fixed_step:
+                dz = fixed_step
+            else:
+                dz = min(zstep0/10,dz0)
+            cmat,neff,vlast_temp = self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,fixed_degen=fixed_degen)
+
+            cnorm = self.compute_cmat_norm(cmat,fixed_degen)
+
+            if len(zs)<4 or fixed_step:
                 cmats.append(cmat)
                 neffs.append(neff)
                 cmats_norm.append(cnorm)
                 zs.append(z)
                 vlast = vlast_temp
-                if z == zi:
-                    vi = np.copy(vlast)
+                vs.append(vlast)
                 if z == zf:
                     break
                 z = min(zf,z+zstep0)
@@ -363,7 +391,9 @@ class prop:
         self.neff = np.load(self.save_dir+'/eigenvalues/eigenvalues'+ps+'.npy')
         self.vs = np.load(self.save_dir+'/eigenmodes/eigenmodes'+ps+'.npy')
         self.za = np.load(self.save_dir+'/zvals/zvals'+ps+'.npy')
-        self.mesh = meshio.read(self.save_dir+'/meshes/mesh'+ps+'.msh')
+        self.mesh = load_meshio_mesh(self.save_dir+'/meshes/mesh'+ps)#meshio.read(self.save_dir+'/meshes/mesh'+ps+'.msh')
+        if self.Nmax==None:
+            self.Nmax = self.neff.shape[1]
     
     def make_interp_funcs(self):
         """ construct interpolation functions for coupling matrices and mode effective indices,
@@ -430,7 +460,8 @@ class prop:
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase
-        v = np.sum(uf[:,None]*self.vs[-1,:],axis=0)
+        v = np.sum(uf[None,:]*self.vs[:,:,-1],axis=1)
+
         return sol.t,sol.y,uf,v
 
 def fast_interpolate(v,inmesh,triidxs,interpweights):

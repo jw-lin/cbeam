@@ -5,13 +5,41 @@ import gmsh
 import meshio
 
 def load_meshio_mesh(meshname):
-    """ a mesh from file (.msh). for some reason gmsh writes/reads meshes weird.
-        the loaded mesh is only guaranteed to have the proper points (mesh.points)
-        and triangle connections (mesh.cells[1].data)
-    """
+    """ ridiculous that i had to write this """
     mesh = meshio.read(meshname+".msh")
-    # super scuffed
-    mesh.cells[1].data = np.concatenate([c.data for c in mesh.cells],axis=0)
+    keys = list(mesh.cell_sets.keys())[:-1] # ignore bounding entities for now
+    _dict = {}
+    for key in keys:
+        _dict[key] = []
+
+    cells1data = []
+    for i,c in enumerate(mesh.cells): # these should all be triangle6
+        for key in keys:
+            if len(mesh.cell_sets[key][i]) != 0:
+                triangle_indices = mesh.cell_sets[key][i]
+                Ntris = len(triangle_indices)
+                totaltris = len(cells1data)
+                cons = mesh.cells[i].data[triangle_indices]
+                if len(cells1data) != 0:
+                    cells1data = np.concatenate([cells1data,cons])
+                else:
+                    cells1data = cons
+                if len(_dict[key]) != 0:
+                    _dict[key] = np.concatenate([_dict[key],np.arange(totaltris,totaltris+Ntris)])
+                else:
+                    _dict[key] = np.arange(totaltris,totaltris+Ntris)
+                continue
+    
+    # this is to match the format made by pygmsh
+    for key,val in _dict.items():
+        _dict[key] = [None,val,None]
+
+    mesh.cell_sets=_dict
+    mesh.cells[1].data = cells1data
+    for i in range(len(mesh.cells)):
+        if i == 1:
+            continue
+        mesh.cells[i]=None
     return mesh
 
 def boolean_fragment(geom:pygmsh.occ.Geometry,object,tool):
@@ -140,6 +168,11 @@ class waveguide:
         self.prim3Dgroups = prim3Dgroups # these are "layers" for the optical structure. each layer overwrites the next.
         self.IOR_dict = {}
     
+    @staticmethod
+    def make_IOR_dict():
+        """ this function should return an IOR dictionary, for mode solving. overwrite in child classes."""
+        pass
+
     def update(self,z):
         for group in self.prim3Dgroups:
             for prim in group:
@@ -533,3 +566,11 @@ class photonic_lantern(waveguide):
         els = [[_jack],[_clad],cores]
         
         super().__init__(els)
+    
+    @staticmethod
+    def make_IOR_dict(ncore,nclad,njack):
+        _dict = {}
+        _dict["core"] = ncore
+        _dict["cladding"] = nclad
+        _dict["jacket"] = njack
+        return _dict

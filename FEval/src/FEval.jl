@@ -1,4 +1,4 @@
-module FEinterp
+module FEval
 
 # simple bounding volume hierarchy (BVH) tree for triangles
 using PythonCall
@@ -331,4 +331,4 @@ function evaluate(pointsx::PyArray{Float64,1},pointsy::PyArray{Float64,1},field:
     return out
 end
 
-end # module FEinterp
+end # module FEval

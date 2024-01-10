@@ -2,7 +2,7 @@ import numpy as np
 from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,construct_B
 from optics import load_meshio_mesh
 from scipy.interpolate import UnivariateSpline,interp1d
-import FEinterp
+import FEval
 import copy,time,os
 from scipy.integrate import solve_ivp
 
@@ -263,7 +263,7 @@ class prop:
         # minus step
         mesh.points = points0*scale_facm
         w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-        meshtree = FEinterp.create_tree(mesh.points,mesh.cells[1].data)
+        meshtree = FEval.create_tree(mesh.points,mesh.cells[1].data)
 
         # plus step
         _mesh.points = points0*scale_facp
@@ -289,7 +289,7 @@ class prop:
 
         vinterp = np.copy(_v)
 
-        triidxs,interpweights = FEinterp.get_idxs_and_weights(_mesh.points,meshtree)
+        triidxs,interpweights = FEval.get_idxs_and_weights(_mesh.points,meshtree)
 
         mask = (triidxs != -1)
         for k,vec in enumerate(v):

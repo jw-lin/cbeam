@@ -2,20 +2,20 @@ from juliacall import Main as jl
 from juliacall import Pkg as jlPkg
 import numpy as np
 
-jlPkg.activate("FEinterp") 
-jl.seval("using FEinterp")
+jlPkg.activate("FEval") 
+jl.seval("using FEval")
 
 def create_tree(points,connections):
     """ from an array of mesh points and an index array of (quadratic) triangle connections, construct a BVH tree """
-    return jl.FEinterp.construct_tritree(points,connections+1)
+    return jl.FEval.construct_tritree(points,connections+1)
 
 def query(point,tree):
     """ find the index of the triangle that contains the given point. """
-    jl_idx = jl.FEinterp.query(point,tree)
+    jl_idx = jl.FEval.query(point,tree)
     return jl_idx-1
 
 def get_idxs_and_weights(new_points,tree):
-    triidxs,interpweights = jl.FEinterp.get_interp_weights(new_points,tree)
+    triidxs,interpweights = jl.FEval.get_interp_weights(new_points,tree)
     return np.array(triidxs)-1,np.array(interpweights)
 
 def evaluate(point,field,tree):
@@ -25,7 +25,7 @@ def evaluate(point,field,tree):
         field: a real-valued field represented on a finite-element mesh
         tree: a BVH tree that stores the triangles of field's finite-element mesh
     """
-    return jl.FEinterp.evaluate(point,field,tree)
+    return jl.FEval.evaluate(point,field,tree)
 
 def evaluate_grid(pointsx,pointsy,field,tree):
     """ evaluate a field sampled over a finite element mesh on a cartesian grid.
@@ -35,4 +35,4 @@ def evaluate_grid(pointsx,pointsy,field,tree):
         field: a real-valued field represented on a finite-element mesh
         tree: a BVH tree that stores the triangles of field's finite-element mesh
     """
-    return jl.FEinterp.evaluate(pointsx,pointsy,field,tree)
+    return jl.FEval.evaluate(pointsx,pointsy,field,tree)

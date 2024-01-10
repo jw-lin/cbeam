@@ -13,7 +13,7 @@ General: `Gmsh`
 
 this package uses a coupled-mode approach to simulate propagation through waveguides (hence the name). some notes: 
 
-1. currently, only tapered waveguides, whose cross-sectional geometries are assumed to scale uniformly with propagation distance, are supported.
+1. currently, only tapered waveguides, whose cross-sectional geometries are assumed to scale uniformly as a function of propagation distance, are supported.
 2. eigenmodes are computed using `wavesolve`, a finite element mode solver, which in turn uses a sparse method from `scipy` to solve the generalized eigenvalue problem.
 3. meshes are generated using `Gmsh` and `pygmsh`; boundary layer refinement at interfaces between regions with different refractive index is supported.
 4. derivatives of eigenmodes are estimated using centered finite difference (as opposed to perturbation theory).

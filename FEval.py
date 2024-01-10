@@ -36,3 +36,7 @@ def evaluate_grid(pointsx,pointsy,field,tree):
         tree: a BVH tree that stores the triangles of field's finite-element mesh
     """
     return jl.FEval.evaluate(pointsx,pointsy,field,tree)
+
+def update_tree(tree,rescale_factor):
+    jl.FEval.update_tritree(tree,rescale_factor)
+    return

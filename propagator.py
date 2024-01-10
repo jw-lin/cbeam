@@ -263,7 +263,7 @@ class prop:
         # minus step
         mesh.points = points0*scale_facm
         w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-        meshtree = FEval.create_tree(mesh.points,mesh.cells[1].data)
+        BVHtree = FEval.create_tree(mesh.points,mesh.cells[1].data) # note that updating the tree vs recreating doesn't seem to save any time
 
         # plus step
         _mesh.points = points0*scale_facp
@@ -289,7 +289,7 @@ class prop:
 
         vinterp = np.copy(_v)
 
-        triidxs,interpweights = FEval.get_idxs_and_weights(_mesh.points,meshtree)
+        triidxs,interpweights = FEval.get_idxs_and_weights(_mesh.points,BVHtree)
 
         mask = (triidxs != -1)
         for k,vec in enumerate(v):
@@ -299,7 +299,7 @@ class prop:
         cmat = self.est_cross_term(_B,vinterp,_v,dz0)
         neffs = get_eff_index(self.wl,0.5*(w+_w))
         return cmat,neffs,vlast
-
+    
     def compute_cmat_norm(self,cmat,fixed_degen=[]):
         """ compute a matrix 'norm' that will be used to check accuracy in adaptive z-step scheme. """
         ## when computing norm, ignore diagonal terms and any terms that are in a degenerate group, these are numerical noise
@@ -333,6 +333,9 @@ class prop:
         RETURNS:
             zs: array of z values
         """
+
+        update_tree = False
+
         start_time = time.time()
         zstep0 = 10 if fixed_step is None else fixed_step # starting step
 
@@ -371,7 +374,7 @@ class prop:
                 dz = fixed_step
             else:
                 dz = min(zstep0/10,dz0)
-            cmat,neff,vlast_temp = self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,fixed_degen=fixed_degen)
+            cmat,neff,vlast_temp= self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,fixed_degen=fixed_degen)
 
             cnorm = self.compute_cmat_norm(cmat,fixed_degen)
 

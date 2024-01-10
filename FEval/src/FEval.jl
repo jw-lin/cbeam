@@ -127,6 +127,26 @@ function construct_tritree(points::PyArray{Float64,2},connections::PyArray{T,2} 
     return tritree(construct_recursive(idxs,bounds,0,min_leaf_size),points,connections,tripoints)
 end 
 
+function modify_idx_tree_recursive(_idxtree::Union{idxtree,leaf},scale_factor::Float64)
+    _idxtree.bbox .*= scale_factor
+    if isleaf(_idxtree)
+        return
+    end
+    if !isnothing(_idxtree.left)
+        modify_idx_tree_recursive(_idxtree.left,scale_factor)
+    end
+    if !isnothing(_idxtree.right)
+        modify_idx_tree_recursive(_idxtree.right,scale_factor)
+    end
+end
+
+function update_tritree(_tritree::tritree,scale_factor::Float64)
+    _tritree.points .*= scale_factor # not sure if this will accumulate machine error
+    _tritree.tripoints .*= scale_factor
+    # traverse the tree and modify the bounding boxes
+    modify_idx_tree_recursive(_tritree._idxtree,scale_factor)
+end
+
 function inside(point::Vector{Float64},bbox::Vector{Float64})
     return (bbox[1]<=point[1]<=bbox[2]) & (bbox[3]<=point[2]<=bbox[4])
 end

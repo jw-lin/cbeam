@@ -38,18 +38,79 @@ class prop:
 
         self.check_and_make_folders()
     
-    def get_prop_constants(self,z_arr,sparse=True):
+    def generate_mesh(self,size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,writeto=None):
+        return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto,_align=False)
+
+    def get_neffs(self,zi,zf=None,max_interp_error=1e-5,mesh=None):
+        """ compute the effective refractive indices through a waveguide, using an adaptive step scheme. also saves interpolation functions to self.neff_funcs
+        ARGS:
+            zi: initial z coordinate
+            zf: final z coordinate. if None, just return the value at zi
+            max_interp_error: maximum error between an neff value computed at a proposed z step and the extrapolated value from previous points
+            mesh: (optional) a mesh object if you don't want to use the auto-generated, default mesh
+        RETURNS:
+            zs: array of z coordinates
+            neffs: array of effective indices computed on zs
+        """
+        start_time = time.time()
         neffs = []
-        self.wvg.update(z_arr[0])
-        mesh = self.wvg.make_mesh()
+        zs = []
+        self.wvg.update(0)
+        if mesh is None:
+            mesh = self.generate_mesh() # use default vals
+        points0 = np.copy(mesh.points)
+        zstep0 = 10
+
         IOR_dict = self.wvg.assign_IOR()
-        for i,z in enumerate(z_arr[1:]):
-            scale_fac = self.wvg.taper_func(z)/self.wvg.taper_func(z_arr[i])
-            mesh.points *= scale_fac
-            w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=sparse,Nmax=self.Nmax)
-            neffs.append(get_eff_index(self.wl,w))
+        z = zi
+        
+        print("computing effective indices ...")
+
+        if zf is None:
+            w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
+            return z , get_eff_index(self.wl,w)
+
+        while True:
+            scale_fac = self.wvg.taper_func(z)/self.wvg.taper_func(zi)
+            mesh.points = scale_fac*points0
+            w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
+            neff = get_eff_index(self.wl,w)
+            if len(neffs)<4:
+                neffs.append(neff)
+                zs.append(z)
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+                if z == zf:
+                    break
+                z = min(zf,z+zstep0)
+                continue
+            
+            # interpolate
+            neff_interp = interp1d(zs[-4:],np.array(neffs)[-4:,:],kind='cubic',axis=0,fill_value="extrapolate")
+            err = np.sum(np.abs(neff-neff_interp(z)))
+            if err < max_interp_error:
+                neffs.append(neff)
+                zs.append(z)
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+                if z == zf:
+                    break
+                if err < 0.1 * max_interp_error:
+                    zstep0*=2
+                z = min(zf,z+zstep0)
+            else:
+                print("\rcurrent z: {0} / {1}; tol. not met, reducing step        ".format(z,zf),end='',flush=True)   
+                z -= zstep0 
+                zstep0/=2
+                z += zstep0
+        
         neffs = np.array(neffs)
-        return neffs
+        neff_funcs = []
+        zs = np.array(zs)
+        for i in range(self.Nmax):
+            neff_funcs.append(UnivariateSpline(zs,neffs[:,i],s=0))
+        self.neff_funcs = neff_funcs
+        self.neff = neffs
+        print("time elapsed: ",time.time()-start_time)
+        return zs , neffs
     
     def compute_overlap_matrix(self,z,dz):
         isect_mesh,isect_dict = self.wvg.make_intersection_mesh(z,dz)
@@ -255,7 +316,7 @@ class prop:
                 cnorm += np.abs(cmat[i,j])
         return cnorm
     
-    def prop_setup(self,zi,zf,max_interp_error=3e-4,dz0=1,min_zstep=1,save=False,tag="",fixed_degen=[],fixed_step=None):
+    def prop_setup(self,zi,zf,max_interp_error=3e-4,dz0=1,min_zstep=1,save=False,tag="",fixed_degen=[],fixed_step=None,mesh=None):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
@@ -267,9 +328,9 @@ class prop:
             min_zstep: if the adaptive scheme chooses a z-step less than this value, an exception is raised
             save: set True to write outputs to file; they can be loaded with self.load()
             tag: the unique string to associate to a computation, used to load() it later
-            fixed_degen: manually specify groups of degenerate modes (by index), improving convergence (hopefully)
-            fixed_step: manually set a fixed z step, ignoring the adaptive stepping scheme
-
+            fixed_degen: (opt.) manually specify groups of degenerate modes (by index), improving convergence (hopefully)
+            fixed_step: (opt.) manually set a fixed z step, ignoring the adaptive stepping scheme
+            mesh: (opt.) pass in a pre-generated mesh, bypassing auto-generated one
         RETURNS:
             zs: array of z values
         """
@@ -292,7 +353,7 @@ class prop:
         else:
             meshwriteto=None
         print("generating mesh...")
-        mesh = self.wvg.make_mesh_bndry_ref(size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,_power=1,writeto=meshwriteto,_align=False)
+        mesh = self.generate_mesh(writeto=meshwriteto) if mesh is None else mesh
         _mesh = copy.deepcopy(mesh)
         
         IOR_dict = self.wvg.assign_IOR()

@@ -2,6 +2,17 @@ import pygmsh
 import numpy as np
 import matplotlib.pyplot as plt
 import gmsh
+import meshio
+
+def load_meshio_mesh(meshname):
+    """ a mesh from file (.msh). for some reason gmsh writes/reads meshes weird.
+        the loaded mesh is only guaranteed to have the proper points (mesh.points)
+        and triangle connections (mesh.cells[1].data)
+    """
+    mesh = meshio.read(meshname+".msh")
+    # super scuffed
+    mesh.cells[1].data = np.concatenate([c.data for c in mesh.cells],axis=0)
+    return mesh
 
 def boolean_fragment(geom:pygmsh.occ.Geometry,object,tool):
     """ fragment the tool and the object, and return the fragments in the following order:
@@ -215,7 +226,7 @@ class waveguide:
             mesh = geom.generate_mesh(dim=2,order=2,algorithm=algo)
             if writeto is not None:
                 gmsh.write(writeto+".msh")
-            gmsh.clear()
+                gmsh.clear()
             return mesh
 
     def assign_IOR(self):

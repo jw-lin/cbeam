@@ -1,6 +1,9 @@
 import numpy as np
 import optics
 import matplotlib.pyplot as plt
+from wavesolve.fe_solver import construct_AB,construct_B
+from scipy.sparse import save_npz,load_npz
+import meshio
 
 ### how to run ###
 
@@ -28,6 +31,8 @@ nclad = 1.444
 ncore = nclad + 8.8e-3
 njack = nclad - 5.5e-3
 
+degen = [[1,2],[3,4]]
+
 t = 2*np.pi/5
 initial_offset = rclad*2/3
 xpos_i = [0,initial_offset,initial_offset*np.cos(t),initial_offset*np.cos(2*t),initial_offset*np.cos(3*t),initial_offset*np.cos(4*t)]
@@ -36,29 +41,30 @@ ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset
 core_pos = np.array([xpos_i,ypos_i]).T
 
 # 1. create a waveguide (standard lantern()
-lant = optics.photonic_lantern(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res=60,clad_res=150,jack_res=30,clad_mesh_size=1.)
+lant = optics.photonic_lantern(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res=50,clad_res=150,jack_res=30,clad_mesh_size=1.0)
 
+tag = "12" # identifier for this computation
 import propagator
 
 # 2. initialize the propagator
 adprop = propagator.prop(wl,lant,6)
 
 # 3. run prop_setup()
-zs,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag="6",max_interp_error=2.5e-4)
+zs,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=False,tag=tag,max_interp_error=5e-4,fixed_degen=degen)
 
 # 4. load the results of prop_setup() from local
-adprop.load(tag="6")
+adprop.load(tag=tag)
+
 
 plt.plot(adprop.za,adprop.neff[:,0][:,None]-adprop.neff[:,1:]) # plotting effective index profiles relative to mode 0
 for z in adprop.za:
     plt.axvline(x=z,alpha=0.1,color='k')
-plt.title("neff-neff[0]")
+plt.title("neff[0]-neff")
 plt.show()
 
 plt.plot(adprop.za,adprop.neff[:,:-1]-adprop.neff[:,1:]) # plotting difference in effective index between adjacent modes
 plt.title("neff differences")
 plt.show()
-
 
 for j in range(6): # plotting cross-coupling matrix
     for i in range(j):
@@ -144,4 +150,10 @@ plt.show()
 # tag '3' same as std0 i think ? : 1450 seconds
 # tag '4' interp error 1e-3 -> output is not fully symmetric (worst so far): 1223 seconds
 # tag '5' core res 60 : 1139 seconds -> max ~0.01 difference in power between outer ports
-# tag '6' core res 60 interp error 2.5e-4 : 1512 seconds -> max ~0.005 difference
+# tag '6' core res 60 interp error 2.5e-4 : 1512 seconds -> max ~0.005 difference (1244 seconds on desktop)
+# tag '7' core res 60 interp error 1e-4 : 1467 seconds -> max ~0.0037 difference
+# tag '8' core res 60 clad red 180 interp error 1e-4 -> max ~0.0021 difference (1470 seconds)
+# tag '9' core res 80 clad red 180 interp error 1e-4 clad mesh size 0.8 align true -> max ~0.0035 difference (1637 seconds)
+# tag '10' core res 50 clad red 150 interp error 1e-4 align true  -> max ~0.003 difference (1386 seconds)
+# tag '11' core res 50 clad red 150 interp error 5e-5
+# tag '12' fixed degen [[1,2],[3,4]] interp error 5e-4 

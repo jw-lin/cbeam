@@ -36,16 +36,16 @@ core_pos = np.array([xpos_i,ypos_i]).T  # core positions for a standard 6 port P
 
 # mesh params
 
-core_res = 50                       # no. of line segments to use to resolve the core-cladding interface(s)
-clad_res = 150                      # no. of line segments to use to resolve the cladding-jacket interface
+core_res = 60                       # no. of line segments to use to resolve the core-cladding interface(s)
+clad_res = 180                      # no. of line segments to use to resolve the cladding-jacket interface
 jack_res = 30                       # no. of line segments to form the outer jacket boundary
-clad_mesh_size = 1.0                # mesh size (triangle side length) to use in the cladding region
+clad_mesh_size = 0.9                # mesh size (triangle side length) to use in the cladding region
 core_mesh_size = 0.05               # mesh size (triangle side length) to use inside the cores
 
 # 1. create a waveguide (standard lantern)
 lant = optics.photonic_lantern(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res,clad_res,jack_res,core_mesh_size,clad_mesh_size)
 
-tag = "12" # identifier for this computation
+tag = "13" # identifier for this computation
 import propagator
 
 # 2. initialize the propagator
@@ -68,7 +68,7 @@ plt.show()
 degen = [[1,2],[3,4]] # these groups remain degenerate throughout our example waveguide
 
 # 4. run prop_setup()
-zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,max_interp_error=5e-4,fixed_degen=degen)
+#zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,max_interp_error=2e-4,fixed_degen=degen)
 
 # 5. load the results of prop_setup() from local
 adprop.load(tag=tag)
@@ -166,3 +166,5 @@ plt.show()
 # tag '10' core res 50 clad red 150 interp error 1e-4 align true  -> max ~0.003 difference (1386 seconds)
 # tag '11' core res 50 clad red 150 interp error 5e-5
 # tag '12' fixed degen [[1,2],[3,4]] interp error 5e-4 -> similar results to 11 (863 seconds)
+# tag '13' fixed degen, interp error 2e-4, clad res 180 core res 60 clad mesh size 0.9
+# tag '14' interp error 2e-4, clad res 180 core res 60 clad mesh size 0.9 (not run yet)

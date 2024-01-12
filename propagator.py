@@ -30,6 +30,7 @@ class prop:
         self.neff_funcs = None
         self.v_func = None
         self.taper_func = None
+        self.points0 = None
 
         if save_dir is None:
             self.save_dir = './data'
@@ -42,6 +43,12 @@ class prop:
         self.wvg.update(0)
         return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto,_align=False)
 
+    def update_mesh(self,z=None,scale=None):
+        assert self.mesh is not None, "load() a mesh first!"
+        if z is not None:
+            assert self.taper_func is not None, "load a taper profile first into taper_func()"
+            scale = self.taper_func(z)
+        self.mesh.points = self.points0*scale
     def get_neffs(self,zi,zf=None,max_interp_error=1e-5,mesh=None):
         """ compute the effective refractive indices through a waveguide, using an adaptive step scheme. also saves interpolation functions to self.neff_funcs
         ARGS:
@@ -252,9 +259,8 @@ class prop:
                     i+=1
         return degen_groups
 
-    def avg_degen_neff(self,groups,neffs):
-        for gr in groups:
-            neffs[gr] = np.mean(neffs[gr]) 
+    def avg_degen_neff(self,group,neffs):
+        neffs[group] = np.mean(neffs[group])[None] 
         return neffs                            
 
     def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,fixed_degen=[]):
@@ -271,18 +277,22 @@ class prop:
         _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
         _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
 
+        neffs = get_eff_index(self.wl,0.5*(w+_w))
+
         # sign correction
         if vlast is None:
             self.make_sign_consistent(v,_v)
             # degeneracy correction
             for gr in fixed_degen:
                 self.correct_degeneracy(gr,v,_v)
+                self.avg_degen_neff(gr,neffs)
         else:
             self.make_sign_consistent(vlast,v)
             self.make_sign_consistent(vlast,_v)
             for gr in fixed_degen:
                 self.correct_degeneracy(gr,vlast,v)
                 self.correct_degeneracy(gr,vlast,_v)
+                self.avg_degen_neff(gr,neffs)
 
         vlast = 0.5*(v+_v)
 
@@ -298,7 +308,7 @@ class prop:
 
         # est deriv
         cmat = self.est_cross_term(_B,vinterp,_v,dz0)
-        neffs = get_eff_index(self.wl,0.5*(w+_w))
+
         return cmat,neffs,vlast
     
     def compute_cmat_norm(self,cmat,fixed_degen=[]):
@@ -406,7 +416,7 @@ class prop:
                 # rescale zstep0
                 if err<0.1*max_interp_error:
                     zstep0*=2
-                z = min(zf,z+zstep0) 
+                z = min(zf,z+zstep0)
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
             else:
                 print("\rcurrent z: {0} / {1}; tol. not met, reducing step        ".format(z,zf),end='',flush=True)             
@@ -463,6 +473,7 @@ class prop:
         except: 
             pass
         self.mesh = load_meshio_mesh(self.save_dir+'/meshes/mesh'+ps)
+        self.points0 = np.copy(self.mesh.points)
         if self.Nmax==None:
             self.Nmax = self.neff.shape[1]
     
@@ -486,6 +497,8 @@ class prop:
         self.cmat_funcs = cmat_funcs
         self.neff_funcs = neff_funcs
         self.neff_int_funcs = [neff_func.antiderivative() for neff_func in neff_funcs]
+        self.neff_dif_funcs = [neff_func.derivative() for neff_func in neff_funcs]
+
         try:
             self.v_func = interp1d(self.za,self.vs,assume_sorted=True)
         except:
@@ -513,7 +526,14 @@ class prop:
         """ compute the antiderivative of the mode effective indices at z"""
         return np.array([neffi(z) for neffi in self.neff_int_funcs])
 
-    def propagate(self,u0,zf):
+    def compute_dif_neff(self,z):
+        return np.array([neffd (z) for neffd in self.neff_dif_funcs]) 
+
+    def WKB_cor(self,z):
+        dbeta_dz = self.k * self.compute_dif_neff(z) 
+        return -0.5 * dbeta_dz / self.compute_neff(z)
+
+    def propagate(self,u0,zf,WKB=True):
         """ propagate a launch wavefront, expressed in the basis of initial eigenmodes, to z = zf 
         ARGS:
         u0: the launch field, expressed as mode amplitudes of the initial eigenmode basis
@@ -531,9 +551,12 @@ class prop:
             phases = self.k * (self.compute_int_neff(z)-self.compute_int_neff(zi))
             cmat = self.compute_cmat(z)
             phase_mat = np.exp(1.j * (phases[None,:] - phases[:,None]))
-            return -1./neffs*np.dot(phase_mat*cmat,u*neffs)
+            ddz = -1./neffs*np.dot(phase_mat*cmat,u*neffs)
+            if WKB: 
+                ddz += self.WKB_cor(z)*u
+            return ddz
         
-        sol = solve_ivp(deriv,(zi,zf),u0,'RK23') # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
+        sol = solve_ivp(deriv,(zi,zf),u0,'RK45',rtol=1e-5,atol=1e-7) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase
@@ -541,21 +564,20 @@ class prop:
 
         return sol.t,sol.y,uf,v
 
-    def compute_change_of_basis(self,z,newbasis,u=None):
+    def compute_change_of_basis(self,newbasis,z,u=None):
         """ compute the (Nmax x Nmax) change of basis matrix between the current eigenbasis at z and a new basis 
         ARGS: 
-        z: z coordinate at which the currently loaded eigenbasis should be evaluated
         newbasis: MxN array of N eigenmodes computed over M mesh points, which we want to expand in
+        z: z coordinate at which the currently loaded eigenbasis should be evaluated
         u: (optional) Nx1 modal vector to express in new basis
 
         RETURNS:
         cob: Nmax x Nmax change of basis matrix
         _u: Nx1 modal vector corresponding to u expressed in the new basis. None, if u is not provided.
         """
-        assert self.taper_func is not None,"run make_interp_funcs() first"
-        _mesh = copy.deepcopy(self.mesh)
-        _mesh.points = self.mesh.points*self.taper_func(z)
-        B = construct_B(_mesh,sparse=True)
+
+        self.update_mesh(z)
+        B = construct_B(self.mesh,sparse=True)
         oldbasis = self.v_func(z)
         cob = B.dot(newbasis).T.dot(oldbasis)
         if u is not None:

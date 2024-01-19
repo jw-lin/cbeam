@@ -1,12 +1,12 @@
 import numpy as np
 from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,construct_B
-from optics import load_meshio_mesh
+from waveguide import load_meshio_mesh
 from scipy.interpolate import UnivariateSpline,interp1d
 import FEval
 import copy,time,os
 from scipy.integrate import solve_ivp
 
-class prop:
+class Propagator:
     """ class for coupled mode propagation of tapered waveguides """
     def __init__(self,wl,wvg=None,Nmax=None,save_dir=None):
         """
@@ -49,12 +49,12 @@ class prop:
             assert self.taper_func is not None, "load a taper profile first into taper_func()"
             scale = self.taper_func(z)
         self.mesh.points = self.points0*scale
-    def get_neffs(self,zi,zf=None,max_interp_error=1e-5,mesh=None):
+    def get_neffs(self,zi,zf=None,tol=1e-5,mesh=None):
         """ compute the effective refractive indices through a waveguide, using an adaptive step scheme. also saves interpolation functions to self.neff_funcs
         ARGS:
             zi: initial z coordinate
             zf: final z coordinate. if None, just return the value at zi
-            max_interp_error: maximum error between an neff value computed at a proposed z step and the extrapolated value from previous points
+            tol: maximum error between an neff value computed at a proposed z step and the extrapolated value from previous points
             mesh: (optional) a mesh object if you don't want to use the auto-generated, default mesh
         RETURNS:
             zs: array of z coordinates
@@ -95,13 +95,13 @@ class prop:
             # interpolate
             neff_interp = interp1d(zs[-4:],np.array(neffs)[-4:,:],kind='cubic',axis=0,fill_value="extrapolate")
             err = np.sum(np.abs(neff-neff_interp(z)))
-            if err < max_interp_error:
+            if err < tol:
                 neffs.append(neff)
                 zs.append(z)
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
                 if z == zf:
                     break
-                if err < 0.1 * max_interp_error:
+                if err < 0.1 * tol:
                     zstep0*=2
                 z = min(zf,z+zstep0)
             else:
@@ -296,7 +296,7 @@ class prop:
 
         vlast = 0.5*(v+_v)
 
-        cmat = np.array(FEval.compute_coupling_simplex(v.T,BVHtree,_v.T,BVHtree2))/dz0
+        cmat = -np.array(FEval.compute_coupling_simplex(v.T,BVHtree,_v.T,BVHtree2))/dz0
 
         # interpolation
         """
@@ -329,14 +329,15 @@ class prop:
                 cnorm += np.abs(cmat[i,j])
         return cnorm
     
-    def prop_setup(self,zi,zf,max_interp_error=3e-4,dz0=1,min_zstep=1,save=False,tag="",fixed_degen=[],fixed_step=None,mesh=None):
+    def prop_setup(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",fixed_degen=[],fixed_step=None,mesh=None):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
+            
         ARGS:
             zi: initial z coordinate for waveguide modelling (doesn't have to be 0)
             zf: final z coordinate
-            max_interp_error: how carefully we step forwards in z. lower -> smaller steps
+            tol: how carefully we step forwards in z. lower -> smaller steps
             dz0: the default delta-z used to numerically estimate eigenmode derivatives
             min_zstep: if the adaptive scheme chooses a z-step less than this value, an exception is raised
             save: set True to write outputs to file; they can be loaded with self.load()
@@ -344,8 +345,14 @@ class prop:
             fixed_degen: (opt.) manually specify groups of degenerate modes (by index), improving convergence (hopefully)
             fixed_step: (opt.) manually set a fixed z step, ignoring the adaptive stepping scheme
             mesh: (opt.) pass in a pre-generated mesh, bypassing auto-generated one
+
         RETURNS:
             zs: array of z values
+            tapervals: array of taper values (scale factors) at each z
+            cmats: array of cross-coupling matrices
+            neffs: array of mode effective indices
+            vs: array of instantaneous eigenmodes
+            mesh: the mesh that was used for the computation
         """
 
         start_time = time.time()
@@ -406,7 +413,7 @@ class prop:
             # construct spline to test if current z step is small enough
             spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
             err = np.abs(spl(z)-cnorm)
-            if err<max_interp_error:
+            if err<tol:
                 cmats.append(cmat)
                 neffs.append(neff)
                 cmats_norm.append(cnorm)
@@ -417,7 +424,7 @@ class prop:
                 if z == zf:
                     break
                 # rescale zstep0
-                if err<0.1*max_interp_error:
+                if err<0.1*tol:
                     zstep0*=2
                 z = min(zf,z+zstep0)
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
@@ -548,6 +555,7 @@ class prop:
         uf: the final mode amplitudes of the wavefront, accounting for overall phase evolution of the eigenmodes
         v: the final wavefront, computed over the finite element mesh
         """
+        u0 = np.array(u0,dtype=np.complex128)
         zi = self.za[0]
         def deriv(z,u):
             neffs = self.compute_neff(z)
@@ -559,13 +567,13 @@ class prop:
                 ddz += self.WKB_cor(z)*u
             return ddz
         
-        sol = solve_ivp(deriv,(zi,zf),u0,'RK23',rtol=1e-5,atol=1e-7) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
+        sol = solve_ivp(deriv,(zi,zf),u0,'RK23',rtol=1e-10,atol=1e-10) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase
         v = np.sum(uf[None,:]*self.vs[:,:,-1],axis=1)
 
-        return sol.t,sol.y,uf,v
+        return sol.t,sol.y,uf
 
     def compute_change_of_basis(self,newbasis,z,u=None):
         """ compute the (Nmax x Nmax) change of basis matrix between the current eigenbasis at z and a new basis 

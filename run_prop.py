@@ -1,11 +1,11 @@
 import numpy as np
-import optics
+import waveguide
 import matplotlib.pyplot as plt
 from wavesolve.fe_solver import plot_eigenvector
 
 ### how to run, a 7-step process ###
 
-# 1. create a waveguide using optics.py
+# 1. create a Waveguide using optics.py
 # 2. initialize a propagator object with the waveguide
 # 3. (optional) run get_neffs() to look at effective indices of the eigenmodes and identify degenerate groups
 # 4. run prop_setup() to compute everything you need to model the lantern propagation
@@ -21,7 +21,7 @@ wl = 1.55                       # wavelength, um
 taper_factor = 8.                # relative scale factor between frontside and backside waveguide geometry    
 rcore = 2.2/taper_factor        # radius of tapered-down single-mode cores at frontside, um
 rclad = 10                      # radius of cladding-jacket interface at frontside, um
-rjack = 40                      # radius of outer jacket boundary at frontside, um
+rjack = 30                      # radius of outer jacket boundary at frontside, um
 z_ex = 40000                    # lantern length, um
 
 nclad = 1.444                   # cladding refractive index
@@ -34,7 +34,7 @@ xpos_i = [0,initial_offset,initial_offset*np.cos(t),initial_offset*np.cos(2*t),i
 ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset*np.sin(3*t),initial_offset*np.sin(4*t)]
 
 core_pos = np.array([xpos_i,ypos_i]).T  # core positions for a standard 6 port PL at frontside
-
+print(core_pos)
 # mesh params #
 
 core_res = 100                      # no. of line segments to use to resolve the core-cladding interface(s)
@@ -44,21 +44,21 @@ clad_mesh_size = 0.8                # mesh size (triangle side length) to use in
 core_mesh_size = 0.1               # mesh size (triangle side length) to use inside the cores
 
 # solve params #
-max_itp_error = 5e-6
+tol = 5e-6
 dz0 = 0.1
 degen = []#[[1,2],[3,4]] # these groups remain degenerate throughout our example waveguide
 
 ms_rcores = np.array([10.7/2,9.6/2,9.6/2,8.5/2,8.5/2,7.35/2])[::-1]/taper_factor
 std_rcores = np.array([rcore]*6)
 
-# 1. create a waveguide (standard lantern)
-lant = optics.photonic_lantern(core_pos,std_rcores,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res,clad_res,jack_res,core_mesh_size,clad_mesh_size)
+# 1. create a Waveguide (standard lantern)
+lant = waveguide.PhotonicLantern(core_pos,std_rcores,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res,clad_res,jack_res,core_mesh_size,clad_mesh_size)
 
 tag = "0_std" # identifier for this computation
 import propagator
 
 # 2. initialize the propagator
-adprop = propagator.prop(wl,lant,6)
+adprop = propagator.Propagator(wl,lant,6)
 
 # 3. (optional) compute effective indices and identify degenerate modes. this will speed up later computation
 '''
@@ -75,7 +75,7 @@ plt.show()
 '''
 
 # 4. run prop_setup()
-zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,max_interp_error=max_itp_error,fixed_degen=degen,dz0=dz0)
+zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,tol=tol,fixed_degen=degen,dz0=dz0)
 
 # 5. load the results of prop_setup() from local
 adprop.load(tag=tag)
@@ -116,7 +116,7 @@ adprop.make_interp_funcs()
 u0 = np.array([1,0,0,0,0,0],dtype=np.complex128) # launch LP01
 
 # 7. propagate
-z,u,uf,v = adprop.propagate(u0,z_ex,WKB=True)
+z,u,uf = adprop.propagate(u0,z_ex,WKB=False)
 
 print("final mode amplitudes: ")
 print(np.abs(uf))
@@ -170,7 +170,7 @@ plt.show()
 
 # change of basis
 adprop.update_mesh(scale=taper_factor)
-_dict = optics.photonic_lantern.make_IOR_dict(ncore,nclad,njack)
+_dict = waveguide.Photonic_lantern.make_IOR_dict(ncore,nclad,njack)
 from wavesolve.fe_solver import solve_waveguide
 _w,_v,_N = solve_waveguide(adprop.mesh,wl,_dict,sparse=True,Nmax=6)
 

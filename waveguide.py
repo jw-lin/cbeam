@@ -59,8 +59,8 @@ def boolean_fragment(geom:pygmsh.occ.Geometry,object,tool):
     tool = geom.boolean_difference(tool,intersection,delete_first=True,delete_other=False)
     return intersection+object+tool
 
-class prim2D:
-    """ a prim2D (2D primitive) is an an array of N (x,y) points, shape (N,2), that denote a closed curve (so, a polygon). 
+class Prim2D:
+    """ a Prim2D (2D primitive) is an an array of N (x,y) points, shape (N,2), that denote a closed curve (so, a polygon). 
         inside the closed curve, the primitive has refractive index n. 
     """
     def __init__(self,points,n):
@@ -86,15 +86,25 @@ class prim2D:
         """ this function computes the distance between the point (x,y) and the boundary of the primitive """
         pass
 
-class circle(prim2D):
-    """ a circle primitive, defined by radius, center, and number of sides """
+class Circle(Prim2D):
+    """ a Circle primitive, defined by radius, center, and number of sides """
     
     def __init__(self,radius,res,n,center=(0,0),angle=0,resolve_inner=False,mesh_size=None):
+        """
+        ARGS:
+            radius: circle radius
+            res: resolution of the circle (number of boundary points and hence segments)
+            center: the (x,y) location of the circle center, defaults to (0,0)
+            angle: the angle by which all boundary points should be rotated by, default 0.
+            resolve_inner: bool. when using boundary refinement mesh generation, this specifies if the inside of the circle should be 
+                           meshed at a fixed size (or if the size should be chosen adaptively by proximity the boundary.)
+            mesh_size: the desired mesh element size inside the circle.
+        """
         super().__init__(self.make_points(radius,res,center,angle=angle),n)
         self.radius = radius
         self.center = center
         self.resolve_inner = resolve_inner
-        self.mesh_size=mesh_size
+        self.mesh_size = mesh_size
 
     def make_points(self,radius,res,center=(0,0),angle=0):
     
@@ -111,8 +121,8 @@ class circle(prim2D):
             return max(0,np.sqrt(np.power(x-self.center[0],2)+np.power(y-self.center[1],2)) - self.radius)
         return np.abs(np.sqrt(np.power(x-self.center[0],2)+np.power(y-self.center[1],2)) - self.radius)
 
-class wedge(prim2D):
-    """ pie slice - div is an int, how many slices fit into a circle """
+class Wedge(Prim2D):
+    """ pie slice - div is an int, how many slices fit into a Circle """
     def __init__(self,radius,div,res,n):
         super().__init__(self.make_points(radius,res,div,res),n)
     
@@ -124,11 +134,11 @@ class wedge(prim2D):
         points = np.array(points)
         return points
 
-class prim3D:
-    """ a prim3D (3D primitive) is a function of z that returns a prim2D. """
+class Prim3D:
+    """ a Prim3D (3D primitive) is a function of z that returns a Prim2D. """
 
-    def __init__(self,_prim2D:prim2D,label:str):
-        self._prim2D = _prim2D
+    def __init__(self,_Prim2D:Prim2D,label:str):
+        self._Prim2D = _Prim2D
         self.label = label
 
     def update(self,z):
@@ -136,13 +146,13 @@ class prim3D:
 
     def make_poly_at_z(self,z):
         self.update(z)
-        return self._prim2D.make_poly()
+        return self._Prim2D.make_poly()
 
-class pipe(prim3D):
-    """ a pipe is a 3D primitive with circular cross section at all z. """
+class Pipe(Prim3D):
+    """ a Pipe is a 3D primitive with circular cross section at all z. """
     def __init__(self,rfunc,nfunc,cfunc,resfunc,label,angle=0,resolve_inner=False,mesh_size=None):
         """ args: functions for radius, index, and center. last arg is polygon resolution. """
-        _circ= circle(rfunc(0),resfunc(0),nfunc(0),cfunc(0),angle=angle,resolve_inner=resolve_inner,mesh_size=mesh_size)
+        _circ= Circle(rfunc(0),resfunc(0),nfunc(0),cfunc(0),angle=angle,resolve_inner=resolve_inner,mesh_size=mesh_size)
         self.rfunc = rfunc
         self.resfunc = resfunc
         self.nfunc = nfunc
@@ -150,23 +160,24 @@ class pipe(prim3D):
         super().__init__(_circ,label)
     
     def update(self,z):
-        points = self._prim2D.make_points(self.rfunc(z),self.resfunc(z),self.cfunc(z))
-        self._prim2D.update(points,self.nfunc(z))
+        points = self._Prim2D.make_points(self.rfunc(z),self.resfunc(z),self.cfunc(z))
+        self._Prim2D.update(points,self.nfunc(z))
 
 def linear_taper(final_scale,z_ex):
     def _inner_(z):
         return (final_scale - 1)/z_ex * z + 1
     return _inner_
 
-class waveguide:
-    """ a waveguide is a collection of prim3Ds, organized into layers. the refractive index 
+class Waveguide:
+    """ a Waveguide is a collection of Prim3Ds, organized into layers. the refractive index 
     of earler layers is overwritten by later layers.
     """
     skip_layers=[0]
     
-    def __init__(self,prim3Dgroups):
-        self.prim3Dgroups = prim3Dgroups # these are "layers" for the optical structure. each layer overwrites the next.
+    def __init__(self,Prim3Dgroups):
+        self.Prim3Dgroups = Prim3Dgroups # these are "layers" for the optical structure. each layer overwrites the next.
         self.IOR_dict = {}
+        self.update(0) # default behavior: init with z=0 for all primitives
     
     @staticmethod
     def make_IOR_dict():
@@ -174,22 +185,22 @@ class waveguide:
         pass
 
     def update(self,z):
-        for group in self.prim3Dgroups:
+        for group in self.Prim3Dgroups:
             for prim in group:
                 prim.update(z)
 
     def make_mesh(self,algo=6):
-        """ construct a finite element mesh for the waveguide cross-section at the currently set 
+        """ construct a finite element mesh for the Waveguide cross-section at the currently set 
             z coordinate, which in turn is set through self.update(z). note that meshes will not 
             vary continuously with z. this can only be guaranteed by manually applying a transformation
             to the mesh points which takes it from z1 -> z2.
         """
         with pygmsh.occ.Geometry() as geom:
             # make the polygons
-            polygons = [[geom.add_polygon(p._prim2D.points) for p in group] for group in self.prim3Dgroups]
+            polygons = [[geom.add_polygon(p._Prim2D.points) for p in group] for group in self.Prim3Dgroups]
 
             # diff the polygons
-            for i in range(0,len(self.prim3Dgroups)-1):
+            for i in range(0,len(self.Prim3Dgroups)-1):
 
                 polys = polygons[i]
                 _polys = polygons[i+1]
@@ -198,7 +209,7 @@ class waveguide:
                     polys = geom.boolean_difference(polys,_p,delete_other=False,delete_first=True)
             
             for i,el in enumerate(polygons):
-                geom.add_physical(el,self.prim3Dgroups[i][0].label)
+                geom.add_physical(el,self.Prim3Dgroups[i][0].label)
 
             mesh = geom.generate_mesh(dim=2,order=2,algorithm=algo)
             return mesh
@@ -209,32 +220,32 @@ class waveguide:
             
             # flat array of all 2D primitives, skipping layers as needed
             prims = []
-            for i,group in enumerate(self.prim3Dgroups):
+            for i,group in enumerate(self.Prim3Dgroups):
                 if i in self.skip_layers:
                     continue
                 for p in group:
-                    prims.append(p._prim2D)
+                    prims.append(p._Prim2D)
 
             # make the polygons
             polygons = []
-            for i,group in enumerate(self.prim3Dgroups):
+            for i,group in enumerate(self.Prim3Dgroups):
                 polygroup = []
                 for j,p in enumerate(group):
                     if _align and i==1 and j==0:
                         # split the cladding
-                        N = len(p._prim2D.points)
-                        points0 = p._prim2D.points[:int(N/2)+1]
-                        points1 = np.concatenate((p._prim2D.points[int(N/2):],np.array([p._prim2D.points[0]])))
+                        N = len(p._Prim2D.points)
+                        points0 = p._Prim2D.points[:int(N/2)+1]
+                        points1 = np.concatenate((p._Prim2D.points[int(N/2):],np.array([p._Prim2D.points[0]])))
                         polygroup.append(geom.add_polygon(points0))
                         polygroup.append(geom.add_polygon(points1))
                     else:
-                        polygroup.append(geom.add_polygon(p._prim2D.points))
+                        polygroup.append(geom.add_polygon(p._Prim2D.points))
                 polygons.append(polygroup)
 
-            #polygons = [[geom.add_polygon(p._prim2D.points) for p in group] for group in self.prim3Dgroups]
+            #polygons = [[geom.add_polygon(p._Prim2D.points) for p in group] for group in self.Prim3Dgroups]
 
             # diff the polygons
-            for i in range(0,len(self.prim3Dgroups)-1):
+            for i in range(0,len(self.Prim3Dgroups)-1):
 
                 polys = polygons[i]
                 _polys = polygons[i+1]
@@ -243,7 +254,7 @@ class waveguide:
                     polys = geom.boolean_difference(polys,_p,delete_other=False,delete_first=True)
 
             for i,el in enumerate(polygons):
-                geom.add_physical(el,self.prim3Dgroups[i][0].label)
+                geom.add_physical(el,self.Prim3Dgroups[i][0].label)
 
             # mesh refinement callback
             def callback(dim,tag,x,y,z,lc):
@@ -263,10 +274,10 @@ class waveguide:
             return mesh
 
     def assign_IOR(self):
-        """ build a dictionary which maps all material labels in the waveguide mesh
+        """ build a dictionary which maps all material labels in the Waveguide mesh
             to the corresponding refractive index value """
-        for group in self.prim3Dgroups:
-            self.IOR_dict[group[0].label] = group[0]._prim2D.n
+        for group in self.Prim3Dgroups:
+            self.IOR_dict[group[0].label] = group[0]._Prim2D.n
         return self.IOR_dict
 
     def plot_mesh(self,mesh=None,IOR_dict=None, verts=3,alpha=0.3):
@@ -310,9 +321,9 @@ class waveguide:
         plt.show()
     
     def plot_boundaries(self):
-        for group in self.prim3Dgroups:
+        for group in self.Prim3Dgroups:
             for prim in group:
-                p = prim._prim2D.points
+                p = prim._Prim2D.points
                 p2 = np.zeros((p.shape[0]+1,p.shape[1]))
                 p2[:-1] = p[:]
                 p2[-1] = p[0]
@@ -321,7 +332,7 @@ class waveguide:
         plt.show()
     
     def make_intersection_mesh(self,z,dz):
-        """ construct a mesh around the union of waveguide boundaries computed at z and z+dz.
+        """ construct a mesh around the union of Waveguide boundaries computed at z and z+dz.
             returns both the mesh and a custom dictionary mapping regions of the mesh to
             refractive indices. to advance the refractive index profile from z to z+dz
             use self.advance_IOR() to update the dictionary.
@@ -333,16 +344,16 @@ class waveguide:
             # make the polygons at z
 
             self.update(z)
-            polygons = [[geom.add_polygon(p._prim2D.points) for p in group] for group in self.prim3Dgroups]
+            polygons = [[geom.add_polygon(p._Prim2D.points) for p in group] for group in self.Prim3Dgroups]
 
             # make the polygons at z + dz
             self.update(z+dz)
             next_polygons = []
-            for i,layer in enumerate(self.prim3Dgroups):
+            for i,layer in enumerate(self.Prim3Dgroups):
                 if i in skip_layers:
                     next_polygons.append([])
                     continue
-                next_polygons.append([geom.add_polygon(p._prim2D.points) for p in layer])
+                next_polygons.append([geom.add_polygon(p._Prim2D.points) for p in layer])
 
             elmnts = []
 
@@ -408,19 +419,19 @@ class waveguide:
                         
                     else:
                         # if the sublayer is just a polygon, its structure is assumed to be fixed from z -> z + dz
-                        geom.add_physical(layer,self.prim3Dgroups[i][0].label)
-                        IOR_dict[self.prim3Dgroups[i][0].label] = self.prim3Dgroups[i][0]._prim2D.n
+                        geom.add_physical(layer,self.Prim3Dgroups[i][0].label)
+                        IOR_dict[self.Prim3Dgroups[i][0].label] = self.Prim3Dgroups[i][0]._Prim2D.n
                         break
                 
                 if fragroup0:
-                    geom.add_physical(fragroup0,self.prim3Dgroups[i][0].label+"0")
-                    IOR_dict[self.prim3Dgroups[i][0].label+"0"] = self.prim3Dgroups[i][0]._prim2D.n
+                    geom.add_physical(fragroup0,self.Prim3Dgroups[i][0].label+"0")
+                    IOR_dict[self.Prim3Dgroups[i][0].label+"0"] = self.Prim3Dgroups[i][0]._Prim2D.n
                 if fragroup1:
-                    geom.add_physical(fragroup1,self.prim3Dgroups[i][0].label+"1")
-                    IOR_dict[self.prim3Dgroups[i][0].label+"1"] = self.prim3Dgroups[i-1][0]._prim2D.n
+                    geom.add_physical(fragroup1,self.Prim3Dgroups[i][0].label+"1")
+                    IOR_dict[self.Prim3Dgroups[i][0].label+"1"] = self.Prim3Dgroups[i-1][0]._Prim2D.n
                 if fragroup01:
-                    geom.add_physical(fragroup01,self.prim3Dgroups[i][0].label+"2")
-                    IOR_dict[self.prim3Dgroups[i][0].label+"2"] = self.prim3Dgroups[i][0]._prim2D.n
+                    geom.add_physical(fragroup01,self.Prim3Dgroups[i][0].label+"2")
+                    IOR_dict[self.Prim3Dgroups[i][0].label+"2"] = self.Prim3Dgroups[i][0]._Prim2D.n
 
             mesh = geom.generate_mesh(dim=2,order=2,algorithm=6)
         
@@ -431,7 +442,7 @@ class waveguide:
         evaluated at some z for some 'intersection mesh' and update it so it reflects the 
         refractive index at z+dz.
         """
-        IORs = [g[0]._prim2D.n for g in self.prim3Dgroups]
+        IORs = [g[0]._Prim2D.n for g in self.Prim3Dgroups]
         for key in IOR_dict.keys():
             if key[-1]=="1":
                 IOR_dict[key] = IOR_dict[key[:-1]+"2"]
@@ -439,70 +450,8 @@ class waveguide:
                 idx = IORs.index(IOR_dict[key])
                 IOR_dict[key] = IORs[idx-1]
         return IOR_dict      
-
-class linear_lantern_dep(waveguide):
-    ''' this is deprecated - keeping for future reference though. '''
-    def __init__(self,core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,corecirc_res = 10,clad_res=16,jack_res=32):
-
-        self.skip_layers=[0,2]
-        taper_func = linear_taper(taper_factor,z_ex)
-        self.taper_func = taper_func
-        #resfunc = lambda z: int(np.ceil(core_res*np.sqrt(taper_func(z))))
-        resfunc = lambda z: core_res
-        cores = []
-
-        def rfunc(r):
-            def _inner_(z):
-                return taper_func(z)*r
-            return _inner_
-        
-        def nfunc(n):
-            def _inner_(z):
-                return n
-            return _inner_
-
-        def cfunc(c):
-            def _inner_(z):
-                return taper_func(z)*c[0],taper_func(z)*c[1]
-            return _inner_
-
-        i = 0
-        for c,r,n in zip(core_pos,rcores,ncores):
-            if i == 0:
-                angle = 0
-            else:
-                angle = 2*np.pi/5*i
-                i+=1
-            cores.append(pipe(rfunc(r),nfunc(n),cfunc(c),resfunc,"core",angle=angle))
-        
-        corecircs = []
-        corecirc_resfunc = lambda z: corecirc_res
-        i = 0
-        for c,r,n in zip(core_pos,rcores,ncores):
-            if i == 0:
-                angle = 0
-            else:
-                angle = 2*np.pi/5*i
-                i+=1
-            corecircs.append(pipe(rfunc(r*4),nfunc(nclad),cfunc(c),corecirc_resfunc,"_cladding",angle=angle))
-
-        cladrfunc = lambda z: taper_func(z)*rclad
-        cladnfunc = lambda z: nclad
-        cladcfunc = lambda z: (0,0)
-        cladresfunc = lambda z: clad_res
-        _clad = pipe(cladrfunc,cladnfunc,cladcfunc,cladresfunc,"cladding")
-
-        jackrfunc = lambda z: taper_func(z)*rjack
-        jacknfunc = lambda z: njack
-        jackcfunc = lambda z: (0,0)
-        jackresfunc = lambda z: jack_res
-        _jack = pipe(jackrfunc,jacknfunc,jackcfunc,jackresfunc,"jacket")
-
-        els = [[_jack],[_clad],corecircs,cores]
-        
-        super().__init__(els)
     
-class photonic_lantern(waveguide):
+class PhotonicLantern(Waveguide):
     ''' generic class for photonic lanterns '''
     def __init__(self,core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res=64,jack_res=32,core_mesh_size=0.05,clad_mesh_size=0.2):
         ''' ARGS: 
@@ -549,19 +498,19 @@ class photonic_lantern(waveguide):
             else:
                 angle = 2*np.pi/5*i
                 i+=1
-            cores.append(pipe(rfunc(r),nfunc(n),cfunc(c),resfunc,"core",angle=angle,resolve_inner=True,mesh_size=core_mesh_size))
+            cores.append(Pipe(rfunc(r),nfunc(n),cfunc(c),resfunc,"core",angle=angle,resolve_inner=True,mesh_size=core_mesh_size))
 
         cladrfunc = lambda z: taper_func(z)*rclad
         cladnfunc = lambda z: nclad
         cladcfunc = lambda z: (0,0)
         cladresfunc = lambda z: clad_res
-        _clad = pipe(cladrfunc,cladnfunc,cladcfunc,cladresfunc,"cladding",resolve_inner=True,mesh_size=clad_mesh_size)
+        _clad = Pipe(cladrfunc,cladnfunc,cladcfunc,cladresfunc,"cladding",resolve_inner=True,mesh_size=clad_mesh_size)
 
         jackrfunc = lambda z: taper_func(z)*rjack
         jacknfunc = lambda z: njack
         jackcfunc = lambda z: (0,0)
         jackresfunc = lambda z: jack_res
-        _jack = pipe(jackrfunc,jacknfunc,jackcfunc,jackresfunc,"jacket")
+        _jack = Pipe(jackrfunc,jacknfunc,jackcfunc,jackresfunc,"jacket")
 
         els = [[_jack],[_clad],cores]
         

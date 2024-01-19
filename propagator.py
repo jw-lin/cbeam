@@ -276,7 +276,7 @@ class prop:
         _mesh.points = points0*scale_facp
         _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
         _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
-
+        BVHtree2 = FEval.create_tree(_mesh.points,_mesh.cells[1].data)
         neffs = get_eff_index(self.wl,0.5*(w+_w))
 
         # sign correction
@@ -296,8 +296,10 @@ class prop:
 
         vlast = 0.5*(v+_v)
 
-        # interpolation
+        cmat = np.array(FEval.compute_coupling_simplex(v.T,BVHtree,_v.T,BVHtree2))/dz0
 
+        # interpolation
+        """
         vinterp = np.copy(_v)
 
         triidxs,interpweights = FEval.get_idxs_and_weights(_mesh.points,BVHtree)
@@ -308,8 +310,9 @@ class prop:
 
         # est deriv
         cmat = self.est_cross_term(_B,vinterp,_v,dz0)
-
+        """
         return cmat,neffs,vlast
+        
     
     def compute_cmat_norm(self,cmat,fixed_degen=[]):
         """ compute a matrix 'norm' that will be used to check accuracy in adaptive z-step scheme. """
@@ -556,7 +559,7 @@ class prop:
                 ddz += self.WKB_cor(z)*u
             return ddz
         
-        sol = solve_ivp(deriv,(zi,zf),u0,'RK45',rtol=1e-5,atol=1e-7) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
+        sol = solve_ivp(deriv,(zi,zf),u0,'RK23',rtol=1e-5,atol=1e-7) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase

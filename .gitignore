@@ -8,3 +8,4 @@ Manifest.toml
 data/
 analysis.py
 *.npz
+test.py

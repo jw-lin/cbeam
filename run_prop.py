@@ -21,7 +21,7 @@ wl = 1.55                       # wavelength, um
 taper_factor = 8.                # relative scale factor between frontside and backside waveguide geometry    
 rcore = 2.2/taper_factor        # radius of tapered-down single-mode cores at frontside, um
 rclad = 10                      # radius of cladding-jacket interface at frontside, um
-rjack = 30                      # radius of outer jacket boundary at frontside, um
+rjack = 40                      # radius of outer jacket boundary at frontside, um
 z_ex = 40000                    # lantern length, um
 
 nclad = 1.444                   # cladding refractive index
@@ -37,21 +37,24 @@ core_pos = np.array([xpos_i,ypos_i]).T  # core positions for a standard 6 port P
 
 # mesh params #
 
-core_res = 100                       # no. of line segments to use to resolve the core-cladding interface(s)
-clad_res = 250                      # no. of line segments to use to resolve the cladding-jacket interface
-jack_res = 30                       # no. of line segments to form the outer jacket boundary
+core_res = 100                      # no. of line segments to use to resolve the core-cladding interface(s)
+clad_res = 200                      # no. of line segments to use to resolve the cladding-jacket interface
+jack_res = 40                       # no. of line segments to form the outer jacket boundary
 clad_mesh_size = 0.8                # mesh size (triangle side length) to use in the cladding region
-core_mesh_size = 0.05               # mesh size (triangle side length) to use inside the cores
+core_mesh_size = 0.1               # mesh size (triangle side length) to use inside the cores
 
 # solve params #
-max_itp_error = 3e-5
-dz0 = 0.5
-degen = [[1,2],[3,4]] # these groups remain degenerate throughout our example waveguide
+max_itp_error = 5e-6
+dz0 = 0.1
+degen = []#[[1,2],[3,4]] # these groups remain degenerate throughout our example waveguide
+
+ms_rcores = np.array([10.7/2,9.6/2,9.6/2,8.5/2,8.5/2,7.35/2])[::-1]/taper_factor
+std_rcores = np.array([rcore]*6)
 
 # 1. create a waveguide (standard lantern)
-lant = optics.photonic_lantern(core_pos,[rcore]*6,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res,clad_res,jack_res,core_mesh_size,clad_mesh_size)
+lant = optics.photonic_lantern(core_pos,std_rcores,rclad,rjack,[ncore]*6,nclad,njack,z_ex,taper_factor,core_res,clad_res,jack_res,core_mesh_size,clad_mesh_size)
 
-tag = "19" # identifier for this computation
+tag = "0_std" # identifier for this computation
 import propagator
 
 # 2. initialize the propagator
@@ -72,7 +75,7 @@ plt.show()
 '''
 
 # 4. run prop_setup()
-#zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,max_interp_error=max_itp_error,fixed_degen=degen,dz0=dz0)
+zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,max_interp_error=max_itp_error,fixed_degen=degen,dz0=dz0)
 
 # 5. load the results of prop_setup() from local
 adprop.load(tag=tag)
@@ -221,3 +224,4 @@ print(np.imag(_uf))
 # tag '16' core res 80 clad res 200 clad mesh size 0.8 core mesh size 0.04 interp error 2e-5 degen correction on
 # tag '17' like '16' but core mesh size -> 0.03
 # tag '18' like '17' but no fixed degen
+# tag '19' back to 20k length

@@ -2,6 +2,9 @@ module FEval
 
 # simple bounding volume hierarchy (BVH) tree for triangles
 using PythonCall
+using Cubature
+using GrundmannMoeller
+using StaticArrays
 
 struct leaf
     bbox :: Array{Float64,1}
@@ -240,9 +243,30 @@ function affine_transform_matrix(vertices::Array{Float64,2})
     return M
 end
 
+function affine_transform_matrix_inv(vertices::Array{Float64,2})
+    x21 = vertices[2,1] - vertices[1,1]
+    y21 = vertices[2,2] - vertices[1,2]
+    x31 = vertices[3,1] - vertices[1,1]
+    y31 = vertices[3,2] - vertices[1,2]
+    return [x21 x31 ; y21 y31]
+end
+
 function apply_affine_transform(vertices::Array{Float64,2},xy::Vector{Float64})
     M = affine_transform_matrix(vertices)
     return M * (xy .- vertices[1,:])
+end
+
+function apply_affine_transform_inv(vertices::Array{T,2},uv::Union{Vector{T},SVector{2,T}}) where T <: Real
+    Mi = affine_transform_matrix_inv(vertices)
+    return Mi * uv .+ vertices[1,:]
+end
+
+function jac(vertices::Array{Float64,2})
+    x21 = vertices[2,1] - vertices[1,1]
+    y21 = vertices[2,2] - vertices[1,2]
+    x31 = vertices[3,1] - vertices[1,1]
+    y31 = vertices[3,2] - vertices[1,2]
+    return x21*y31-x31*y21
 end
 
 function get_interp_weights(new_points::PyArray{Float64,2},_tritree::tritree)
@@ -274,10 +298,14 @@ function get_interp_weights(new_points::PyArray{Float64,2},_tritree::tritree)
     return (_triidxs,_weights)
 end
 
-function evaluate(point::PyArray{Float64,1},field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_tritree::tritree)
+function evaluate(point::Union{Vector{Float64},PyArray{Float64,1}},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: T where T<:Union{Float64,ComplexF64}
     dtype = eltype(field)
-    point = pyconvert(Vector{Float64},point)
-    field = pyconvert(Vector{dtype},field)
+    if typeof(point) <: PyArray
+        point = pyconvert(Vector{Float64},point)
+    end
+    if typeof(field) <: PyArray
+        field = pyconvert(Vector{dtype},field)
+    end
     _triidx = query(point,_tritree)
     val = 0.
     if _triidx != 0
@@ -293,12 +321,14 @@ function evaluate(point::PyArray{Float64,1},field::PyArray{T,1} where T<:Union{F
     return val
 end
 
-function evaluate(point::PyArray{Float64,2},field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_tritree::tritree)
+function evaluate(point::PyArray{Float64,2},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: T where T<:Union{Float64,ComplexF64}
     dtype = eltype(field)
-
-    point = pyconvert(Array{Float64,2},point)
-    field = pyconvert(Vector{dtype},field)
-
+    if typeof(point) <: PyArray
+        point = pyconvert(Vector{Float64},point)
+    end
+    if typeof(field) <: PyArray
+        field = pyconvert(Vector{dtype},field)
+    end
     out = Vector{dtype}(undef,size(points,1))
 
     for i in axes(point,1)
@@ -346,6 +376,216 @@ function evaluate(pointsx::PyArray{Float64,1},pointsy::PyArray{Float64,1},field:
                 val += N6(u,v) * field[_tritree.connections[_triidx,6]]
             end
             out[i,j] = val
+        end
+    end
+    return out
+end
+
+function evaluate_func(field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_tritree::tritree)
+    """ convert a FE field into a function of point [x,y] """
+    dtype = eltype(field)
+    field = pyconvert(Vector{dtype},field)
+    function _inner_(point::Vector{Float64})
+        return evaluate(point,field,_tritree)
+    end
+    return _inner_
+end
+
+function diff_func(field1::PyArray{T,1},tree1::tritree,field2::PyArray{T,1},tree2::tritree) where T<:Union{Float64,ComplexF64}
+    """ compute the difference (not derivative) function between two fields, field2-field1 """
+    dtype = eltype(field1)
+    field1 = pyconvert(Vector{dtype},field1)
+    field2 = pyconvert(Vector{dtype},field2)
+
+    function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+        val1 = evaluate(point,field1,tree1)
+        val2 = evaluate(point,field2,tree2)
+        return val2-val1
+    end
+    return _inner_
+end
+
+function diff_func(field1::PyArray{T,2},tree1::tritree,field2::PyArray{T,2},tree2::tritree) where T<:Union{Float64,ComplexF64}
+    """ vectorized version of diff_func. second axis is along separate fields. """
+    dtype = eltype(field1)
+    field1 = pyconvert(Array{dtype,2},field1)
+    field2 = pyconvert(Array{dtype,2},field2)
+
+    funcs = Vector{Function}(undef,size(field1,2))
+    for j in axes(field1,2)
+        function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+            val1 = evaluate(point,field1[:,j],tree1)
+            val2 = evaluate(point,field2[:,j],tree2)
+            return val2-val1
+        end
+        funcs[j] = _inner_
+    end
+    return funcs
+end
+
+function avg_func(field1::PyArray{T,1},tree1::tritree,field2::PyArray{T,1},tree2::tritree) where T<:Union{Float64,ComplexF64}
+    """ compute the average function between two fields, 0.5*(field2+field1) """
+    dtype = eltype(field1)
+    field1 = pyconvert(Vector{dtype},field1)
+    field2 = pyconvert(Vector{dtype},field2)
+
+    function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+        val1 = evaluate(point,field1,tree1)
+        val2 = evaluate(point,field2,tree2)
+        return (val1+val2)/2.
+    end
+    return _inner_
+end
+
+function avg_func(field1::PyArray{T,2},tree1::tritree,field2::PyArray{T,2},tree2::tritree) where T<:Union{Float64,ComplexF64}
+    """ vectorized version of avg_func. second axis is along separate fields. """
+    dtype = eltype(field1)
+    field1 = pyconvert(Array{dtype,2},field1)
+    field2 = pyconvert(Array{dtype,2},field2)
+    funcs = Vector{Function}(undef,size(field1,2))
+    for  j in axes(field1,2)
+        function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+            val1 = evaluate(point,field1[:,j],tree1)
+            val2 = evaluate(point,field2[:,j],tree2)
+            return (val1+val2)/2.
+        end
+        funcs[j] = _inner_
+    end
+    return funcs
+end
+
+function inner_product(func1::Function,func2::Function,xmin::PyArray{Float64,1},xmax::PyArray{Float64,1},tol::Float64)
+    """ return inner product between two functions of [x,y] """
+    xmin = pyconvert(Vector{Float64},xmin)
+    xmax = pyconvert(Vector{Float64},xmax)
+    integrand = point -> func1(point)*func2(point)
+    (val, err) = pcubature(integrand, xmin, xmax; reltol=1e-2, abstol=1e-6, maxevals=0)
+    println(val)
+    return val
+end
+
+function inner_product(func1::Vector{Function},func2::Vector{Function},xmin::PyArray{Float64,1},xmax::PyArray{Float64,1},tol::Float64)
+    """ return inner product matrix between two sets of functions of [x,y], integration in polar coords """
+    out = Array{ComplexF64}(undef,size(func1,1),size(func2,1))
+    for i in axes(func1,1)
+        for j in axes(func2,1)
+            if i == j
+                out[i,j] = 0.
+                continue
+            end
+            out[i,j] = inner_product(func1[i],func2[j],xmin,xmax,tol)
+        end
+    end
+    return out
+end
+
+function inner_product_polar(func1::Function,func2::Function,rmax::Float64,tol::Float64)
+    """ return inner product between two functions of [x,y], integration in polar coords """
+    function integrand(point::Vector{Float64})
+        x = point[1]*cos(point[2])
+        y = point[1]*sin(point[2])
+        p = [x,y]
+        return func1(p)*func2(p)*point[1] 
+    end
+    println("check 2")
+    println(integrand([10.,0.]))
+    xmin = [0.,0.]
+    xmax = [rmax,2*pi]
+    (val, err) = hcubature(integrand, xmin, xmax; reltol=tol, abstol=0, maxevals=0)
+    println(val)
+    return val
+end
+
+function inner_product_polar(func1::Vector{Function},func2::Vector{Function},rmax::Float64,tol::Float64)
+    """ return inner product matrix between two sets of functions of [x,y], integration in polar coords """
+    out = Array{ComplexF64}(undef,size(func1,1),size(func2,1))
+    for i in axes(func1,1)
+        for j in axes(func2,1)
+            println("check 1")
+            out[i,j] = inner_product_polar(func1[i],func2[j],rmax,tol)
+        end
+    end
+    return out
+end
+
+function integrate_product(field1::Vector{Float64},tree1::tritree,field2::Vector{Float64},tree2::tritree)
+    """ integrate the product field1 * field2 over the mesh triangles of field1 """
+    tot = 0.
+    for i in axes(tree1.connections,1)
+        idxs = tree1.connections[i,:]
+        triverts = tree1.tripoints[i,:,:]
+        fps = field1[idxs]
+
+        function F(u,v)
+            f1 = fps[1]*N1(u,v) + fps[2]*N2(u) + fps[3]*N3(v) + fps[4]*N4(u,v) + fps[5]*N5(u,v) + fps[6]*N6(u,v)
+            xy = apply_affine_transform_inv(triverts,[u,v])
+            f2 = evaluate(xy,field2,tree2)
+            return f1*f2
+        end
+
+        (_int,_err) = pcubature(r->pcubature(s->F(s[1],r[1]), [0], [1-r[1]] ; reltol=1e-3,abstol=0)[1], [0], [1] ; reltol=1e-3,abstol=0)
+        tot += _int * jac(triverts)
+    end
+    return tot
+end
+
+function integrate_product_simplex(field1::Vector{Float64},tree1::tritree,field2::Vector{Float64},tree2::tritree,scheme)
+    """ integrate the product field1 * field2 over the mesh triangles of field1, using simplicial cubature package """
+
+    tot = 0.
+    for i in axes(tree1.connections,1)
+        idxs = tree1.connections[i,:]
+        triverts = tree1.tripoints[i,:,:]
+        fps = field1[idxs]
+        function F(uv)
+            u = uv[1]
+            v = uv[2]
+            f1 = fps[1]*N1(u,v) + fps[2]*N2(u) + fps[3]*N3(v) + fps[4]*N4(u,v) + fps[5]*N5(u,v) + fps[6]*N6(u,v)
+            xy = apply_affine_transform_inv(triverts,uv)
+            f2 = evaluate(xy,field2,tree2)
+            return f1*f2
+        end
+        uv_verts = [[0,0],[1,0],[0,1]]
+        _int = integrate(F,scheme,uv_verts)
+        tot += _int * jac(triverts)
+    end
+    return tot
+end
+
+function compute_coupling_pcube(field1::PyArray{Float64,2},tree1::tritree,field2::PyArray{Float64,2},tree2::tritree)
+    """ estimate cross-coupling matrix """
+
+    out = Array{Float64}(undef,size(field1,2),size(field2,2))
+
+    for j in axes(field1,2)
+        for k in 1:j
+            if j == k
+                out[j,k] = 0
+                continue
+            end
+            val = 0.5 * (integrate_product(field1[:,j],tree1,field2[:,k],tree2) - integrate_product(field1[:,k],tree1,field2[:,j],tree2))
+            out[j,k] = val
+            out[k,j] = -val
+        end
+    end
+    return out
+end
+
+function compute_coupling_simplex(field1::PyArray{Float64,2},tree1::tritree,field2::PyArray{Float64,2},tree2::tritree)
+    """ estimate cross-coupling matrix """
+
+    scheme = grundmann_moeller(Float64, Val(2), 5)
+    out = Array{Float64}(undef,size(field1,2),size(field2,2))
+
+    for j in axes(field1,2)
+        for k in 1:j
+            if j == k
+                out[j,k] = 0
+                continue
+            end
+            val = 0.5 * (integrate_product_simplex(field1[:,j],tree1,field2[:,k],tree2,scheme) - integrate_product_simplex(field1[:,k],tree1,field2[:,j],tree2,scheme))
+            out[j,k] = val
+            out[k,j] = -val
         end
     end
     return out

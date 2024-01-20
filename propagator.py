@@ -39,7 +39,7 @@ class Propagator:
 
         self.check_and_make_folders()
     
-    def generate_mesh(self,size_scale_fac=1.,min_mesh_size=0.4,max_mesh_size=10.,writeto=None):
+    def generate_mesh(self,size_scale_fac=0.5,min_mesh_size=0.4,max_mesh_size=10.,writeto=None):
         self.wvg.update(0)
         return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto,_align=False)
 
@@ -49,6 +49,7 @@ class Propagator:
             assert self.taper_func is not None, "load a taper profile first into taper_func()"
             scale = self.taper_func(z)
         self.mesh.points = self.points0*scale
+
     def get_neffs(self,zi,zf=None,tol=1e-5,mesh=None):
         """ compute the effective refractive indices through a waveguide, using an adaptive step scheme. also saves interpolation functions to self.neff_funcs
         ARGS:
@@ -263,7 +264,7 @@ class Propagator:
         neffs[group] = np.mean(neffs[group])[None] 
         return neffs                            
 
-    def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,fixed_degen=[]):
+    def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,degen_groups=[]):
         scale_facm = self.wvg.taper_func(z-dz0/2)/self.wvg.taper_func(zi)
         scale_facp = self.wvg.taper_func(z+dz0/2)/self.wvg.taper_func(zi)
 
@@ -283,13 +284,13 @@ class Propagator:
         if vlast is None:
             self.make_sign_consistent(v,_v)
             # degeneracy correction
-            for gr in fixed_degen:
+            for gr in degen_groups:
                 self.correct_degeneracy(gr,v,_v)
                 self.avg_degen_neff(gr,neffs)
         else:
             self.make_sign_consistent(vlast,v)
             self.make_sign_consistent(vlast,_v)
-            for gr in fixed_degen:
+            for gr in degen_groups:
                 self.correct_degeneracy(gr,vlast,v)
                 self.correct_degeneracy(gr,vlast,_v)
                 self.avg_degen_neff(gr,neffs)
@@ -314,7 +315,7 @@ class Propagator:
         return cmat,neffs,vlast
         
     
-    def compute_cmat_norm(self,cmat,fixed_degen=[]):
+    def compute_cmat_norm(self,cmat,degen_groups=[]):
         """ compute a matrix 'norm' that will be used to check accuracy in adaptive z-step scheme. """
         ## when computing norm, ignore diagonal terms and any terms that are in a degenerate group, these are numerical noise
         # this could be sped up ...
@@ -323,13 +324,13 @@ class Propagator:
             for j in range(self.Nmax):
                 if i==j:
                     continue
-                for gr in fixed_degen:
+                for gr in degen_groups:
                     if i in gr and j in gr:
                         continue
                 cnorm += np.abs(cmat[i,j])
         return cnorm
     
-    def prop_setup(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",fixed_degen=[],fixed_step=None,mesh=None):
+    def prop_setup(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform"):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
@@ -342,7 +343,7 @@ class Propagator:
             min_zstep: if the adaptive scheme chooses a z-step less than this value, an exception is raised
             save: set True to write outputs to file; they can be loaded with self.load()
             tag: the unique string to associate to a computation, used to load() it later
-            fixed_degen: (opt.) manually specify groups of degenerate modes (by index), improving convergence (hopefully)
+            degen_groups: (opt.) manually specify groups of degenerate modes (by index), improving convergence (hopefully)
             fixed_step: (opt.) manually set a fixed z step, ignoring the adaptive stepping scheme
             mesh: (opt.) pass in a pre-generated mesh, bypassing auto-generated one
 
@@ -372,10 +373,11 @@ class Propagator:
             meshwriteto=None
         print("generating mesh...")
         mesh = self.generate_mesh(writeto=meshwriteto) if mesh is None else mesh
+        
         _mesh = copy.deepcopy(mesh)
         
         print("number of mesh points: ",mesh.points.shape[0])
-
+        self.wvg.plot_mesh(mesh)
         IOR_dict = self.wvg.assign_IOR()
 
         points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
@@ -392,9 +394,9 @@ class Propagator:
                 dz = fixed_step
             else:
                 dz = min(zstep0/10,dz0)
-            cmat,neff,vlast_temp= self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,fixed_degen=fixed_degen)
+            cmat,neff,vlast_temp= self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,degen_groups=degen_groups)
 
-            cnorm = self.compute_cmat_norm(cmat,fixed_degen)
+            cnorm = self.compute_cmat_norm(cmat,degen_groups)
 
             if len(zs)<4 or fixed_step:
                 cmats.append(cmat)
@@ -446,7 +448,7 @@ class Propagator:
         self.za = np.array(zs)
         self.mesh = mesh
         self.tapervals = np.array(tapervals)
-        return self.za,self.tapervals,self.cmat,self.neffs,self.vs,mesh
+        return self.za,self.tapervals,self.cmat,self.neff,self.vs,mesh
 
     def check_and_make_folders(self):
         if not os.path.exists(self.save_dir):

@@ -21,8 +21,8 @@ wl = 1.55                       # wavelength, um
 taper_factor = 8.                # relative scale factor between frontside and backside waveguide geometry    
 rcore = 2.2/taper_factor        # radius of tapered-down single-mode cores at frontside, um
 rclad = 10                      # radius of cladding-jacket interface at frontside, um
-rjack = 30                      # radius of outer jacket boundary at frontside, um
-z_ex = 40000                    # lantern length, um
+rjack = 40                      # radius of outer jacket boundary at frontside, um
+z_ex = 20000                    # lantern length, um
 
 nclad = 1.444                   # cladding refractive index
 ncore = nclad + 8.8e-3          # SM core refractive index
@@ -34,19 +34,17 @@ xpos_i = [0,initial_offset,initial_offset*np.cos(t),initial_offset*np.cos(2*t),i
 ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset*np.sin(3*t),initial_offset*np.sin(4*t)]
 
 core_pos = np.array([xpos_i,ypos_i]).T  # core positions for a standard 6 port PL at frontside
-print(core_pos)
 # mesh params #
 
 core_res = 100                      # no. of line segments to use to resolve the core-cladding interface(s)
 clad_res = 200                      # no. of line segments to use to resolve the cladding-jacket interface
-jack_res = 40                       # no. of line segments to form the outer jacket boundary
-clad_mesh_size = 0.8                # mesh size (triangle side length) to use in the cladding region
+jack_res = 30                       # no. of line segments to form the outer jacket boundary
+clad_mesh_size = 1.0               # mesh size (triangle side length) to use in the cladding region
 core_mesh_size = 0.1               # mesh size (triangle side length) to use inside the cores
 
 # solve params #
-tol = 5e-6
-dz0 = 0.1
-degen = []#[[1,2],[3,4]] # these groups remain degenerate throughout our example waveguide
+tol = 1e-5
+degen_groups = [[1,2],[3,4]] # these groups remain degenerate throughout our example waveguide
 
 ms_rcores = np.array([10.7/2,9.6/2,9.6/2,8.5/2,8.5/2,7.35/2])[::-1]/taper_factor
 std_rcores = np.array([rcore]*6)
@@ -75,11 +73,14 @@ plt.show()
 '''
 
 # 4. run prop_setup()
-zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,save=True,tag=tag,tol=tol,fixed_degen=degen,dz0=dz0)
+#zs,tapervals,coupling_mats,neffs,vs,mesh = adprop.prop_setup(0,z_ex,tol,save=True,tag=tag,degen_groups=degen_groups,min_zstep=0.)
 
 # 5. load the results of prop_setup() from local
 adprop.load(tag=tag)
 
+adprop.mesh = adprop.generate_mesh()
+
+print(adprop.mesh.points.shape,adprop.vs.shape)
 print("initial modes: ")
 fig,axs = plt.subplots(2,3,sharex=True,sharey=True)
 plot_eigenvector(adprop.mesh,adprop.vs[:,0,0],ax=axs[0,0],show=False)
@@ -116,7 +117,7 @@ adprop.make_interp_funcs()
 u0 = np.array([1,0,0,0,0,0],dtype=np.complex128) # launch LP01
 
 # 7. propagate
-z,u,uf = adprop.propagate(u0,z_ex,WKB=False)
+z,u,uf = adprop.propagate(u0,z_ex,WKB=True)
 
 print("final mode amplitudes: ")
 print(np.abs(uf))
@@ -155,7 +156,6 @@ plot_eigenvector(adprop.mesh,adprop.vs[:,4,-1],ax=axs[1,1],show=False)
 plot_eigenvector(adprop.mesh,adprop.vs[:,5,-1],ax=axs[1,2],show=False)
 plt.show()
 
-plot_eigenvector(adprop.mesh,np.real(uf[1]*adprop.vs[:,1,-1]+uf[2]*adprop.vs[:,2,-1]),show=True)
 
 print("final field: ")
 fig,axs = plt.subplots(1,3,sharey=True)
@@ -170,12 +170,21 @@ plt.show()
 
 # change of basis
 adprop.update_mesh(scale=taper_factor)
-_dict = waveguide.Photonic_lantern.make_IOR_dict(ncore,nclad,njack)
 from wavesolve.fe_solver import solve_waveguide
-_w,_v,_N = solve_waveguide(adprop.mesh,wl,_dict,sparse=True,Nmax=6)
+from wavesolve.mesher import plot_mesh
 
-plot_eigenvector(adprop.mesh,_v[1])
-plot_eigenvector(adprop.mesh,_v[2])
+_v = np.zeros((adprop.Nmax,adprop.vs.shape[0]))
+adprop.wvg.assign_IOR()
+
+print(adprop.mesh.cell_sets.keys())
+
+for i in range(6):
+    _dict = adprop.wvg.isolate(i)
+    plot_mesh(adprop.mesh,_dict)
+    _wi,_vi,_Ni = solve_waveguide(adprop.mesh,wl,_dict,sparse=True,Nmax=1)
+
+    plot_eigenvector(adprop.mesh,_vi[0])
+    _v[i,:] = _vi
 
 cob,_uf = adprop.compute_change_of_basis(_v.T,z_ex,u=uf)
 print(u.shape)

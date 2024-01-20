@@ -333,7 +333,7 @@ class Propagator:
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
-            
+
         ARGS:
             zi: initial z coordinate for waveguide modelling (doesn't have to be 0)
             zf: final z coordinate
@@ -440,13 +440,13 @@ class Propagator:
             self.save(zs,tapervals,cmats,neffs,vs,tag=tag)
         print("time elapsed: ",time.time()-start_time)
 
-        self.cmat = cmats
-        self.neff = neffs
-        self.vs = vs
-        self.za = zs
+        self.cmat = np.array(cmats)
+        self.neff = np.array(neffs)
+        self.vs = np.array(vs)
+        self.za = np.array(zs)
         self.mesh = mesh
-        self.tapervals = tapervals
-        return zs,tapervals,cmats,neffs,vs,mesh
+        self.tapervals = np.array(tapervals)
+        return self.za,self.tapervals,self.cmat,self.neffs,self.vs,mesh
 
     def check_and_make_folders(self):
         if not os.path.exists(self.save_dir):

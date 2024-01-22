@@ -582,12 +582,14 @@ class Propagator:
                 # rescale zstep0
                 if err<0.1*tol:
                     zstep0 = min(zstep0*2,max_zstep, zf-z)
+                else:
+                    zstep0 = min(zstep0,max_zstep, zf-z)
                 z += zstep0
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
             else:
                 print("\rcurrent z: {0} / {1}; reducing step : {2}        ".format(z,zf,zstep0),end='',flush=True)             
                 z -= zstep0
-                zstep0 = min(max(zstep0/2,min_zstep),zf-z)
+                zstep0 = min(max(zstep0/2,min_zstep),zf-z,max_zstep)
                 z += zstep0
         
         vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values

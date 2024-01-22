@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import gmsh
 import meshio
 import copy
+from wavesolve.mesher import plot_mesh
 
 ### to do notes
 ### restructure to evolve meshes based on transformations? or maybe have two options: a "transform" and a "remesh" mode (in progress)
@@ -94,7 +95,7 @@ class Prim2D:
     def __init__(self,points,n):
         self.points = points
         self.n = n
-        self.res = points.shape[0]
+        self.res = len(points)
         self.center = None
         self.mesh_size = None # set to a numeric value to force a triangle size within the closed region
         self.skip_refinement = False
@@ -103,18 +104,26 @@ class Prim2D:
         # check depth of self.points
         if hasattr(self.points[0][0],'__len__'):
             ps = [geom.add_polygon(p) for p in self.points]
-            poly = geom.boolean_union(ps)
+            poly = geom.boolean_union(ps)[0]
         else:
             poly = geom.add_polygon(self.points)
         return poly
     
     def make_points(self):
         """ this function will generate the polygon as a function of some parameters """
-        pass
+        return self.points
 
     def update(self,points,n):
         self.points = points
         self.n = n
+
+    def plot_mesh(self):
+        """ a quick check to see what this object looks like. generates a mesh with default parameters. """
+        with pygmsh.occ.Geometry() as geom:
+            poly = self.make_poly(geom)
+            geom.add_physical(poly,"poly")
+            m = geom.generate_mesh(2,2,6)
+        plot_mesh(m)            
 
     def boundary_dist(self,x,y):
         """ this function computes the distance between the point (x,y) and the boundary of the primitive. negative distances -> inside the boundary, while positive -> outside
@@ -170,7 +179,7 @@ class Rectangle(Prim2D):
         return dist
 
 class Prim2DUnion(Prim2D):
-    def __init__(p1:Prim2D,p2:Prim2D):
+    def __init__(self,p1:Prim2D,p2:Prim2D):
         assert p1.n == p2.n, "primitives must have the same refractive index"
         super().__init__([p1.points,p2.points],p1.n)
         self.p1 = p1
@@ -180,7 +189,7 @@ class Prim2DUnion(Prim2D):
         return [self.p1.make_points(*args1),self.p2.make_points(*args2)]
     
     def boundary_dist(self,x,y): # does this need to be vectorized? idk
-        return min(p1.boundary_dist(x,y),p2.boundary_dist(x,y))
+        return min(self.p1.boundary_dist(x,y),self.p2.boundary_dist(x,y))
         
 #endregion    
 
@@ -239,11 +248,12 @@ class Pipe(Prim3D):
         points = self.prim2D.make_points(self.rfunc(z),self.res,self.cfunc(z))
         self.prim2D.update(points,self.n)
 
-class InfiniteBox(Prim3D):
+class Box(Prim3D):
     """ an InfiniteBox is a volume whose cross-section has a constant rectangular shape. """
     def __init__(self,xmin,xmax,ymin,ymax,n,label):
         rect = Rectangle(xmin,xmax,ymin,ymax,n)
         super().__init__(rect,label)
+
 #endregion
 
 #region Waveguide
@@ -278,11 +288,13 @@ class Waveguide:
             polygons = []
             for el in self.prim3Ds:
                 if type(el) != list:
-                    polygons.append(geom.add_polygon(el.prim2D.points))
+                    #polygons.append(geom.add_polygon(el.prim2D.points))
+                    polygons.append(el.prim2D.make_poly(geom))
                 else:
                     els = []
                     for _el in el:
-                        els.append(geom.add_polygon(_el.prim2D.points))
+                        #els.append(geom.add_polygon(_el.prim2D.points))
+                        els.append(_el.prim2D.make_poly(geom))
                     polygons.append(els)
 
             # diff the polygons
@@ -290,11 +302,10 @@ class Waveguide:
                 polys = polygons[i]
                 _polys = polygons[i+1]
                 polys = geom.boolean_difference(polys,_polys,delete_other=False,delete_first=True)
-
             for i,el in enumerate(polygons):
                 if type(el) == list:
                     # group by labels
-                    labels = [p.label for p in self.prim3Ds[i]]
+                    labels = set([p.label for p in self.prim3Ds[i]])
                     for l in labels:
                         gr = []
                         for k,poly in enumerate(el):

@@ -41,7 +41,7 @@ class Propagator:
     
     def generate_mesh(self,size_scale_fac=0.5,min_mesh_size=0.4,max_mesh_size=10.,writeto=None):
         self.wvg.update(0)
-        return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto,_align=False)
+        return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto)
 
     def update_mesh(self,z=None,scale=None):
         assert self.mesh is not None, "load() a mesh first!"
@@ -264,7 +264,7 @@ class Propagator:
         neffs[group] = np.mean(neffs[group])[None] 
         return neffs                            
 
-    def compute(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,degen_groups=[]):
+    def compute2(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,degen_groups=[]):
         scale_facm = self.wvg.taper_func(z-dz0/2)/self.wvg.taper_func(zi)
         scale_facp = self.wvg.taper_func(z+dz0/2)/self.wvg.taper_func(zi)
 
@@ -314,7 +314,48 @@ class Propagator:
         """
         return cmat,neffs,vlast
         
-    
+    def compute(self,z,zi,mesh0,mesh,_mesh,IOR_dict,dz0,neffs,vlast=None,degen_groups=[],mode="transform"):
+        
+        if mode == "transform":
+            assert type(self.wvg).transform != self.wvg.transform, "waveguide does not have a transform() function that overides base!"
+            self.wvg.transform_mesh(mesh0,zi,z-dz0/2,mesh)
+            self.wvg.transform_mesh(mesh0,zi,z+dz0/2,_mesh)
+        else:
+            self.wvg.update(z-dz0/2)
+            mesh = self.generate_mesh()
+            self.wvg.update(z+dz0/2)
+            _mesh = self.generate_mesh()
+
+        # minus step
+        w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
+        BVHtree = FEval.create_tree(mesh.points,mesh.cells[1].data) # note that updating the tree vs recreating doesn't seem to save any time
+
+        # plus step
+        _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
+        _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
+        BVHtree2 = FEval.create_tree(_mesh.points,_mesh.cells[1].data)
+        neffs = get_eff_index(self.wl,0.5*(w+_w))
+
+        # sign correction
+        if vlast is None:
+            self.make_sign_consistent(v,_v)
+            # degeneracy correction
+            for gr in degen_groups:
+                self.correct_degeneracy(gr,v,_v)
+                self.avg_degen_neff(gr,neffs)
+        else:
+            self.make_sign_consistent(vlast,v)
+            self.make_sign_consistent(vlast,_v)
+            for gr in degen_groups:
+                self.correct_degeneracy(gr,vlast,v)
+                self.correct_degeneracy(gr,vlast,_v)
+                self.avg_degen_neff(gr,neffs)
+
+        vlast = 0.5*(v+_v)
+
+        cmat = -np.array(FEval.compute_coupling_simplex(v.T,BVHtree,_v.T,BVHtree2))/dz0
+        return cmat,neffs,vlast
+
     def compute_cmat_norm(self,cmat,degen_groups=[]):
         """ compute a matrix 'norm' that will be used to check accuracy in adaptive z-step scheme. """
         ## when computing norm, ignore diagonal terms and any terms that are in a degenerate group, these are numerical noise
@@ -330,7 +371,7 @@ class Propagator:
                 cnorm += np.abs(cmat[i,j])
         return cnorm
     
-    def prop_setup(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform"):
+    def prop_setup2(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform"):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
@@ -359,6 +400,8 @@ class Propagator:
         start_time = time.time()
         zstep0 = 10 if fixed_step is None else fixed_step # starting step
 
+        self.wvg.update(zi)
+
         cmats = []
         cmats_norm = []
         neffs = []
@@ -372,15 +415,16 @@ class Propagator:
         else:
             meshwriteto=None
         print("generating mesh...")
-        mesh = self.generate_mesh(writeto=meshwriteto) if mesh is None else mesh
-        
-        _mesh = copy.deepcopy(mesh)
+        mesh0 = self.generate_mesh(writeto=meshwriteto) if mesh is None else mesh
+        mesh = copy.deepcopy(mesh0)
+        _mesh = copy.deepcopy(mesh0)
         
         print("number of mesh points: ",mesh.points.shape[0])
         self.wvg.plot_mesh(mesh)
         IOR_dict = self.wvg.assign_IOR()
 
-        points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
+        #points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
+        points0 = np.copy(mesh.points)
         
         vlast = None
 
@@ -394,7 +438,7 @@ class Propagator:
                 dz = fixed_step
             else:
                 dz = min(zstep0/10,dz0)
-            cmat,neff,vlast_temp= self.compute(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,degen_groups=degen_groups)
+            cmat,neff,vlast_temp= self.compute2(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,degen_groups=degen_groups)
 
             cnorm = self.compute_cmat_norm(cmat,degen_groups)
 
@@ -450,6 +494,113 @@ class Propagator:
         self.tapervals = np.array(tapervals)
         return self.za,self.tapervals,self.cmat,self.neff,self.vs,mesh
 
+    def prop_setup(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform",max_zstep=320,plot=False):
+        """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
+            for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
+            scheme (based on interpolation of previous data points) to choose the z step.
+        """
+
+        start_time = time.time()
+        zstep0 = 10 if fixed_step is None else fixed_step # starting step
+
+        self.wvg.update(zi)
+
+        cmats = []
+        cmats_norm = []
+        neffs = []
+        vs = []
+        zs = []
+
+        ps = "_"+tag if tag is not None else ""
+        if save:
+            meshwriteto=self.save_dir+"/meshes/mesh"+ps
+        else:
+            meshwriteto=None
+        print("generating mesh...")
+        mesh0 = self.generate_mesh(writeto=meshwriteto) if mesh is None else mesh
+        mesh = copy.deepcopy(mesh0)
+        _mesh = copy.deepcopy(mesh0)
+        
+        print("number of mesh points: ",mesh.points.shape[0])
+        
+        IOR_dict = self.wvg.assign_IOR()
+
+        if plot:
+            print("initial mesh: ")
+            self.wvg.plot_mesh(mesh)
+            print("initial modes: ")
+            w,v,n = solve_waveguide(mesh0,self.wl,IOR_dict,plot=True,sparse=True,Nmax=self.Nmax)
+
+        vlast = None
+
+        z = zi
+        print("starting computation ...")
+        while True:
+            if zstep0<min_zstep:
+                zstep0 = min_zstep
+            if fixed_step:
+                dz = fixed_step
+            else:
+                dz = min(zstep0/10,dz0)
+
+            cmat,neff,vlast_temp= self.compute(z,zi,mesh0,mesh,_mesh,IOR_dict,dz,neffs,vlast=vlast,degen_groups=degen_groups,mode=mode)
+
+            cnorm = self.compute_cmat_norm(cmat,degen_groups)
+
+            if len(zs)<4 or fixed_step or zstep0 == min_zstep: # always accept the computation under these conditions
+                if zstep0 == min_zstep and len(zs)>4 and not fixed_step:
+                    spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
+                    err = np.abs(spl(z)-cnorm)
+                    if err<0.1*tol:
+                        zstep0 = min(zstep0*2,max_zstep)
+
+                cmats.append(cmat)
+                neffs.append(neff)
+                cmats_norm.append(cnorm)
+                zs.append(z)
+                vlast = vlast_temp
+                vs.append(vlast)
+                if z == zf:
+                    break
+
+                z = min(zf,z+zstep0)
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+                continue
+            spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
+            err = np.abs(spl(z)-cnorm)
+            if err<tol: # accept if extrapolation error is sufficiently low
+                cmats.append(cmat)
+                neffs.append(neff)
+                cmats_norm.append(cnorm)
+                zs.append(z)
+                vlast = vlast_temp
+                vs.append(vlast)
+                if z == zf:
+                    break
+                # rescale zstep0
+                if err<0.1*tol:
+                    zstep0 = min(zstep0*2,max_zstep)
+                z = min(zf,z+zstep0)
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+            else:
+                print("\rcurrent z: {0} / {1}; reducing step : {2}        ".format(z,zf,zstep0),end='',flush=True)             
+                z -= zstep0
+                zstep0 = max(zstep0/2,min_zstep)
+                z += zstep0
+        
+        vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
+        
+        if save:
+            self.save2(zs,cmats,neffs,vs,tag=tag)
+        print("time elapsed: ",time.time()-start_time)
+
+        self.cmat = np.array(cmats)
+        self.neff = np.array(neffs)
+        self.vs = np.array(vs)
+        self.za = np.array(zs)
+        self.mesh = mesh
+        return self.za,self.cmat,self.neff,self.vs,mesh
+
     def check_and_make_folders(self):
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
@@ -474,6 +625,13 @@ class Propagator:
         np.save(self.save_dir+'/zvals/zvals'+ps,zs)
         np.save(self.save_dir+'/tapervals/tapervals'+ps,tapervals)
 
+    def save2(self,zs,cmats,neffs,vs,tag=""):
+        ps = "" if tag == "" else "_"+tag
+        np.save(self.save_dir+'/cplcoeffs/cplcoeffs'+ps,cmats)
+        np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
+        np.save(self.save_dir+'/eigenvalues/eigenvalues'+ps,neffs)
+        np.save(self.save_dir+'/zvals/zvals'+ps,zs)
+
     def load(self,tag=""):
         ps = "" if tag == "" else "_"+tag
         self.cmat = np.load(self.save_dir+'/cplcoeffs/cplcoeffs'+ps+'.npy')
@@ -489,11 +647,14 @@ class Propagator:
         if self.Nmax==None:
             self.Nmax = self.neff.shape[1]
     
-    def make_interp_funcs(self):
+    def make_interp_funcs(self,za=None):
         """ construct interpolation functions for coupling matrices and mode effective indices,
             loaded into self.cmat and self.neff, which were computed on an array of z values self.za.
         """
-        za = self.za
+        
+        if za is None:
+            za = np.copy(self.za)
+        
         def make_c_func(i,j):
             assert i < j, "i must be < j in make_interp_funcs()"
             return UnivariateSpline(za,0.5*(self.cmat[:,i,j]-self.cmat[:,j,i]),ext=0,s=0)
@@ -512,11 +673,11 @@ class Propagator:
         self.neff_dif_funcs = [neff_func.derivative() for neff_func in neff_funcs]
 
         try:
-            self.v_func = interp1d(self.za,self.vs,assume_sorted=True)
+            self.v_func = interp1d(za,self.vs,assume_sorted=True)
         except:
             pass
         if self.tapervals is not None:
-            self.taper_func = UnivariateSpline(self.za,self.tapervals,s=0)
+            self.taper_func = UnivariateSpline(za,self.tapervals,s=0)
     
     def compute_cmat(self,z):
         """ using interpolation, compute the cross-coupling matrix at z """
@@ -561,7 +722,7 @@ class Propagator:
         zi = self.za[0]
         def deriv(z,u):
             neffs = self.compute_neff(z)
-            phases = self.k * (self.compute_int_neff(z)-self.compute_int_neff(zi))
+            phases = (self.k * (self.compute_int_neff(z)-self.compute_int_neff(zi)))%(2*np.pi)
             cmat = self.compute_cmat(z)
             phase_mat = np.exp(1.j * (phases[None,:] - phases[:,None]))
             ddz = -1./neffs*np.dot(phase_mat*cmat,u*neffs)
@@ -569,11 +730,10 @@ class Propagator:
                 ddz += self.WKB_cor(z)*u
             return ddz
         
-        sol = solve_ivp(deriv,(zi,zf),u0,'RK23',rtol=1e-10,atol=1e-10) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
+        sol = solve_ivp(deriv,(zi,zf),u0,'RK45',rtol=1e-10,atol=1e-10) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase
-        v = np.sum(uf[None,:]*self.vs[:,:,-1],axis=1)
 
         return sol.t,sol.y,uf
 

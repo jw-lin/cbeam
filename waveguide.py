@@ -435,12 +435,14 @@ class Waveguide:
     
     def plot_boundaries(self):
         for group in self.prim3Ds:
+            if not type(group) == list:
+                group = [group]
             for prim in group:
                 p = prim.prim2D.points
                 p2 = np.zeros((p.shape[0]+1,p.shape[1]))
                 p2[:-1] = p[:]
                 p2[-1] = p[0]
-                plt.plot(p2.T[0],p2.T[1])
+                plt.plot(p2.T[0],p2.T[1],color='k')
         plt.xlabel(r"$x$")
         plt.ylabel(r"$y$")
         plt.axis('equal')

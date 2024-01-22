@@ -28,7 +28,7 @@ class Propagator:
 
         self.cmat_funcs = None
         self.neff_funcs = None
-        self.v_func = None
+        self.compute_v = None
         self.taper_func = None
         self.points0 = None
 
@@ -494,7 +494,7 @@ class Propagator:
         self.tapervals = np.array(tapervals)
         return self.za,self.tapervals,self.cmat,self.neff,self.vs,mesh
 
-    def prop_setup(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform",max_zstep=320,plot=False):
+    def prop_setup(self,zi,zf,tol=1e-4,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform",max_zstep=320,plot=False):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
@@ -538,8 +538,9 @@ class Propagator:
         while True:
             if zstep0<min_zstep:
                 zstep0 = min_zstep
+
             if fixed_step:
-                dz = fixed_step
+                dz = min(fixed_step/10,dz0)
             else:
                 dz = min(zstep0/10,dz0)
 
@@ -552,7 +553,7 @@ class Propagator:
                     spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
                     err = np.abs(spl(z)-cnorm)
                     if err<0.1*tol:
-                        zstep0 = min(zstep0*2,max_zstep)
+                        zstep0 = min(zstep0*2,max_zstep,zf-z-zstep0)
 
                 cmats.append(cmat)
                 neffs.append(neff)
@@ -563,9 +564,10 @@ class Propagator:
                 if z == zf:
                     break
 
-                z = min(zf,z+zstep0)
+                z += zstep0
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
                 continue
+
             spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
             err = np.abs(spl(z)-cnorm)
             if err<tol: # accept if extrapolation error is sufficiently low
@@ -579,13 +581,13 @@ class Propagator:
                     break
                 # rescale zstep0
                 if err<0.1*tol:
-                    zstep0 = min(zstep0*2,max_zstep)
-                z = min(zf,z+zstep0)
+                    zstep0 = min(zstep0*2,max_zstep, zf-z)
+                z += zstep0
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
             else:
                 print("\rcurrent z: {0} / {1}; reducing step : {2}        ".format(z,zf,zstep0),end='',flush=True)             
                 z -= zstep0
-                zstep0 = max(zstep0/2,min_zstep)
+                zstep0 = min(max(zstep0/2,min_zstep),zf-z)
                 z += zstep0
         
         vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
@@ -673,7 +675,7 @@ class Propagator:
         self.neff_dif_funcs = [neff_func.derivative() for neff_func in neff_funcs]
 
         try:
-            self.v_func = interp1d(za,self.vs,assume_sorted=True)
+            self.compute_v = interp1d(za,self.vs,assume_sorted=True)
         except:
             pass
         if self.tapervals is not None:
@@ -751,7 +753,7 @@ class Propagator:
 
         self.update_mesh(z)
         B = construct_B(self.mesh,sparse=True)
-        oldbasis = self.v_func(z)
+        oldbasis = self.compute_v(z)
         cob = B.dot(newbasis).T.dot(oldbasis)
         if u is not None:
             return cob,np.dot(cob,u)

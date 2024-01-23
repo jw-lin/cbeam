@@ -8,6 +8,9 @@ from scipy.integrate import solve_ivp
 
 class Propagator:
     """ class for coupled mode propagation of tapered waveguides """
+
+    solver = "RK45"
+
     def __init__(self,wl,wvg=None,Nmax=None,save_dir=None):
         """
         ARGS:
@@ -39,7 +42,7 @@ class Propagator:
 
         self.check_and_make_folders()
     
-    def generate_mesh(self,size_scale_fac=0.5,min_mesh_size=0.4,max_mesh_size=10.,writeto=None):
+    def generate_mesh(self,size_scale_fac=0.5,min_mesh_size=0.05,max_mesh_size=10.,writeto=None):
         self.wvg.update(0)
         return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto)
 
@@ -717,7 +720,7 @@ class Propagator:
         zf: the z coordinate to propagate through to.
 
         RETURNS:
-        za: the array of z values used by the ODE solver (RK23)
+        za: the array of z values used by the ODE solver
         u: the mode amplitudes of the wavefront, evaluated along za
         uf: the final mode amplitudes of the wavefront, accounting for overall phase evolution of the eigenmodes
         v: the final wavefront, computed over the finite element mesh
@@ -734,7 +737,7 @@ class Propagator:
                 ddz += self.WKB_cor(z)*u
             return ddz
         
-        sol = solve_ivp(deriv,(zi,zf),u0,'RK45',rtol=1e-10,atol=1e-10) # RK45 might be faster, but since RK23 tests more points, the cross-coupling behavior is more resolved
+        sol = solve_ivp(deriv,(zi,zf),u0,self.solver,rtol=1e-10,atol=1e-10)
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase

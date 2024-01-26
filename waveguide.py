@@ -5,6 +5,7 @@ import gmsh
 import meshio
 import copy
 from wavesolve.mesher import plot_mesh
+gmsh.option.setNumber('General.Terminal', 0)
 
 ### to do notes
 ### restructure to evolve meshes based on transformations? or maybe have two options: a "transform" and a "remesh" mode (in progress)

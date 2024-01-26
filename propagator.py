@@ -1129,7 +1129,7 @@ class Propagator:
 
         self.cmat = np.array(cmats)
         self.neff = np.array(neffs)
-        self.vs = np.array(vs)
+        self.vs = vs
         self.za = np.array(zs)
         self.mesh = mesh
         return self.za,self.cmat,self.neff,self.vs

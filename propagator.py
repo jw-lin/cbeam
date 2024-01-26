@@ -1,15 +1,25 @@
 import numpy as np
-from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,construct_B
+from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,construct_B,plot_eigenvector
+from wavesolve.shape_funcs import compute_NN
 from waveguide import load_meshio_mesh
 from scipy.interpolate import UnivariateSpline,interp1d
 import FEval
 import copy,time,os
 from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+from scipy.integrate import dblquad
+from scipy.sparse import lil_matrix
 
 class Propagator:
     """ class for coupled mode propagation of tapered waveguides """
 
     solver = "RK45"
+    mesh_dist_scale = 1.0
+    mesh_dist_power = 1.0
+    min_mesh_size = 0.1
+    max_mesh_size = 10.
+
+    has_split = False
 
     def __init__(self,wl,wvg=None,Nmax=None,save_dir=None):
         """
@@ -42,9 +52,8 @@ class Propagator:
 
         self.check_and_make_folders()
     
-    def generate_mesh(self,size_scale_fac=0.5,min_mesh_size=0.05,max_mesh_size=10.,writeto=None):
-        self.wvg.update(0)
-        return self.wvg.make_mesh_bndry_ref(size_scale_fac=size_scale_fac,min_mesh_size=min_mesh_size,max_mesh_size=max_mesh_size,writeto=writeto)
+    def generate_mesh(self,writeto=None):
+        return self.wvg.make_mesh_bndry_ref(_scale=self.mesh_dist_scale,min_mesh_size=self.min_mesh_size,max_mesh_size=self.max_mesh_size,writeto=writeto,_power=self.mesh_dist_power)
 
     def update_mesh(self,z=None,scale=None):
         assert self.mesh is not None, "load() a mesh first!"
@@ -267,43 +276,63 @@ class Propagator:
         neffs[group] = np.mean(neffs[group])[None] 
         return neffs                            
 
-    def compute2(self,z,zi,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,degen_groups=[]):
-        scale_facm = self.wvg.taper_func(z-dz0/2)/self.wvg.taper_func(zi)
-        scale_facp = self.wvg.taper_func(z+dz0/2)/self.wvg.taper_func(zi)
+    def compute2(self,z,zi,mesh0,mesh,_mesh,IOR_dict,points0,dz0,neffs,vlast=None,degen_groups=[],mode="transform"):
+        if mode == "transform":
+            assert type(self.wvg).transform != self.wvg.transform, "waveguide does not have a transform() function that overides base!"
+            self.wvg.transform_mesh(mesh0,zi,z-dz0/2,mesh)
+            self.wvg.transform_mesh(mesh0,zi,z+dz0/2,_mesh)
+        else:
+            self.wvg.update(z-dz0/2)
+            mesh = self.generate_mesh()
+            self.wvg.update(z+dz0/2)
+            _mesh = self.generate_mesh()
 
         # minus step
-        mesh.points = points0*scale_facm
         w,v,N = solve_waveguide(mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
         BVHtree = FEval.create_tree(mesh.points,mesh.cells[1].data) # note that updating the tree vs recreating doesn't seem to save any time
 
         # plus step
-        _mesh.points = points0*scale_facp
         _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-        _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
         BVHtree2 = FEval.create_tree(_mesh.points,_mesh.cells[1].data)
+        _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
         neffs = get_eff_index(self.wl,0.5*(w+_w))
 
         # sign correction
-        if vlast is None:
-            self.make_sign_consistent(v,_v)
-            # degeneracy correction
-            for gr in degen_groups:
-                self.correct_degeneracy(gr,v,_v)
-                self.avg_degen_neff(gr,neffs)
+        if mode == "transform":
+            if vlast is None:
+                self.make_sign_consistent(v,_v)
+                # degeneracy correction
+                for gr in degen_groups:
+                    self.correct_degeneracy(gr,v,_v)
+                    self.avg_degen_neff(gr,neffs)
+            else:
+                self.make_sign_consistent(vlast,v)
+                self.make_sign_consistent(vlast,_v)
+                for gr in degen_groups:
+                    self.correct_degeneracy(gr,vlast,v)
+                    self.correct_degeneracy(gr,vlast,_v)
+                    self.avg_degen_neff(gr,neffs)
+            
+            vlast = 0.5*(v+_v)
         else:
-            self.make_sign_consistent(vlast,v)
-            self.make_sign_consistent(vlast,_v)
-            for gr in degen_groups:
-                self.correct_degeneracy(gr,vlast,v)
-                self.correct_degeneracy(gr,vlast,_v)
-                self.avg_degen_neff(gr,neffs)
-
-        vlast = 0.5*(v+_v)
-
-        cmat = -np.array(FEval.compute_coupling_simplex(v.T,BVHtree,_v.T,BVHtree2))/dz0
+            if vlast is None:
+                for i in range(self.Nmax):
+                    dot = FEval.FE_dot(v[i],BVHtree,_v[i],BVHtree2)
+                    if dot <= 0:
+                        _v[i]*=-1
+            else:  
+                for i in range(self.Nmax):
+                    dot1 = FEval.FE_dot(vlast[i],vlasttree,v[i],BVHtree)
+                    dot2 = FEval.FE_dot(vlast[i],vlasttree,_v[i],BVHtree2)
+                    if dot1 <= 0: 
+                        v[i] *= -1
+                    if dot2 <= 0:
+                        _v[i] *= -1
+            vlast = _v
+        vlasttree = BVHtree2
 
         # interpolation
-        """
+
         vinterp = np.copy(_v)
 
         triidxs,interpweights = FEval.get_idxs_and_weights(_mesh.points,BVHtree)
@@ -314,10 +343,9 @@ class Propagator:
 
         # est deriv
         cmat = self.est_cross_term(_B,vinterp,_v,dz0)
-        """
-        return cmat,neffs,vlast
+        return cmat,neffs,vlast,vlasttree
         
-    def compute(self,z,zi,mesh0,mesh,_mesh,IOR_dict,dz0,neffs,vlast=None,degen_groups=[],mode="transform"):
+    def compute(self,z,zi,mesh0,mesh,_mesh,IOR_dict,dz0,neffs,vlast=None,vlasttree=None,meshlast=None,degen_groups=[],mode="transform",min_degen_dif=0):
         
         if mode == "transform":
             assert type(self.wvg).transform != self.wvg.transform, "waveguide does not have a transform() function that overides base!"
@@ -335,29 +363,63 @@ class Propagator:
 
         # plus step
         _w,_v,_N = solve_waveguide(_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
-        _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
         BVHtree2 = FEval.create_tree(_mesh.points,_mesh.cells[1].data)
         neffs = get_eff_index(self.wl,0.5*(w+_w))
 
-        # sign correction
-        if vlast is None:
-            self.make_sign_consistent(v,_v)
-            # degeneracy correction
-            for gr in degen_groups:
-                self.correct_degeneracy(gr,v,_v)
-                self.avg_degen_neff(gr,neffs)
-        else:
-            self.make_sign_consistent(vlast,v)
-            self.make_sign_consistent(vlast,_v)
-            for gr in degen_groups:
-                self.correct_degeneracy(gr,vlast,v)
-                self.correct_degeneracy(gr,vlast,_v)
-                self.avg_degen_neff(gr,neffs)
+        if min_degen_dif>0:
+            degen_groups = self.update_degen_groups( 0.5*(get_eff_index(w)+get_eff_index(_w)),min_degen_dif,degen_groups )
 
-        vlast = 0.5*(v+_v)
+        # sign correction
+        if mode == "transform":
+            if vlast is None:
+                self.make_sign_consistent(v,_v)
+                # degeneracy correction
+                for gr in degen_groups:
+                    self.correct_degeneracy(gr,v,_v)
+                    self.avg_degen_neff(gr,neffs)
+            else:
+                self.make_sign_consistent(vlast,v)
+                self.make_sign_consistent(vlast,_v)
+                for gr in degen_groups:
+                    self.correct_degeneracy(gr,vlast,v)
+                    self.correct_degeneracy(gr,vlast,_v)
+                    self.avg_degen_neff(gr,neffs)
+            
+            vlast = 0.5*(v+_v)
+            vlasttree = BVHtree2
+        else:
+            if vlast is None:
+                for i in range(self.Nmax):
+                    dot = FEval.FE_dot(v[i],BVHtree,_v[i],BVHtree2)
+                    if dot <= 0:
+                        _v[i]*=-1
+            else:  
+                for i in range(self.Nmax):
+                    dot1 = FEval.FE_dot(vlast[i],vlasttree,v[i],BVHtree)
+                    dot2 = FEval.FE_dot(vlast[i],vlasttree,_v[i],BVHtree2)
+                    if dot1 <= 0: 
+                        v[i] *= -1
+                    if dot2 <= 0:
+                        _v[i] *= -1
+
+            vlast = _v
+            vlasttree = BVHtree2
 
         cmat = -np.array(FEval.compute_coupling_simplex(v.T,BVHtree,_v.T,BVHtree2))/dz0
-        return cmat,neffs,vlast
+        """
+        vinterp = np.copy(_v)
+
+        triidxs,interpweights = FEval.get_idxs_and_weights(_mesh.points,BVHtree)
+
+        mask = (triidxs != -1)
+        for k,vec in enumerate(v):
+            vinterp[k,:][mask] = fast_interpolate(vec,mesh,triidxs[mask],interpweights[mask])
+
+        # est deriv
+        _A,_B = construct_AB(_mesh,IOR_dict,self.k,sparse=True)
+        cmat = self.est_cross_term(_B,vinterp,_v,dz0)
+        """
+        return cmat,neffs,vlast,vlasttree,degen_groups
 
     def compute_cmat_norm(self,cmat,degen_groups=[]):
         """ compute a matrix 'norm' that will be used to check accuracy in adaptive z-step scheme. """
@@ -374,7 +436,31 @@ class Propagator:
                 cnorm += np.abs(cmat[i,j])
         return cnorm
     
-    def prop_setup2(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform"):
+    def compute_cmat_pert(self,v,tree,z,dz,lim):
+        vfuncs = []
+        for i in range(self.Nmax):
+            vfuncs.append(FEval.evaluate_func(v.T[:,i],tree))
+        
+        IOR_diff_func = self.wvg.IOR_diff_func(z,dz)
+
+        diff = np.zeros((100,100))
+        xa = ya = np.linspace(-10,10,100)
+        for i,x in enumerate(xa):
+            for j,y in enumerate(ya):
+                diff[i,j]= IOR_diff_func(x,y)
+        plt.imshow(diff)
+        plt.show()
+
+        cmat = np.zeros((self.Nmax,self.Nmax))
+        for i in range(self.Nmax):
+            for j in range(self.Nmax):
+                integrand = lambda y,x : vfuncs[i](np.array([x,y]))*IOR_diff_func(x,y)*vfuncs[j](np.array([x,y]))
+                out,err = dblquad(integrand,-lim,lim,-lim,lim)
+                cmat[i,j] = out
+        return cmat
+        
+    
+    def prop_setup2(self,zi,zf,tol=1e-5,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform",plot=True):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
@@ -423,8 +509,14 @@ class Propagator:
         _mesh = copy.deepcopy(mesh0)
         
         print("number of mesh points: ",mesh.points.shape[0])
-        self.wvg.plot_mesh(mesh)
+
         IOR_dict = self.wvg.assign_IOR()
+
+        if plot:
+            print("initial mesh: ")
+            self.wvg.plot_mesh(mesh)
+            print("initial modes: ")
+            w,v,n = solve_waveguide(mesh0,self.wl,IOR_dict,plot=True,sparse=True,Nmax=self.Nmax)
 
         #points0 = np.copy(mesh.points * self.wvg.taper_func(zi))
         points0 = np.copy(mesh.points)
@@ -438,10 +530,10 @@ class Propagator:
                 print("comp. halted")
                 raise Exception("error: zstep has decreased below lower limit - eigenmodes may not be varying continuously")
             if fixed_step:
-                dz = fixed_step
+                dz = min(fixed_step/10,dz0)
             else:
                 dz = min(zstep0/10,dz0)
-            cmat,neff,vlast_temp= self.compute2(z,zi,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,degen_groups=degen_groups)
+            cmat,neff,vlast_temp= self.compute2(z,zi,mesh0,mesh,_mesh,IOR_dict,points0,dz,neffs,vlast=vlast,degen_groups=degen_groups,mode=mode)
 
             cnorm = self.compute_cmat_norm(cmat,degen_groups)
 
@@ -483,8 +575,6 @@ class Propagator:
                 zstep0/=2
                 z += zstep0
         
-        vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
-        
         if save:
             self.save(zs,tapervals,cmats,neffs,vs,tag=tag)
         print("time elapsed: ",time.time()-start_time)
@@ -497,7 +587,7 @@ class Propagator:
         self.tapervals = np.array(tapervals)
         return self.za,self.tapervals,self.cmat,self.neff,self.vs,mesh
 
-    def prop_setup(self,zi,zf,tol=1e-4,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform",max_zstep=320,plot=False):
+    def prop_setup(self,zi,zf,tol=1e-4,dz0=0.1,min_zstep=1.,save=False,tag="",degen_groups=[],fixed_step=None,mesh=None,mode="transform",max_zstep=320,plot=False,min_degen_dif=0):
         """ compute the eigenmodes, eigenvalues (effective indices), and cross-coupling coefficients 
             for the waveguide loaded into self.wvg, in the interval [zi,zf]. Uses an adaptive 
             scheme (based on interpolation of previous data points) to choose the z step.
@@ -535,6 +625,7 @@ class Propagator:
             w,v,n = solve_waveguide(mesh0,self.wl,IOR_dict,plot=True,sparse=True,Nmax=self.Nmax)
 
         vlast = None
+        vlasttree = None
 
         z = zi
         print("starting computation ...")
@@ -547,7 +638,7 @@ class Propagator:
             else:
                 dz = min(zstep0/10,dz0)
 
-            cmat,neff,vlast_temp= self.compute(z,zi,mesh0,mesh,_mesh,IOR_dict,dz,neffs,vlast=vlast,degen_groups=degen_groups,mode=mode)
+            cmat,neff,vlast_temp,vlasttree_temp,degen_groups = self.compute(z,zi,mesh0,mesh,_mesh,IOR_dict,dz,neffs,vlast=vlast,vlasttree=vlasttree,degen_groups=degen_groups,mode=mode,min_degen_dif=min_degen_dif)
 
             cnorm = self.compute_cmat_norm(cmat,degen_groups)
 
@@ -563,12 +654,14 @@ class Propagator:
                 cmats_norm.append(cnorm)
                 zs.append(z)
                 vlast = vlast_temp
+                vlasttree = vlasttree_temp
                 vs.append(vlast)
                 if z == zf:
                     break
 
-                z += zstep0
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+                print("accepted_cmat: ",cmat[1,0])
+                z += zstep0
                 continue
 
             spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
@@ -579,6 +672,7 @@ class Propagator:
                 cmats_norm.append(cnorm)
                 zs.append(z)
                 vlast = vlast_temp
+                vlasttree = vlasttree_temp
                 vs.append(vlast)
                 if z == zf:
                     break
@@ -587,15 +681,15 @@ class Propagator:
                     zstep0 = min(zstep0*2,max_zstep, zf-z)
                 else:
                     zstep0 = min(zstep0,max_zstep, zf-z)
-                z += zstep0
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+                print("accepted_cmat: ",cmat[1,0])
+                z += zstep0
             else:
                 print("\rcurrent z: {0} / {1}; reducing step : {2}        ".format(z,zf,zstep0),end='',flush=True)             
                 z -= zstep0
                 zstep0 = min(max(zstep0/2,min_zstep),zf-z,max_zstep)
                 z += zstep0
         
-        vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
         
         if save:
             self.save2(zs,cmats,neffs,vs,tag=tag)
@@ -606,7 +700,7 @@ class Propagator:
         self.vs = np.array(vs)
         self.za = np.array(zs)
         self.mesh = mesh
-        return self.za,self.cmat,self.neff,self.vs,mesh
+        return self.za,self.cmat,self.neff,self.vs
 
     def check_and_make_folders(self):
         if not os.path.exists(self.save_dir):
@@ -627,15 +721,23 @@ class Propagator:
     def save(self,zs,tapervals,cmats,neffs,vs,tag=""):
         ps = "" if tag == "" else "_"+tag
         np.save(self.save_dir+'/cplcoeffs/cplcoeffs'+ps,cmats)
-        np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
+        try:
+            vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
+            np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
+        except:
+            pass
         np.save(self.save_dir+'/eigenvalues/eigenvalues'+ps,neffs)
         np.save(self.save_dir+'/zvals/zvals'+ps,zs)
         np.save(self.save_dir+'/tapervals/tapervals'+ps,tapervals)
 
     def save2(self,zs,cmats,neffs,vs,tag=""):
         ps = "" if tag == "" else "_"+tag
+        try:
+            vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
+            np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
+        except:
+            pass
         np.save(self.save_dir+'/cplcoeffs/cplcoeffs'+ps,cmats)
-        np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
         np.save(self.save_dir+'/eigenvalues/eigenvalues'+ps,neffs)
         np.save(self.save_dir+'/zvals/zvals'+ps,zs)
 
@@ -737,14 +839,14 @@ class Propagator:
                 ddz += self.WKB_cor(z)*u
             return ddz
         
-        sol = solve_ivp(deriv,(zi,zf),u0,self.solver,rtol=1e-10,atol=1e-10)
+        sol = solve_ivp(deriv,(zi,zf),u0,self.solver,rtol=1e-12,atol=1e-10)
         # multiply by phase factors
         final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
         uf = sol.y[:,-1]*final_phase
 
         return sol.t,sol.y,uf
 
-    def compute_change_of_basis(self,newbasis,z,u=None):
+    def compute_change_of_basis(self,newbasis,z,m,u=None):
         """ compute the (Nmax x Nmax) change of basis matrix between the current eigenbasis at z and a new basis 
         ARGS: 
         newbasis: MxN array of N eigenmodes computed over M mesh points, which we want to expand in
@@ -756,13 +858,282 @@ class Propagator:
         _u: Nx1 modal vector corresponding to u expressed in the new basis. None, if u is not provided.
         """
 
-        self.update_mesh(z)
-        B = construct_B(self.mesh,sparse=True)
+        B = construct_B(m,sparse=True)
         oldbasis = self.compute_v(z)
         cob = B.dot(newbasis).T.dot(oldbasis)
+
         if u is not None:
             return cob,np.dot(cob,u)
         return cob,None
+
+    def compute_cmat_pert_on_isect_mesh(self,dz,w,v,mesh,dict,isect_dict,degen_groups=[]):
+
+        N = len(mesh.points)
+        B_IORsq_diff = lil_matrix((N,N))
+        materials = mesh.cell_sets.keys()
+        for material in materials:
+            tris = mesh.cells[1].data[tuple(mesh.cell_sets[material])][0,:,0,:]
+            for tri in tris:
+                ix = np.ix_(tri,tri)
+                tri_points = mesh.points[tri]
+                NN = compute_NN(tri_points)
+                B_IORsq_diff[ix] += isect_dict[material] * NN
+
+        mat = self.k**2*B_IORsq_diff.dot(v.T).T.dot(v.T)/dz
+        wdif = w[:,None] - w[None,:]
+        
+        for i in range(self.Nmax):
+            for j in range(i+1):
+                if i == j:
+                    mat[i,i] = 0.
+                    wdif[i,i] = 1.
+                    continue
+
+                for gr in degen_groups:
+                    if i in gr and j in gr:
+                        mat[i,j] = 0
+                        wdif[i,j] = 1.
+                        mat[j,i] = 0
+                        wdif[j,i] = 1.
+                        continue
+        return mat/wdif
+
+    @staticmethod
+    def update_degen_groups2(neffs,min_dif,last_degen_groups):
+        """ this func is like update_degen_groups but it will split of degenerate groups again if necessary."""
+
+        degen_groups = copy.deepcopy(last_degen_groups)
+        degen_groups_flat = [x for gr in degen_groups for x in gr]
+
+        # look for adjacent neff values not already in a group and fit them together
+        for i in range(1,len(neffs)):
+            if i in degen_groups_flat or i-1 in degen_groups_flat:
+                continue
+            if neffs[i-1]-neffs[i] < min_dif:
+                # find the correct index to insert at
+                if len(degen_groups) == 0:
+                    degen_groups.append([i-1,i])
+                else:
+                    for j in range(len(degen_groups)):
+                        if i < degen_groups[j][0]:
+                            degen_groups.insert(j,[i-1,i])
+                    degen_groups.insert(j+1,[i-1,i])
+                degen_groups_flat.append(i-1)
+                degen_groups_flat.append(i)
+
+        # look at neff values not already in a group and try to fit them into each degen group
+        for i in range(len(neffs)):
+            b = neffs[i]
+            if i in degen_groups_flat:
+                continue
+            elif len(degen_groups) == 0:
+                continue
+            for gr in degen_groups:
+                if i < gr[0] and b-neffs[gr[-1]] < min_dif:
+                    gr.insert(0,i)
+                    break
+                elif i > gr[-1] and neffs[gr[0]] - b < min_dif:
+                    gr.append(i)
+                    break
+
+        # look at groups and try to combine if the total difference is less than min_dif
+        if len(degen_groups)>1:
+            i = 1
+            while i < len(degen_groups):
+                if neffs[degen_groups[i-1][0]] - neffs[degen_groups[i][-1]] < min_dif:
+                    biggroup = degen_groups[i-1]+degen_groups[i]
+                    degen_groups[i] = biggroup
+                    degen_groups.pop(i-1)
+                else:
+                    i+=1
+        # look at groups and split if any adjacent difference is larger than min_dif
+        for k,gr in enumerate(degen_groups):
+            if len(gr)>1:
+                i = 1
+                while i < len(gr):
+                    if neffs[gr[i-1]] - neffs[gr[i]] > min_dif:
+                        gr1 = gr[0:i]
+                        gr2 = gr[i:]
+                        degen_groups[k] = gr1
+                        degen_groups.insert(k+1,gr2)
+                    i += 1
+        return degen_groups
+
+    def generate_isect_mesh(self,z,dz):
+        m,d = self.wvg.make_intersection_mesh(z,dz,self.mesh_dist_scale,self.mesh_dist_power,self.min_mesh_size,self.max_mesh_size)
+        return m,d
+
+    def compute_pert(self,z,zi,mesh0,mesh,IOR_dict,cmats,vs,IORdif_dict,zstep0,vlast=None,degen_groups=[],min_degen_dif=0,mode="transform"):
+        
+        dz0 = zstep0 / 20
+
+        if mode == "transform":
+            new_mesh = self.wvg.transform_mesh(mesh0,zi,z)
+        else:
+            new_mesh,IOR_dict = self.generate_isect_mesh(z,dz0) 
+
+        # compute eigenmodes
+        w,v,N = solve_waveguide(new_mesh,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
+        
+        # look at degeneracy
+        if min_degen_dif != 0:
+            new_degen_groups = self.update_degen_groups2(get_eff_index(self.wl,w),min_degen_dif,degen_groups)
+            print("degenerate groups: ",new_degen_groups)
+        else:
+            new_degen_groups = degen_groups
+        
+        if mode == "transform":
+            if vlast is not None:
+                self.make_sign_consistent(vlast,v)
+        else:
+            # interpolation for now
+            if vlast is not None:
+                tree = FEval.create_tree(mesh.points,mesh.cells[1].data)
+                vinterp = np.copy(v)
+                triidxs,interpweights = FEval.get_idxs_and_weights(new_mesh.points,tree)
+                mask = (triidxs != -1)
+                for k,vec in enumerate(vlast):
+                    vinterp[k,:][mask] = fast_interpolate(vec,mesh,triidxs[mask],interpweights[mask])
+                self.make_sign_consistent(vinterp,v)
+
+        # this works if the same modes are degenerate, or if modes have been added to the degenerate group.
+        if len(degen_groups) == len(new_degen_groups):
+            for gr in new_degen_groups:
+                if vlast is not None:
+                    if mode=="transform":
+                        self.correct_degeneracy(gr,vlast,v)
+                    else:
+                        self.correct_degeneracy(gr,vinterp,v)
+            new_cmats = cmats
+            new_vs = vs
+        
+        # degeneracy splitting - need to add in a check to raise error on double split, at some point
+        else:
+            print("potential degeneracy splitting detected ... ")
+            new_cmats = copy.deepcopy(cmats)
+            new_vs = copy.deepcopy(vs)
+            for gr in degen_groups:
+                if mode == "transform":
+                    v,vlast,Q = self.correct_degeneracy(gr,v,vlast) # we need to retroactively apply this change of basis 
+                else:
+                    v,vlast,Q = self.correct_degeneracy(gr,v,vinterp)
+                for i,c in enumerate(cmats):
+                    new_c =  np.dot(Q.T,np.dot(c[gr,gr],Q)) 
+                    new_cmats[i][gr,gr] = new_c
+                    new_v = np.dot(Q.T,vs[i][gr])
+                    new_vs[i][gr] = new_v
+
+        #fig,axs = plt.subplots(1,2)
+        #plot_eigenvector(new_mesh,v[0],ax=axs[0],show=False)
+        #plot_eigenvector(new_mesh,v[1],ax=axs[1],show=False)
+        #plt.show()
+
+        cmat = self.compute_cmat_pert_on_isect_mesh(dz0,w,v,new_mesh,IOR_dict,IORdif_dict,new_degen_groups)
+
+        return cmat,new_cmats,get_eff_index(self.wl,w),np.copy(v),new_vs,new_degen_groups,new_mesh
+
+    def prop_setup_pert(self,zi,zf,mesh0,IOR_dict,IORdif_dict,tol=1e-4,min_zstep=1.,save=False,tag="",max_zstep=320,plot=False,min_degen_dif=1e-5,mode="transform"):
+        """ compute coupling coeffs according to perturbation theory.  """
+
+        start_time = time.time()
+        zstep0 = 10
+
+        self.wvg.update(zi)
+
+        cmats = []
+        cmats_norm = []
+        neffs = []
+        vs = []
+        zs = []
+
+        mesh = copy.deepcopy(mesh0)
+        
+        print("number of mesh points: ",mesh0.points.shape[0])
+
+        vlast = None
+
+        w,v,N = solve_waveguide(mesh0,self.wl,IOR_dict,sparse=True,Nmax=self.Nmax)
+        degen_groups = self.update_degen_groups2(get_eff_index(self.wl,w),min_degen_dif,[])
+        #degen_groups = [[1,2],[3,4]]
+        print("starting degeneracy: ",degen_groups)
+
+        z = zi
+        print("starting computation ...")
+        while True:
+            if zstep0<min_zstep:
+                zstep0 = min_zstep
+
+            cmat,cmats_temp,neff,vlast_temp,vs_temp,degen_groups_temp,mesh_temp = self.compute_pert(z,zi,mesh0,mesh,IOR_dict,cmats,vs,IORdif_dict,zstep0,vlast=vlast,degen_groups=degen_groups,min_degen_dif=min_degen_dif,mode=mode)
+            
+            cnorm = self.compute_cmat_norm(cmat,degen_groups)
+
+            if len(zs)<4 or zstep0 == min_zstep: # always accept the computation under these conditions
+                if zstep0 == min_zstep and len(zs)>4:
+                    spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
+                    err = np.abs(spl(z)-cnorm)
+                    if err<0.1*tol:
+                        zstep0 = min(zstep0*2,max_zstep,zf-z-zstep0)
+
+                cmats = cmats_temp
+                vs = vs_temp
+                mesh = mesh_temp
+                cmats.append(cmat)
+                neffs.append(neff)
+                cmats_norm.append(cnorm)
+                zs.append(z)
+                vlast = vlast_temp
+                degen_groups = degen_groups_temp
+                
+                vs.append(vlast)
+                if z == zf:
+                    break
+
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+                print("accepted_cmat: ",cmat[0,1])
+                z += zstep0
+                continue
+
+            spl = UnivariateSpline(zs[-4:],cmats_norm[-4:],k=3,s=0,ext=0)
+            err = np.abs(spl(z)-cnorm)
+            if err<tol: # accept if extrapolation error is sufficiently low
+                cmats = cmats_temp
+                vs = vs_temp
+                mesh = mesh_temp
+                cmats.append(cmat)
+                neffs.append(neff)
+                cmats_norm.append(cnorm)
+                zs.append(z)
+                vlast = vlast_temp
+                degen_groups = degen_groups_temp
+                vs.append(vlast)
+                if z == zf:
+                    break
+                # rescale zstep0
+                if err<0.1*tol:
+                    zstep0 = min(zstep0*2,max_zstep, zf-z)
+                else:
+                    zstep0 = min(zstep0,max_zstep, zf-z)
+                print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
+                print("accepted_cmat: ",cmat[0,1])
+                z += zstep0
+            else:
+                print("\rcurrent z: {0} / {1}; reducing step : {2}        ".format(z,zf,zstep0),end='',flush=True)             
+                z -= zstep0
+                zstep0 = min(max(zstep0/2,min_zstep),zf-z,max_zstep)
+                z += zstep0
+        
+        
+        if save:
+            self.save2(zs,cmats,neffs,vs,tag=tag)
+        print("time elapsed: ",time.time()-start_time)
+
+        self.cmat = np.array(cmats)
+        self.neff = np.array(neffs)
+        self.vs = np.array(vs)
+        self.za = np.array(zs)
+        self.mesh = mesh
+        return self.za,self.cmat,self.neff,self.vs
+
 
 def fast_interpolate(v,inmesh,triidxs,interpweights):
     idxs = inmesh.cells[1].data[triidxs]

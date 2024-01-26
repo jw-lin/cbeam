@@ -385,11 +385,30 @@ function evaluate_func(field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_t
     """ convert a FE field into a function of point [x,y] """
     dtype = eltype(field)
     field = pyconvert(Vector{dtype},field)
-    function _inner_(point::Vector{Float64})
+
+    function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+        if typeof(point) <: PyArray
+            point = pyconvert(Vector{Float64},point)
+        end
         return evaluate(point,field,_tritree)
     end
     return _inner_
 end
+
+function evaluate(f::Function,xa::PyArray{Float64,1},ya::PyArray{Float64,1})
+    xa = pyconvert(Vector{Float64},xa)
+    ya = pyconvert(Vector{Float64},ya)
+    out = Array{Float64}(undef,size(xa,1),size(ya,1))
+    for i in eachindex(xa)
+        for j in eachindex(ya)
+            x = xa[i]
+            y = ya[j]
+            out[i,j] = f([x,y])
+        end
+    end
+    return out
+end
+
 
 function diff_func(field1::PyArray{T,1},tree1::tritree,field2::PyArray{T,1},tree2::tritree) where T<:Union{Float64,ComplexF64}
     """ compute the difference (not derivative) function between two fields, field2-field1 """
@@ -460,7 +479,6 @@ function inner_product(func1::Function,func2::Function,xmin::PyArray{Float64,1},
     xmax = pyconvert(Vector{Float64},xmax)
     integrand = point -> func1(point)*func2(point)
     (val, err) = pcubature(integrand, xmin, xmax; reltol=1e-2, abstol=1e-6, maxevals=0)
-    println(val)
     return val
 end
 
@@ -487,12 +505,9 @@ function inner_product_polar(func1::Function,func2::Function,rmax::Float64,tol::
         p = [x,y]
         return func1(p)*func2(p)*point[1] 
     end
-    println("check 2")
-    println(integrand([10.,0.]))
     xmin = [0.,0.]
     xmax = [rmax,2*pi]
     (val, err) = hcubature(integrand, xmin, xmax; reltol=tol, abstol=0, maxevals=0)
-    println(val)
     return val
 end
 
@@ -501,7 +516,6 @@ function inner_product_polar(func1::Vector{Function},func2::Vector{Function},rma
     out = Array{ComplexF64}(undef,size(func1,1),size(func2,1))
     for i in axes(func1,1)
         for j in axes(func2,1)
-            println("check 1")
             out[i,j] = inner_product_polar(func1[i],func2[j],rmax,tol)
         end
     end
@@ -552,6 +566,7 @@ function integrate_product_simplex(field1::Vector{Float64},tree1::tritree,field2
     return tot
 end
 
+
 function compute_coupling_pcube(field1::PyArray{Float64,2},tree1::tritree,field2::PyArray{Float64,2},tree2::tritree)
     """ estimate cross-coupling matrix """
 
@@ -586,6 +601,113 @@ function compute_coupling_simplex(field1::PyArray{Float64,2},tree1::tritree,fiel
             val = 0.5 * (integrate_product_simplex(field1[:,j],tree1,field2[:,k],tree2,scheme) - integrate_product_simplex(field1[:,k],tree1,field2[:,j],tree2,scheme))
             out[j,k] = val
             out[k,j] = -val
+        end
+    end
+    return out
+end
+
+function FE_dot(field1::PyArray{Float64,1},tree1::tritree,field2::PyArray{Float64,1},tree2::tritree)
+    """ dot product of FE fields """
+    field1 = pyconvert(Array{Float64,1},field1)
+    field2 = pyconvert(Array{Float64,1},field2)
+    scheme = grundmann_moeller(Float64, Val(2), 5)
+    tot = 0.
+    for i in axes(tree1.connections,1)
+        idxs = tree1.connections[i,:]
+        triverts = tree1.tripoints[i,:,:]
+        fps = field1[idxs]
+        function F(uv)
+            u = uv[1]
+            v = uv[2]
+            f1 = fps[1]*N1(u,v) + fps[2]*N2(u) + fps[3]*N3(v) + fps[4]*N4(u,v) + fps[5]*N5(u,v) + fps[6]*N6(u,v)
+            xy = apply_affine_transform_inv(triverts,uv)
+            f2 = evaluate(xy,field2,tree2)
+            return f1*f2
+        end
+        uv_verts = [[0,0],[1,0],[0,1]]
+        _int = integrate(F,scheme,uv_verts)
+        tot += _int * jac(triverts)
+    end
+    return tot
+end
+
+function IOR_func(tree::tritree,IORvals::Vector{Float64},IORidxbounds::Array{UInt,2})
+    function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+        idx = query(point,tree)
+        for i in eachindex(IORvals)
+            if IORidxbounds[i,1] <= idx <= IORidxbounds[i,end]
+                return IORvals[i]
+            end
+        end
+        return minimum(IORvals)
+    end
+    return _inner_
+end
+
+function IORsq_diff_func(tree1::tritree,tree2::tritree,IORvals::Vector{Float64},IORidxbounds1::Array{UInt64,2},IORidxbounds2::Array{UInt64,2})
+    f1 = IOR_func(tree1,IORvals,IORidxbounds1)
+    f2 = IOR_func(tree2,IORvals,IORidxbounds2)
+    function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+        return f2(point)^2-f1(point)^2
+    end
+    return _inner_
+end
+
+function integrate_simplex(tree::tritree,field1::Vector{Float64},field2::Vector{Float64},func::Function,scheme)
+    tot = 0.
+    for i in axes(tree.connections,1)
+        idxs = tree.connections[i,:]
+        triverts = tree.tripoints[i,:,:]
+        fps1 = field1[idxs]
+        fps2 = field2[idxs]
+        
+        function F(uv)
+            u = uv[1]
+            v = uv[2]
+            f1 = fps1[1]*N1(u,v) + fps1[2]*N2(u) + fps1[3]*N3(v) + fps1[4]*N4(u,v) + fps1[5]*N5(u,v) + fps1[6]*N6(u,v)
+            f2 = fps2[1]*N1(u,v) + fps2[2]*N2(u) + fps2[3]*N3(v) + fps2[4]*N4(u,v) + fps2[5]*N5(u,v) + fps2[6]*N6(u,v)
+            xy = apply_affine_transform_inv(triverts,uv)
+            f = func(xy)
+            return f1*f2*f
+        end
+
+        uv_verts = [[0,0],[1,0],[0,1]]
+        #_int = integrate(F,scheme,uv_verts)
+        (_int,_err) = hcubature(r->hcubature(s->F([s[1],r[1]]), [0], [1-r[1]] ; reltol=1e-3,abstol=0)[1], [0], [1] ; reltol=1e-3,abstol=1e-6)
+        tot += _int * jac(triverts)
+    end
+    return tot
+end
+
+function compute_coupling_pert(field::PyArray{Float64,2},tree1::tritree,IORvals::PyArray{Float64,1},IORidxbounds1::PyArray{UInt64,2},IORidxbounds2::PyArray{UInt64,2},tree2::tritree)
+
+    field = pyconvert(Array{Float64,2},field)
+    IORvals = pyconvert(Vector{Float64},IORvals)
+    IORidxbounds1 = pyconvert(Array{UInt64,2},IORidxbounds1)
+    IORidxbounds2 = pyconvert(Array{UInt64,2},IORidxbounds2)
+
+    scheme = grundmann_moeller(Float64, Val(2), 7)
+    Idiff = IORsq_diff_func(tree1,tree2,IORvals,IORidxbounds1,IORidxbounds2)
+
+    out = Array{Float64}(undef,size(field,1),size(field,1))
+    for i in axes(field,1)
+        for j in axes(field,1)
+            out[i,j] = integrate_simplex(tree1,field[i,:],field[j,:],Idiff,scheme)
+        end
+    end
+    return out
+end
+
+function compute_cob(field1::PyArray{Float64,2},tree1::tritree,field2::PyArray{Float64,2},tree2::tritree)
+    """ estimate change of basis matrix """
+
+    scheme = grundmann_moeller(Float64, Val(2), 11)
+    out = Array{Float64}(undef,size(field1,2),size(field2,2))
+
+    for j in axes(field1,2)
+        for k in axes(field2,2)
+            val = integrate_product_simplex(field1[:,j],tree1,field2[:,k],tree2,scheme) 
+            out[j,k] = val
         end
     end
     return out

@@ -22,7 +22,7 @@ taper_factor = 8.                # relative scale factor between frontside and b
 rcore = 2.2/taper_factor        # radius of tapered-down single-mode cores at frontside, um
 rclad = 10                      # radius of cladding-jacket interface at frontside, um
 rjack = 40                      # radius of outer jacket boundary at frontside, um
-z_ex = 40000                    # lantern length, um
+z_ex = 20000                    # lantern length, um
 
 nclad = 1.444                   # cladding refractive index
 ncore = nclad + 8.8e-3          # SM core refractive index
@@ -36,8 +36,8 @@ ypos_i = [0,0,initial_offset*np.sin(t),initial_offset*np.sin(2*t),initial_offset
 core_pos = np.array([xpos_i,ypos_i]).T  # core positions for a standard 6 port PL at frontside
 # mesh params #
 
-core_res = 150                      # no. of line segments to use to resolve the core-cladding interface(s)
-clad_res = 300                      # no. of line segments to use to resolve the cladding-jacket interface
+core_res = 50                      # no. of line segments to use to resolve the core-cladding interface(s)
+clad_res = 150                      # no. of line segments to use to resolve the cladding-jacket interface
 jack_res = 30                       # no. of line segments to form the outer jacket boundary
 clad_mesh_size = 5.0               # mesh size (triangle side length) to use in the cladding region
 core_mesh_size = 0.05               # mesh size (triangle side length) to use inside the cores
@@ -53,16 +53,13 @@ dz0 = 0.1
 std_rcores = np.array([rcore]*6)
 
 neps = 0#1e-6
-#reps = 1e-4
+reps = 1e-4
 ncores = [ncore + i*neps for i in range(6)]
-
-
-#rcores = [rcore + i*reps for i in range(6)]
-rcores = [rcore,rcore+2e-4,rcore+2e-4,rcore+4e-4,rcore+4e-4,rcore+6e-4]
+rcores = [rcore + i*reps for i in range(6)]
 # 1. create a Waveguide (standard lantern)
 lant = waveguide.PhotonicLantern(core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res,jack_res,core_mesh_size,clad_mesh_size)
 
-tag = "0_std_test_reps" # identifier for this computation
+tag = "0_std_test_pert" # identifier for this computation
 import propagator
 
 # 2. initialize the propagator
@@ -73,22 +70,17 @@ adprop.mesh_dist_scale = 1.0
 adprop.max_mesh_size = 40
 adprop.min_mesh_size = 0.05
 
-# 3. (optional) compute effective indices and identify degenerate modes. this will speed up later computation
-'''
-za,neffs = adprop.get_neffs(0,z_ex)
-zs = np.linspace(0,z_ex,1000)
-interp_neffs = adprop.compute_neff(zs)
-for i in range(5):
-    plt.semilogy(zs, interp_neffs[i]-interp_neffs[i+1],label='v[{}]-v[{}]'.format(i,i+1))
-plt.xlabel(r'$z$')
-plt.ylabel(r'$\Delta n_{\rm eff}$')
-plt.axhline(y=1e-6,color='k',ls='dashed',label='degen limit') # this limit is empirical
-plt.legend(loc='best')
-plt.show()
-'''
-
 # 4. run prop_setup()
 #zs,coupling_mats,neffs,vs = adprop.prop_setup(0,z_ex,tol,save=True,tag=tag,degen_groups=degen_groups,min_zstep=min_zstep,max_zstep=max_zstep,plot=True,dz0=dz0)
+
+ps = "_"+tag if tag is not None else ""
+
+meshwriteto="./data/meshes/mesh"+ps
+
+mesh0,IORdict = lant.make_intersection_mesh(0,dz0,adprop.mesh_dist_scale,adprop.mesh_dist_power,adprop.min_mesh_size,adprop.max_mesh_size,writeto=meshwriteto)
+IORsq_diff_dict = lant.IORsq_diff(IORdict)
+print(IORdict)
+zs,coupling_mats,neffs,vs = adprop.prop_setup_pert(0,z_ex,mesh0,IORdict,IORsq_diff_dict,tol,dz0,min_zstep,True,tag,max_zstep,True,min_degen_dif=0)
 
 # 5. load the results of prop_setup() from local
 adprop.load(tag=tag)
@@ -105,10 +97,7 @@ plot_eigenvector(adprop.mesh,adprop.vs[:,4,0],ax=axs[1,1],show=False)
 plot_eigenvector(adprop.mesh,adprop.vs[:,5,0],ax=axs[1,2],show=False)
 plt.show()
 
-t = 1.14+np.pi/2
-c1 = np.cos(t)
-c2 = np.sin(t)
-print(c1,c2)
+
 print("launch: ")
 ui = np.array([0,0,0,0,0,1])
 vi = np.sum(adprop.vs[:,:,0]*ui,axis=1)
@@ -201,7 +190,7 @@ adprop.wvg.assign_IOR()
 m = adprop.wvg.transform_mesh(adprop.mesh,0,z_ex)
 
 for i in range(6):
-    _dict = adprop.wvg.isolate(i)
+    _dict = adprop.wvg.isolate_isect(i,IORdict)
     _wi,_vi,_Ni = solve_waveguide(m,wl,_dict,sparse=True,Nmax=1)
     _v[i,:] = _vi
 

@@ -52,6 +52,9 @@ def diff_func(field1,tree1,field2,tree2):
 def avg_func(field1,tree1,field2,tree2):
     return jl.FEval.avg_func(field1,tree1,field2,tree2)
 
+def compute_func_over(func,xa,ya):
+    return np.array(jl.FEval.evaluate(func,xa,ya))
+
 def compute_coupling_coeff(field1,tree1,field2,tree2,xmin,xmax,tol=1e-6):
     """ compute the coupling coefficient matrix corresponding to field1 and field2 """
     _diff = diff_func(field1,tree1,field2,tree2)
@@ -73,3 +76,12 @@ def compute_coupling_simplex(field1,tree1,field2,tree2):
     """ compute the coupling coefficient matrix corresponding to field1 and field2. simplex method. """
 
     return jl.FEval.compute_coupling_simplex(field1,tree1,field2,tree2)
+
+def FE_dot(field1,tree1,field2,tree2):
+    return jl.FEval.FE_dot(field1,tree1,field2,tree2)
+
+def compute_coupling_pert(field,tree1,IORvals,IORidxbounds1,IORidxbounds2,tree2):
+    return jl.FEval.compute_coupling_pert(field,tree1,IORvals,IORidxbounds1,IORidxbounds2,tree2)
+
+def compute_cob(field1,tree1,field2,tree2):
+    return jl.FEval.compute_cob(field1,tree1,field2,tree2)

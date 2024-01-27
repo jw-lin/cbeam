@@ -7,21 +7,6 @@ import copy
 from wavesolve.mesher import plot_mesh
 gmsh.option.setNumber('General.Terminal', 0)
 
-### to do notes
-### restructure to evolve meshes based on transformations? or maybe have two options: a "transform" and a "remesh" mode (in progress)
-### require a function that computes boundary distance (negative -> inside) for all primitives (done)
-### clean up the uniform_interior stuff - maybe rename to mesh_size. and move stuff from boundary distance func into bndry_ref_mesh func so that the boundary distance func is actually boundary distance. (done)
-### change of basis stuff: add functions to "isolate" cores, so you can compute "unperturbed" modes (done, but could be cleaner)
-### add dicoupler (done, appears to be working) 
-### test dicoupler for V and d in range where the emiprical formla is accurate (mainly checking period)
-### add a sharp dicoupler
-### try asymmetric dicoupler, and measure the asymmetry
-### add tricoupler class (could be done after publishing)
-### rework propagate so it auto propagates through to the end, and can use a transformed z array
-### chagne adaptive stepping so that it always complete, using the minimum z step in worst case scenario
-### add union func
-### tie in size_scale_fac param to mesh extent so it works consistently over different waveguide sizes.
-
 #region miscellaneous functions   
 
 def load_meshio_mesh(meshname):
@@ -303,6 +288,12 @@ class Waveguide:
 
     isect_skip_layers = [0]
 
+    # mesh params
+    mesh_dist_scale = 1.0   # mesh boundary refinement linear distance scaling   
+    mesh_dist_power = 1.0   # mesh boundary refinement power scaling
+    min_mesh_size = 0.1     # minimum allowed mesh size
+    max_mesh_size = 10.     # maximum allowed mesh size
+
     def __init__(self,prim3Dgroups):
         self.prim3Dgroups = prim3Dgroups # an arrangement of Prim3D objects, stored as a (potentially nested) list. each element is overwritten by the next.
         self.IOR_dict = {}
@@ -405,8 +396,14 @@ class Waveguide:
             scaled_size = min(max_size,target_size)    
         return target_size
     
-    def make_mesh_bndry_ref(self,_scale=1.,_power=1.,min_mesh_size=None,max_mesh_size=None,writeto=None):
+    def make_mesh_bndry_ref(self,writeto=None):
         """ construct a mesh with boundary refinement at material interfaces."""
+
+        _scale = self.mesh_dist_scale
+        _power = self.mesh_dist_power
+        min_mesh_size = self.min_mesh_size
+        max_mesh_size = self.max_mesh_size
+
         algo = 6
         with pygmsh.occ.Geometry() as geom:
         
@@ -457,12 +454,17 @@ class Waveguide:
                 gmsh.clear()
             return mesh
 
-    def make_intersection_mesh(self,z,dz,_scale=1.,_power=1.,min_mesh_size=None,max_mesh_size=None,writeto=None):
+    def make_intersection_mesh(self,z,dz,writeto=None):
         """ construct a mesh around the union of Waveguide boundaries computed at z and z+dz.
             returns both the mesh and a custom dictionary mapping regions of the mesh to
             refractive indices. to advance the refractive index profile from z to z+dz
             use self.advance_IOR() to update the dictionary.
         """
+        _scale = self.mesh_dist_scale
+        _power = self.mesh_dist_power
+        min_mesh_size = self.min_mesh_size
+        max_mesh_size = self.max_mesh_size
+
         IOR_dict={}
 
         with pygmsh.occ.Geometry() as geom:
@@ -807,9 +809,9 @@ class Dicoupler(Waveguide):
 
         maxr = max(rcore1,rcore2)
         if split:
-            cladding_left = Box(nclad,"cladding",-dmax*2,-dfunc(0)/2+rcore1+self.eps,-10*maxr,10*maxr)
+            cladding_left = Box(nclad,"cladding",-dmax,-dfunc(0)/2+rcore1+self.eps,-10*maxr,10*maxr)
             cladding_middle = Box(nclad,"cladding",-dfunc(0)/2+rcore1+self.eps,dfunc(0)/2-rcore2-self.eps,-10*maxr,10*maxr)
-            cladding_right = Box(nclad,"cladding",dfunc(0)/2-rcore2-self.eps,dmax*2,-10*maxr,10*maxr)
+            cladding_right = Box(nclad,"cladding",dfunc(0)/2-rcore2-self.eps,dmax,-10*maxr,10*maxr)
             cladding = [cladding_left,cladding_middle,cladding_right]
             for c in cladding:
                 c.mesh_size = clad_mesh_size

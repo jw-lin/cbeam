@@ -805,13 +805,13 @@ class Dicoupler(Waveguide):
             return c2func(z)[0]-c1func(z)[0]
         
         self.dfunc = dfunc
-        self.eps = 0.5
+        self.eps = 0.
 
         maxr = max(rcore1,rcore2)
         if split:
-            cladding_left = Box(nclad,"cladding",-dmax,-dfunc(0)/2+rcore1+self.eps,-10*maxr,10*maxr)
-            cladding_middle = Box(nclad,"cladding",-dfunc(0)/2+rcore1+self.eps,dfunc(0)/2-rcore2-self.eps,-10*maxr,10*maxr)
-            cladding_right = Box(nclad,"cladding",dfunc(0)/2-rcore2-self.eps,dmax,-10*maxr,10*maxr)
+            cladding_left = Box(nclad,"cladding",-1.5*dmax,-dfunc(0)/2+rcore1+self.eps,-12*maxr,12*maxr)
+            cladding_middle = Box(nclad,"cladding",-dfunc(0)/2+rcore1+self.eps,dfunc(0)/2-rcore2-self.eps,-12*maxr,12*maxr)
+            cladding_right = Box(nclad,"cladding",dfunc(0)/2-rcore2-self.eps,1.5*dmax,-12*maxr,12*maxr)
             cladding = [cladding_left,cladding_middle,cladding_right]
             for c in cladding:
                 c.mesh_size = clad_mesh_size

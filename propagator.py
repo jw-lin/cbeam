@@ -104,7 +104,7 @@ class Propagator:
         self.neff_dif_funcs = [neff_func.derivative() for neff_func in neff_funcs]
 
         if self.mesh_mode == "transform":
-            self.compute_v = interp1d(za,self.vs,assume_sorted=True)
+            self.compute_v = interp1d(za,self.vs,assume_sorted=True,axis=0)
 
     def propagate(self,u0,zf):
         """ propagate a launch wavefront, expressed in the basis of initial eigenmodes, to z = zf 
@@ -287,7 +287,7 @@ class Propagator:
                     break
 
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
-                print("accepted_cmat: ",cmat[1,0])
+                #print("accepted_cmat: ",cmat[1,0])
                 z += zstep0
                 continue
 
@@ -308,7 +308,7 @@ class Propagator:
                 else:
                     zstep0 = min(zstep0,max_zstep, zf-z)
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
-                print("accepted_cmat: ",cmat[1,0])
+                #print("accepted_cmat: ",cmat[1,0])
                 z += zstep0
             else:
                 print("\rcurrent z: {0} / {1}; reducing step : {2}        ".format(z,zf,zstep0),end='',flush=True)             
@@ -495,7 +495,7 @@ class Propagator:
                     break
 
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
-                print("accepted_cmat: ",cmat[0,1])
+                #print("accepted_cmat: ",cmat[0,1])
                 z += zstep0
                 continue
 
@@ -520,7 +520,7 @@ class Propagator:
                 else:
                     zstep0 = min(zstep0,max_zstep, zf-z)
                 print("\rcurrent z: {0} / {1} ; current zstep: {2}        ".format(z,zf,zstep0),end='',flush=True)
-                print("accepted_cmat: ",cmat[0,1])
+                #print("accepted_cmat: ",cmat[0,1])
                 z += zstep0
             else:
                 print("\rcurrent z: {0} / {1}; reducing step : {2}        ".format(z,zf,zstep0),end='',flush=True)             
@@ -760,7 +760,7 @@ class Propagator:
     def save(self,zs,cmats,neffs,vs,tag=""):
         ps = "" if tag == "" else "_"+tag
         if self.mesh_mode == "transform":
-            vs = np.array(vs).T # eigenmode array is (MxNxK) for M mesh points, N eigenmodes, and K z values
+            vs = np.array(vs) # eigenmode array is (KxNxM) for M mesh points, N eigenmodes, and K z values
             np.save(self.save_dir+'/eigenmodes/eigenmodes'+ps,vs)
         else:
             # save the starting and ending eigenmodes

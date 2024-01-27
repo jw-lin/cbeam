@@ -9,6 +9,10 @@ def create_tree(points,connections):
     """ from an array of mesh points and an index array of (quadratic) triangle connections, construct a BVH tree """
     return jl.FEval.construct_tritree(points,connections+1)
 
+def create_tree_from_mesh(mesh):
+    """ create a BVH tree from a finite element mesh. """
+    return jl.FEval.construct_tritree(mesh.points,mesh.cells[1].data+1)
+
 def query(point,tree):
     """ find the index of the triangle that contains the given point. """
     jl_idx = jl.FEval.query(point,tree)

@@ -9,3 +9,9 @@ data/
 analysis.py
 *.npz
 test.py
+dicoupler_neff
+meshtest.py
+run_prop*
+test*.py
+cbeam-checkpoint*
+dicoupler_neff.py

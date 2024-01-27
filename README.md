@@ -5,7 +5,7 @@ this is (will be) a propagator for slowly-varying and weakly-guiding waveguides.
 ## dependencies
 Python: `numpy`,`scipy`,`juliacall`,`wavesolve`,`pygmsh`,`meshio`,`matplotlib`
 
-Julia: `pythoncall`
+Julia: `pythoncall`,`StaticArrays`,`GrundmannMoeller`
 
 General: `Gmsh`
 

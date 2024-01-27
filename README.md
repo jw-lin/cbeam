@@ -18,6 +18,6 @@ this package uses a coupled-mode approach to simulate propagation through wavegu
 3. meshes must evolve continuously with $z$, following the $z$-variation of the waveguide. this evolution is waveguide-specific and as of now user-defined (which makes it difficult to simulate some kinds of waveguides, at least until i come up with a more general solution.)
 4. derivatives of eigenmodes are estimated using centered finite difference (as opposed to perturbation theory).
 5. the $z$ step size is chosen adaptively, by comparing values at a proposed next $z$ step with an extrapolation from previous values.
-6. to quickly evaluate a field sampled on a finite element mesh at an arbitrary $(x,y)$ point, `coupledbeam` includes a small Julia package called `FEval`, which speeds up point queries by storing mesh triangles in a bounding volume hierarchy (BVH) tree.
+6. to quickly evaluate a field sampled on a finite element mesh at an arbitrary $(x,y)$ point, `cbeam` includes a small Julia package called `FEval`, which speeds up point queries by storing mesh triangles in a bounding volume hierarchy (BVH) tree.
 
 See `cbeam.ipynb` for installation instructions, documentation, and worked examples. 

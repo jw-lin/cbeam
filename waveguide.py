@@ -5,7 +5,7 @@ import gmsh
 import meshio
 import copy
 from wavesolve.mesher import plot_mesh
-gmsh.option.setNumber('General.Terminal', 0)
+
 
 #region miscellaneous functions   
 
@@ -325,6 +325,7 @@ class Waveguide:
             to the mesh points which takes it from z1 -> z2.
         """
         with pygmsh.occ.Geometry() as geom:
+            gmsh.option.setNumber('General.Terminal', 0)
             # make the polygons
             polygons = []
             for el in self.prim3Dgroups:
@@ -406,7 +407,7 @@ class Waveguide:
 
         algo = 6
         with pygmsh.occ.Geometry() as geom:
-        
+            gmsh.option.setNumber('General.Terminal', 0)
             # make the polygons
             polygons = []
             for el in self.prim3Dgroups:
@@ -468,7 +469,7 @@ class Waveguide:
         IOR_dict={}
 
         with pygmsh.occ.Geometry() as geom:
-            
+            gmsh.option.setNumber('General.Terminal', 0)
             self.update(z)
 
             # elements

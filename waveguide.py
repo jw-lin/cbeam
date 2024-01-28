@@ -294,6 +294,8 @@ class Waveguide:
     min_mesh_size = 0.1     # minimum allowed mesh size
     max_mesh_size = 10.     # maximum allowed mesh size
 
+    recon_midpts = False
+
     def __init__(self,prim3Dgroups):
         self.prim3Dgroups = prim3Dgroups # an arrangement of Prim3D objects, stored as a (potentially nested) list. each element is overwritten by the next.
         self.IOR_dict = {}
@@ -598,13 +600,14 @@ class Waveguide:
                 self.IOR_dict[p.label] = p.prim2D.n  
         return self.IOR_dict
 
-    def plot_mesh(self,mesh=None,IOR_dict=None, verts=3,alpha=0.3,ax=None,plot_points=True):
+    def plot_mesh(self,mesh=None,IOR_dict=None,alpha=0.3,ax=None,plot_points=True):
         """ plot a mesh and associated refractive index distribution
         Args:
         mesh: the mesh to be plotted. if None, we auto-compute a mesh using default values
         IOR_dict: dictionary that assigns each named region in the mesh to a refractive index value
         """
         show=False
+        verts=3
         if ax is None:
             fig,ax = plt.subplots(figsize=(5,5))
             show=True
@@ -685,8 +688,16 @@ class Waveguide:
         yp0 = mesh0.points[:,1]
         xp,yp = self.transform(xp0,yp0,z0,z)
         mesh.points = np.array([xp,yp]).T
+        if self.recon_midpts:
+            self.reconstruct_midpoints(mesh)
         return mesh
     
+    def reconstruct_midpoints(self,mesh):
+        for el in mesh.cells[1].data:
+            mesh.points[el[3]] = 0.5*(mesh.points[el[0]]+mesh.points[el[1]])
+            mesh.points[el[4]] = 0.5*(mesh.points[el[1]]+mesh.points[el[2]])
+            mesh.points[el[5]] = 0.5*(mesh.points[el[2]]+mesh.points[el[0]])
+
     def IORsq_diff(self,d):
         _d = copy.copy(d)
         for k in _d.keys():
@@ -780,7 +791,10 @@ class PhotonicLantern(Waveguide):
 
 class Dicoupler(Waveguide):
     """ generic class for directional couplers made of pipes """
-    def __init__(self,rcore1,rcore2,ncore1,ncore2,dmax,dmin,nclad,coupling_length,a,core_res,core_mesh_size,clad_mesh_size,split=True):
+
+    recon_midpts = True
+
+    def __init__(self,rcore1,rcore2,ncore1,ncore2,dmax,dmin,nclad,coupling_length,a,core_res,core_mesh_size,clad_mesh_size):
         
         z_ex = coupling_length * 2 # roughly the middle half is coupling length
 
@@ -806,121 +820,9 @@ class Dicoupler(Waveguide):
             return c2func(z)[0]-c1func(z)[0]
         
         self.dfunc = dfunc
-        self.eps = 0.
+        self.eps = 1e-12
 
-        maxr = max(rcore1,rcore2)
-        if split:
-            cladding_left = Box(nclad,"cladding",-1.5*dmax,-dfunc(0)/2+rcore1+self.eps,-12*maxr,12*maxr)
-            cladding_middle = Box(nclad,"cladding",-dfunc(0)/2+rcore1+self.eps,dfunc(0)/2-rcore2-self.eps,-12*maxr,12*maxr)
-            cladding_right = Box(nclad,"cladding",dfunc(0)/2-rcore2-self.eps,1.5*dmax,-12*maxr,12*maxr)
-            cladding = [cladding_left,cladding_middle,cladding_right]
-            for c in cladding:
-                c.mesh_size = clad_mesh_size
-                c.skip_refinement = True
-        else:
-            #cladding = Box(nclad,"cladding",-dmax,dmax,-6*maxr,6*maxr)
-            cladding = ScalingBox(nclad,"cladding",lambda z: self.dfunc(z)*6,lambda z: self.dfunc(z)*4)
-            cladding.mesh_size = clad_mesh_size
-            cladding.skip_refinement = True
-
-        core1 = Pipe(ncore1,"core1",core_res,lambda z: rcore1,c1func)
-        core1.mesh_size = core_mesh_size
-
-        core2 = Pipe(ncore2,"core2",core_res,lambda z: rcore2,c2func)
-        core2.mesh_size = core_mesh_size
-
-        els = [cladding,[core1,core2]]
-        self.rcore1 = rcore1
-        self.rcore2 = rcore2
-        super().__init__(els)
-        self.z_ex = z_ex
-
-    def transform(self,x0,y0,z0,z):
-        xscale = (self.dfunc(z)-self.rcore1-self.rcore2-2*self.eps)/(self.dfunc(z0)-self.rcore1-self.rcore2-2*self.eps)
-        c1_0 = self.c1func(z0)
-        c2_0 = self.c2func(z0)
-        dd = (self.dfunc(z)-self.dfunc(z0))/2
-
-        x1 = np.where( np.logical_and(c1_0[0]+self.rcore1+self.eps < x0, x0 < c2_0[0]-self.rcore2-self.eps), x0*xscale, x0 )
-        x2 = np.where( x1 <= c1_0[0]+self.rcore1+self.eps , x1-dd, x1)
-        x3 = np.where( x2 >= c2_0[0]-self.rcore2-self.eps , x2+dd, x2)
-        return x3,y0
-
-    def transform2(self,x0,y0,z0,z):
-        """ transform two circles together, squishing everything between.
-            scale amount is simply (1-z).
-        """
-        rmax = max(self.rcore1,self.rcore2)+1e-10
-        xc1 = self.c1func(z0)[0]
-        xc2 = self.c2func(z0)[0]
-
-        d0 = xc2-xc1
-        _d = self.dfunc(z)
-        d = d0-_d
-        
-        if x0 < xc1 or (x0-xc1)**2 + y0**2 < rmax**2:
-            return x0 + d/2,y0
-        elif x0 > xc2 or (x0-xc2)**2 + y0**2 < rmax**2:
-            return x0 - d/2,y0
-        # squish
-        elif y0 > rmax or y0 <-rmax:
-            return x0*_d/d0,y0
-        else:
-            _x = np.sqrt(rmax**2-y0**2)
-            _dx = d0 - 2*_x
-            new_dx = _d-2*_x
-            return x0 * new_dx/_dx,y0
-
-    def plot_paths(self):
-        zs = np.linspace(0,self.z_ex,400)
-        c1s = [self.c1func(z)[0] for z in zs]
-        c2s = [self.c2func(z)[0] for z in zs]
-        plt.plot(zs,c1s,label="channel 1")
-        plt.plot(zs,c2s,label="channel 2")
-        plt.xlabel(r"$z$")
-        plt.ylabel(r"$x$")
-        plt.legend(loc='best',frameon=False)
-        plt.show()
-
-    def isolate(self,k):
-        IOR_dict = copy.copy(self.IOR_dict)
-        if k == 0:
-            IOR_dict["core2"] = IOR_dict["cladding"]
-        else:
-            IOR_dict["core1"] = IOR_dict["cladding"]
-        return IOR_dict
-
-
-class CircDicoupler(Waveguide):
-    """ generic class for directional couplers made of pipes, cladding is circle too """
-    def __init__(self,rcore1,rcore2,ncore1,ncore2,dmax,dmin,nclad,coupling_length,a,core_res,core_mesh_size,clad_mesh_size,rclad,clad_res):
-        
-        z_ex = coupling_length * 2 # roughly the middle half is coupling length
-
-        def c2func(z):
-            # waveguide channels will follow the blend (func)
-            if z <= z_ex/2:
-                b = blend(z,z_ex/4-a/2,a)
-                #b = blend(z,z_ex/4,a)
-                return  np.array([dmin/2,0])*b + np.array([dmax/2,0])*(1-b)
-            else:
-                b = blend(z,3*z_ex/4+a/2,a)
-                #b = blend(z,3*z_ex/4,a)
-                return np.array([dmax/2,0])*b + np.array([dmin/2,0])*(1-b)
-
-        def c1func(z):
-            return -c2func(z)
-        
-        self.c1func = c1func
-        self.c2func = c2func
-
-        def dfunc(z):
-            """ inter core spacing function """
-            return c2func(z)[0]-c1func(z)[0]
-        
-        self.dfunc = dfunc
-
-        cladding = Pipe(nclad,"cladding",clad_res,lambda z: rclad,lambda z: (0,0))
+        cladding = ScalingBox(nclad,"cladding",lambda z: self.dfunc(z)*6,lambda z: self.dfunc(z)*4)
         cladding.mesh_size = clad_mesh_size
         cladding.skip_refinement = True
 
@@ -936,7 +838,7 @@ class CircDicoupler(Waveguide):
         super().__init__(els)
         self.z_ex = z_ex
 
-    def transform(self,x0,y0,z0,z):
+    def transform_naive(self,x0,y0,z0,z):
         xscale = (self.dfunc(z)-self.rcore1-self.rcore2-2*self.eps)/(self.dfunc(z0)-self.rcore1-self.rcore2-2*self.eps)
         c1_0 = self.c1func(z0)
         c2_0 = self.c2func(z0)
@@ -947,30 +849,66 @@ class CircDicoupler(Waveguide):
         x3 = np.where( x2 >= c2_0[0]-self.rcore2-self.eps , x2+dd, x2)
         return x3,y0
 
-    def transform2(self,x0,y0,z0,z):
-        """ transform two circles together, squishing everything between.
-            scale amount is simply (1-z).
+    def transform(self,x0,y0,z0,z):
+        """ better dicoupler transform: for each point (x0,y0), draw the shortest line connecting to each single-mode core boundary.
+        the two intersection points and the point (x0,y0) form a triangle. as the separation between the two dicoupler channels changes, allow this triangle to scale (approximately) uniformly
+        to a geometrically similar triangle. the transformed point follows the path of the third triangle vertex.
         """
-        rmax = max(self.rcore1,self.rcore2)+1e-10
-        xc1 = self.c1func(z0)[0]
-        xc2 = self.c2func(z0)[0]
 
-        d0 = xc2-xc1
-        _d = self.dfunc(z)
-        d = d0-_d
+        c1 = self.c1func(z0)
+        c2 = self.c2func(z0)
         
-        if x0 < xc1 or (x0-xc1)**2 + y0**2 < rmax**2:
-            return x0 + d/2,y0
-        elif x0 > xc2 or (x0-xc2)**2 + y0**2 < rmax**2:
-            return x0 - d/2,y0
-        # squish
-        elif y0 > rmax or y0 <-rmax:
-            return x0*_d/d0,y0
-        else:
-            _x = np.sqrt(rmax**2-y0**2)
-            _dx = d0 - 2*_x
-            new_dx = _d-2*_x
-            return x0 * new_dx/_dx,y0
+        _c1 = self.c1func(z)
+        _c2 = self.c2func(z)
+
+        shift1 = _c1[0]-c1[0]
+        shift2 = _c2[0]-c2[0]
+
+        newx = np.zeros_like(x0)
+        newy = np.zeros_like(y0)
+
+        for i,(x,y) in enumerate(zip(x0,y0)):
+            dr1=self.prim3Dgroups[-1][0].prim2D.boundary_dist(x,y)
+            dr2=self.prim3Dgroups[-1][1].prim2D.boundary_dist(x,y)
+            if dr1<=0:
+                newx[i] = x + shift1
+                newy[i] = y
+                continue
+            elif dr2<=0:
+                newx[i] = x + shift2
+                newy[i] = y
+                continue
+            
+            x1 = x-c1[0]
+            y1 = y-c1[1]
+            x2 = x-c2[0]
+            y2 = y-c2[1]
+
+            t1 = np.arctan2(y1,x1)
+            t2 = np.arctan2(y2,x2)
+            xc1,yc1 = self.rcore1*np.cos(t1)+c1[0],self.rcore1*np.sin(t1)+c1[1]
+            xc2,yc2 = self.rcore2*np.cos(t2)+c2[0],self.rcore2*np.sin(t2)+c2[1]
+
+            new_xc1 = xc1 + shift1
+            new_xc2 = xc2 + shift2
+
+            old_side_length_1 = np.sqrt((xc2-xc1)**2+(yc2-yc1)**2)
+            new_side_length_1 = np.sqrt((new_xc2-new_xc1)**2+(yc2-yc1)**2)
+            scaling = new_side_length_1/old_side_length_1
+            if x<0:
+                new_dr1 = dr1*scaling
+                nx = (self.rcore1+new_dr1)*np.cos(t1) + _c1[0]
+                ny = (self.rcore1+new_dr1)*np.sin(t1) + _c1[1]
+                newx[i] = nx
+                newy[i] = ny
+            else:
+                new_dr2 = dr2*scaling
+                nx = (self.rcore2+new_dr2)*np.cos(t2) + _c2[0]
+                ny = (self.rcore2+new_dr2)*np.sin(t2) + _c2[1]
+                newx[i] = nx
+                newy[i] = ny       
+        return newx,newy
+
 
     def plot_paths(self):
         zs = np.linspace(0,self.z_ex,400)
@@ -990,6 +928,5 @@ class CircDicoupler(Waveguide):
         else:
             IOR_dict["core1"] = IOR_dict["cladding"]
         return IOR_dict
-
 
 #endregion

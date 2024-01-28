@@ -831,7 +831,7 @@ class Propagator:
 
         B = construct_B(m,sparse=True)
         oldbasis = self.compute_v(z)
-        cob = B.dot(newbasis).T.dot(oldbasis)
+        cob = B.dot(newbasis.T).T.dot(oldbasis.T)
 
         if u is not None:
             return cob,np.dot(cob,u)

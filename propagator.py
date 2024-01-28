@@ -106,7 +106,7 @@ class Propagator:
         if self.mesh_mode == "transform":
             self.compute_v = interp1d(za,self.vs,assume_sorted=True,axis=0)
 
-    def propagate(self,u0,zf):
+    def propagate(self,u0,zi=None,zf=None):
         """ propagate a launch wavefront, expressed in the basis of initial eigenmodes, to z = zf 
         ARGS:
         u0: the launch field, expressed as mode amplitudes of the initial eigenmode basis
@@ -119,7 +119,11 @@ class Propagator:
         v: the final wavefront, computed over the finite element mesh
         """
         u0 = np.array(u0,dtype=np.complex128)
-        zi = self.za[0]
+        if zi is None:
+            zi = self.za[0]
+        if zf is None:
+            zf = self.za[-1]
+
         def deriv(z,u):
             neffs = self.compute_neff(z)
             phases = (self.k * (self.compute_int_neff(z)-self.compute_int_neff(zi)))%(2*np.pi)

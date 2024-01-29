@@ -1,5 +1,5 @@
 import numpy as np
-from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,solve_sparse,construct_B,plot_eigenvector
+from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,construct_B
 from wavesolve.shape_funcs import compute_NN
 from waveguide import load_meshio_mesh
 from scipy.interpolate import UnivariateSpline,interp1d
@@ -822,7 +822,7 @@ class Propagator:
         return -0.5 * dbeta_dz / self.compute_neff(z)
 
     def compute_change_of_basis(self,newbasis,z,m,u=None):
-        """ compute the (Nmax x Nmax) change of basis matrix between the current eigenbasis at z and a new basis 
+        """ compute the (N x N) change of basis matrix between the current N-dimensional eigenbasis at z and a new basis 
         ARGS: 
         newbasis: MxN array of N eigenmodes computed over M mesh points, which we want to expand in
         z: z coordinate at which the currently loaded eigenbasis should be evaluated

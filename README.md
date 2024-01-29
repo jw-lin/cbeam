@@ -5,7 +5,7 @@
 ## dependencies
 Python: `numpy`,`scipy`,`juliacall`,`wavesolve`,`pygmsh`,`meshio`,`matplotlib`
 
-Julia: `pythoncall`,`StaticArrays`,`GrundmannMoeller`
+Julia: `pythoncall`,`StaticArrays`,`GrundmannMoeller`,`Cubature`
 
 General: `Gmsh`
 

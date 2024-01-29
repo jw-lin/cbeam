@@ -168,7 +168,7 @@ class Propagator:
             # degeneracy correction
             for gr in degen_groups:
                 self.correct_degeneracy(gr,v,_v)
-                self.avg_degen_neff(gr,neffs)
+                #self.avg_degen_neff(gr,neffs)
         else:
             self.make_sign_consistent(vlast,v)
             self.make_sign_consistent(vlast,_v)
@@ -176,7 +176,7 @@ class Propagator:
             for gr in degen_groups:
                 self.correct_degeneracy(gr,vlast,v)
                 self.correct_degeneracy(gr,vlast,_v)
-                self.avg_degen_neff(gr,neffs)  
+                #self.avg_degen_neff(gr,neffs)  
         vlast = 0.5*(v+_v)
 
         if self.inner_product_mode == "interpolate":

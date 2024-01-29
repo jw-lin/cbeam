@@ -5,7 +5,7 @@ import gmsh
 import meshio
 import copy
 from wavesolve.mesher import plot_mesh
-
+from itertools import combinations
 
 #region miscellaneous functions   
 
@@ -72,6 +72,12 @@ def blend(z,zc,a):
     """ this is a function of z that continuously varies from 0 to 1, used to blend functions together. """
     return 0.5 + 0.5 * np.tanh((z-zc)/(0.25*a)) # the 0.25 is kinda empirical lol
 
+def dist(p1,p2):
+    return np.sqrt(np.sum(np.power(p1-p2,2)))
+
+def rotate(v,theta):
+    return np.array([np.cos(theta)*v[0] - np.sin(theta)*v[1] , np.sin(theta)*v[0] + np.cos(theta)*v[1]])
+
 #endregion    
 
 #region Prim2D
@@ -124,6 +130,10 @@ class Prim2D:
         """
         pass
 
+    def nearest_boundary_point(self,x,y):
+        """ this function computes the point on the boundary that is closest to a point (x,y). """
+        pass
+
 class Circle(Prim2D):
     """ a Circle primitive, defined by radius, center, and number of sides """
     
@@ -141,6 +151,12 @@ class Circle(Prim2D):
     
     def boundary_dist(self, x, y):
         return np.sqrt(np.power(x-self.center[0],2)+np.power(y-self.center[1],2)) - self.radius
+    
+    def nearest_boundary_point(self, x, y):
+        t = np.arctan2(y-self.center[1],x-self.center[0])
+        bx = self.radius*np.cos(t)
+        by = self.radius*np.sin(t)
+        return bx+self.center[0],by+self.center[1]
 
 class Rectangle(Prim2D):
     """ rectangle primitive, defined by corner pounts. """
@@ -158,6 +174,20 @@ class Rectangle(Prim2D):
         if bounds[0]<=x<=bounds[1] and bounds[2]<=y<=bounds[3]:
             return -dist
         return dist
+    
+    def nearest_boundary_point(self, x, y):
+        bounds = self.bounds
+        xd0,xd1 = abs(bounds[0]-x),abs(bounds[1]-x)
+        yd0,yd1 = abs(bounds[2]-y),abs(bounds[3]-y)
+        i = np.argmin([xd0,xd1,yd0,yd1])
+        if i==0:
+            return bounds[0],y
+        elif i==1:
+            return bounds[1],y
+        elif i==2:
+            return x,bounds[2]
+        else:
+            return x,bounds[3]
 
 class Prim2DUnion(Prim2D):
     def __init__(self,p1:Prim2D,p2:Prim2D):
@@ -180,6 +210,8 @@ class Prim2DUnion(Prim2D):
 #region Prim3D
 class Prim3D:
     """ a Prim3D (3D primitive) is a function of z that returns a Prim2D. """
+
+    preserve_shape = False
 
     def __init__(self,prim2D:Prim2D,label:str):
         self.prim2D = prim2D
@@ -211,6 +243,12 @@ class Prim3D:
         """ make points of prim2D at given z coord. should be implemented by 
             inheriting classes. """
         return self.prim2D.points
+
+    def transform_point_inside(self,x0,y0,z0,z):
+        """ for a point (x0,y0) inside the boundary at z0, compute a new point (x,y) at z, accounting
+            for the z-variation of the Prim3D.
+        """
+        return x0,y0
 
     def make_poly_at_z(self,geom,z):
         self.update(z)
@@ -253,6 +291,15 @@ class Pipe(Prim3D):
         points = self.prim2D.make_points(self.rfunc(z),self.res,self.cfunc(z))
         return points
 
+    def transform_point_inside(self, x0, y0, z0, z):
+        c = self.cfunc(z0)
+        _c = self.cfunc(z)
+        rscale = self.rfunc(z)/self.rfunc(z0)
+
+        t = np.arctan2(y0-c[1],x0-c[0])
+        r = np.sqrt(np.power(x0-c[0],2)+np.power(y0-c[1],2))
+        return r*rscale*np.cos(t) + _c[0] , r*rscale*np.sin(t) + _c[1] 
+
 class Box(Prim3D):
     """ an InfiniteBox is a volume whose cross-section has a constant rectangular shape.
         because the shape does not change, we initialize according to the 'starting' box
@@ -294,7 +341,8 @@ class Waveguide:
     min_mesh_size = 0.1     # minimum allowed mesh size
     max_mesh_size = 10.     # maximum allowed mesh size
 
-    recon_midpts = False
+    recon_midpts = True
+    vectorized_transform = False
 
     def __init__(self,prim3Dgroups):
         self.prim3Dgroups = prim3Dgroups # an arrangement of Prim3D objects, stored as a (potentially nested) list. each element is overwritten by the next.
@@ -311,6 +359,16 @@ class Waveguide:
                 primsflat.append(p.prim2D)  
         
         self.primsflat = primsflat
+
+        prim3Dsflat = [] # flat array of 3D primitives
+        for i,p in enumerate(self.prim3Dgroups):
+            if type(p) == list:    
+                for _p in p:
+                    prim3Dsflat.append(_p)
+            else:
+                prim3Dsflat.append(p)  
+        self.prim3Dsflat = prim3Dsflat
+        
 
     def update(self,z):
         for p in self.prim3Dgroups:
@@ -673,20 +731,84 @@ class Waveguide:
     def make_IOR_dict():
         """ this function should return an IOR dictionary, for mode solving. overwrite in child classes."""
         pass
-
+    
+    # this really should be in Julia ... at the very least a lot of calcs could be saved and reused.
     def transform(self,x0,y0,z0,z):
+        """ spatial transformation that should work with most meshes. maybe. idk. also kinda slow to compute.
+
+        general idea: for a point (x0,y0) find the two nearest primitives at z0. this point, plus the two closest points to 
+        to it, each constrained to lie a primitive boundary, define a triangle. At z, the primitive boundaries move, and as such 
+        two of the triangle vertices move. The idea is to place the third point of the triangle, which is (x,y), to
+        preserve triangle similarity.
         """
-        tapered waveguides are modelled via a z-dependent transformation function that maps a point (x0,y0,z0) -> (x,y,z).
-        this should be implemented by subclasses, and should be vectorized over x0,y0.
-        """ 
-        return x0,y0
+        pt = np.array([x0,y0])
+        self.update(z0)
+        
+        preserved_prim3Ds = [p for p in self.prim3Dsflat if p.preserve_shape]
+
+        eps=1e-12
+        # check if the point is inside any of the preserved prim3Ds
+        for p in preserved_prim3Ds:
+            if p.prim2D.boundary_dist(x0,y0)<=eps:
+                return p.transform_point_inside(x0,y0,z0,z)
+
+        # here the point must be outside the preserved prim3Ds, so we will employ our scheme
+
+        boundary_points = np.zeros((len(preserved_prim3Ds),2)) # compute the nearest intersection points at z0 and z for all preserved primitives
+        next_boundary_points = np.zeros_like(boundary_points)
+
+        for i,p in enumerate(preserved_prim3Ds):
+            bp = p.prim2D.nearest_boundary_point(x0,y0)
+            boundary_points[i,:] = bp
+            next_boundary_points[i,:] = p.transform_point_inside(bp[0],bp[1],z0,z)
+
+        # iterate through pairs of preserved primitives
+        prim_pairs = list(combinations(np.arange(len(preserved_prim3Ds)),2))
+
+        # find the pair with the lowest avg distance
+
+        avg_dists = [ 0.5*(dist(boundary_points[i],pt)+dist(boundary_points[j],pt)) for (i,j) in prim_pairs]
+        idx_min_dist = np.argmin(avg_dists)
+        i,j = prim_pairs[idx_min_dist]
+
+        bp_sep = dist(boundary_points[i],boundary_points[j])
+        next_bp_sep = dist(next_boundary_points[i],next_boundary_points[j])
+        _scale = next_bp_sep/bp_sep
+        
+        edge_vec1 = pt - boundary_points[i]
+        edge_vec2 = pt - boundary_points[j]
+
+        boundary_edge = boundary_points[i] - boundary_points[j]
+        next_boundary_edge = next_boundary_points[i] - next_boundary_points[j]
+
+        angl = np.arctan2(boundary_edge[1],boundary_edge[0])
+        next_angl = np.arctan2(next_boundary_edge[1],next_boundary_edge[0])
+        rot = next_angl-angl
+
+        np1 = rotate(edge_vec1*_scale,rot) + next_boundary_points[i]
+        np2 = rotate(edge_vec2*_scale,rot) + next_boundary_points[j]
+
+        if dist(pt,boundary_points[i])<=dist(pt,boundary_points[j]):
+            new_point = np1
+        else:
+            new_point = np2
+
+        return new_point[0],new_point[1]
 
     def transform_mesh(self,mesh0,z0,z,mesh=None):
         if mesh is None:
             mesh = copy.deepcopy(mesh0)
         xp0 = mesh0.points[:,0]
         yp0 = mesh0.points[:,1]
-        xp,yp = self.transform(xp0,yp0,z0,z)
+
+        if self.vectorized_transform:
+            xp,yp = self.transform(xp0,yp0,z0,z)
+        else:
+            xp = np.zeros_like(xp0)
+            yp = np.zeros_like(yp0)
+            for i in range(xp0.shape[0]):
+                xp[i],yp[i] = self.transform(xp0[i],yp0[i],z0,z)
+
         mesh.points = np.array([xp,yp]).T
         if self.recon_midpts:
             self.reconstruct_midpoints(mesh)
@@ -716,6 +838,10 @@ class Waveguide:
     
 class PhotonicLantern(Waveguide):
     ''' generic class for photonic lanterns '''
+    
+    vectorized_transform = True
+    recon_midpts = False
+
     def __init__(self,core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res=64,jack_res=32,core_mesh_size=0.05,clad_mesh_size=0.2):
         ''' ARGS: 
             core_pos: an array of core positions at z=0
@@ -795,7 +921,21 @@ class Dicoupler(Waveguide):
     recon_midpts = True
 
     def __init__(self,rcore1,rcore2,ncore1,ncore2,dmax,dmin,nclad,coupling_length,a,core_res,core_mesh_size,clad_mesh_size):
-        
+        """
+        ARGS:
+            rcore1: the core radius of the left single mode channel
+            rcore2: the core radius of the right single mode channel
+            ncore1: the index of the left channel
+            ncore2: the index of the right channel
+            dmax: the starting core separation
+            dmin: the minimum core separation
+            nclad: the cladding index
+            coupling_length: the approximate length in z over which the core separation is dmin
+            a: the approximate bend length
+            core_res: the # of segments used to resolve the core-cladding interface
+            core_mesh_size: the target mesh size inside cores
+            clad_mesh_size: the target mesh size inside the cladding
+        """
         z_ex = coupling_length * 2 # roughly the middle half is coupling length
 
         def c2func(z):
@@ -828,9 +968,11 @@ class Dicoupler(Waveguide):
 
         core1 = Pipe(ncore1,"core1",core_res,lambda z: rcore1,c1func)
         core1.mesh_size = core_mesh_size
+        core1.preserve_shape = True
 
         core2 = Pipe(ncore2,"core2",core_res,lambda z: rcore2,c2func)
         core2.mesh_size = core_mesh_size
+        core2.preserve_shape = True
 
         els = [cladding,[core1,core2]]
         self.rcore1 = rcore1
@@ -849,67 +991,6 @@ class Dicoupler(Waveguide):
         x3 = np.where( x2 >= c2_0[0]-self.rcore2-self.eps , x2+dd, x2)
         return x3,y0
 
-    def transform(self,x0,y0,z0,z):
-        """ better dicoupler transform: for each point (x0,y0), draw the shortest line connecting to each single-mode core boundary.
-        the two intersection points and the point (x0,y0) form a triangle. as the separation between the two dicoupler channels changes, allow this triangle to scale (approximately) uniformly
-        to a geometrically similar triangle. the transformed point follows the path of the third triangle vertex.
-        """
-
-        c1 = self.c1func(z0)
-        c2 = self.c2func(z0)
-        
-        _c1 = self.c1func(z)
-        _c2 = self.c2func(z)
-
-        shift1 = _c1[0]-c1[0]
-        shift2 = _c2[0]-c2[0]
-
-        newx = np.zeros_like(x0)
-        newy = np.zeros_like(y0)
-
-        for i,(x,y) in enumerate(zip(x0,y0)):
-            dr1=self.prim3Dgroups[-1][0].prim2D.boundary_dist(x,y)
-            dr2=self.prim3Dgroups[-1][1].prim2D.boundary_dist(x,y)
-            if dr1<=0:
-                newx[i] = x + shift1
-                newy[i] = y
-                continue
-            elif dr2<=0:
-                newx[i] = x + shift2
-                newy[i] = y
-                continue
-            
-            x1 = x-c1[0]
-            y1 = y-c1[1]
-            x2 = x-c2[0]
-            y2 = y-c2[1]
-
-            t1 = np.arctan2(y1,x1)
-            t2 = np.arctan2(y2,x2)
-            xc1,yc1 = self.rcore1*np.cos(t1)+c1[0],self.rcore1*np.sin(t1)+c1[1]
-            xc2,yc2 = self.rcore2*np.cos(t2)+c2[0],self.rcore2*np.sin(t2)+c2[1]
-
-            new_xc1 = xc1 + shift1
-            new_xc2 = xc2 + shift2
-
-            old_side_length_1 = np.sqrt((xc2-xc1)**2+(yc2-yc1)**2)
-            new_side_length_1 = np.sqrt((new_xc2-new_xc1)**2+(yc2-yc1)**2)
-            scaling = new_side_length_1/old_side_length_1
-            if x<0:
-                new_dr1 = dr1*scaling
-                nx = (self.rcore1+new_dr1)*np.cos(t1) + _c1[0]
-                ny = (self.rcore1+new_dr1)*np.sin(t1) + _c1[1]
-                newx[i] = nx
-                newy[i] = ny
-            else:
-                new_dr2 = dr2*scaling
-                nx = (self.rcore2+new_dr2)*np.cos(t2) + _c2[0]
-                ny = (self.rcore2+new_dr2)*np.sin(t2) + _c2[1]
-                newx[i] = nx
-                newy[i] = ny       
-        return newx,newy
-
-
     def plot_paths(self):
         zs = np.linspace(0,self.z_ex,400)
         c1s = [self.c1func(z)[0] for z in zs]
@@ -926,6 +1007,108 @@ class Dicoupler(Waveguide):
         if k == 0:
             IOR_dict["core2"] = IOR_dict["cladding"]
         else:
+            IOR_dict["core1"] = IOR_dict["cladding"]
+        return IOR_dict
+
+class Tricoupler(Waveguide):
+    """ generic class for symmetric equilateral tricouplers made of pipes """
+
+    recon_midpts = True
+
+    def __init__(self,rcore,ncore,dmax,dmin,nclad,coupling_length,a,core_res,core_mesh_size,clad_mesh_size):
+        """
+        ARGS:
+            rcore: the core radius, shared for all single mode channels
+            ncore: the refractive index for all single mode channels
+            dmax: the diameter of the circle containing the center of each channel, at max separation
+            dmin: the diameter of the circle containing the center of each channel, at min separation
+            nclad: the cladding index
+            coupling_length: the approximate length in z over which the core separation is dmin
+            a: the approximate bend length
+            core_res: the # of segments used to resolve the core-cladding interface
+            core_mesh_size: the target mesh size inside cores
+            clad_mesh_size: the target mesh size inside the cladding
+        """
+        z_ex = coupling_length * 2 # roughly the middle half is coupling length
+
+        def c1func(z):
+            # waveguide channels will follow the blend (func)
+            if z <= z_ex/2:
+                b = blend(z,z_ex/4-a/2,a)
+                #b = blend(z,z_ex/4,a)
+                return  np.array([dmin/2,0])*b + np.array([dmax/2,0])*(1-b)
+            else:
+                b = blend(z,3*z_ex/4+a/2,a)
+                #b = blend(z,3*z_ex/4,a)
+                return np.array([dmax/2,0])*b + np.array([dmin/2,0])*(1-b)
+
+        def c2func(z):
+            c = c1func(z)
+            return c[0]*np.cos(2*np.pi/3) , c[0]*np.sin(2*np.pi/3)
+        
+        def c3func(z):
+            c = c1func(z)
+            return c[0]*np.cos(4*np.pi/3) , c[0]*np.sin(4*np.pi/3)
+
+        self.c1func = c1func
+        self.c2func = c2func
+        self.c3func = c3func
+
+        cladding = ScalingBox(nclad,"cladding",lambda z: self.c1func(z)[0]*8,lambda z: self.c1func(z)[0]*8)
+        cladding.mesh_size = clad_mesh_size
+        cladding.skip_refinement = True
+
+        core1 = Pipe(ncore,"core1",core_res,lambda z: rcore,c1func)
+        core1.mesh_size = core_mesh_size
+        core1.preserve_shape = True
+
+        core2 = Pipe(ncore,"core2",core_res,lambda z: rcore,c2func)
+        core2.mesh_size = core_mesh_size
+        core2.preserve_shape = True
+
+        # middle core
+        core3 = Pipe(ncore,"core2",core_res,lambda z: rcore,c3func)
+        core3.mesh_size = core_mesh_size
+        core3.preserve_shape = True
+
+
+        els = [cladding,[core1,core2,core3]]
+        self.rcore = rcore
+
+        super().__init__(els)
+        self.z_ex = z_ex
+
+    def plot_paths(self):
+        zs = np.linspace(0,self.z_ex,400)
+        c1s = np.array([self.c1func(z) for z in zs])
+        c2s = np.array([self.c2func(z) for z in zs])
+        c3s = np.array([self.c3func(z) for z in zs])
+        fig,axs = plt.subplots(2,1,sharex=True)
+        axs[0].plot(zs,c1s[:,0],label="channel 1")
+        axs[0].plot(zs,c2s[:,0],label="channel 2")
+        axs[0].plot(zs,c3s[:,0],label="channel 3")
+
+        axs[1].plot(zs,c1s[:,1],label="channel 1")
+        axs[1].plot(zs,c2s[:,1],label="channel 2")
+        axs[1].plot(zs,c3s[:,1],label="channel 3")
+
+        axs[0].set_ylabel(r"$x$")
+        axs[1].set_ylabel(r"$y$")
+        axs[1].set_xlabel(r"$z$")
+        axs[0].legend(loc='best',frameon=False)
+        plt.subplots_adjust(hspace=0,wspace=0)
+        plt.show()
+
+    def isolate(self,k):
+        IOR_dict = copy.copy(self.IOR_dict)
+        if k == 0:
+            IOR_dict["core2"] = IOR_dict["cladding"]
+            IOR_dict["core1"] = IOR_dict["cladding"]
+        elif k == 1:
+            IOR_dict["core2"] = IOR_dict["cladding"]
+            IOR_dict["core0"] = IOR_dict["cladding"]
+        else:
+            IOR_dict["core0"] = IOR_dict["cladding"]
             IOR_dict["core1"] = IOR_dict["cladding"]
         return IOR_dict
 

@@ -905,6 +905,27 @@ class Propagator:
             show = True
         plot_eigenvector(mesh,field,show_mesh,ax,show)
 
+    def plot_coupling_coeffs(self):
+        """ plot coupling coefficients """
+        fig,ax = plt.subplots()
+
+        colors = ['#377eb8', '#ff7f00', '#4daf4a',
+                        '#f781bf', '#a65628', '#984ea3',
+                        '#999999', '#e41a1c', '#dede00']
+        line_styles = ['solid','dashed','dotted','dashdot',(5,(10,3))]
+
+        for j in range(self.Nmax): 
+            for i in range(j):
+                ax.plot(self.za,self.cmat[:,i,j],label=str(i)+str(j),ls=line_styles[i%5],c=colors[j%9])
+
+        for z in self.za: # plot vertical bars at every z value.
+            ax.axvline(x=z,alpha=0.1,color='k',zorder=-100)
+        ax.legend(bbox_to_anchor=(1., 1.))
+        ax.set_title("coupling coefficient matrix")
+        ax.set_xlabel(r"$z$")
+        ax.set_ylabel(r"$\kappa_{ij}$")
+        plt.show()
+
     #endregion
         
     #region mesh gen

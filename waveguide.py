@@ -834,6 +834,26 @@ class Waveguide:
             else:
                 _d[k] = 0.
         return _d
+    
+    def isolate(self,k):
+        """ create a refractive index dictionary that sets all channels except one to the background index.
+        'channels' are assumed to be stored in the last prim3Dgroup. override this if your waveguide is different.
+        ARGS:
+            k: (list) index of the channel to isolate
+        """
+        self.assign_IOR()
+        IOR_dict = copy.copy(self.IOR_dict)
+        
+        if type(self.prim3Dgroups[-2]) == list:
+            nb = self.prim3Dgroups[-2][0].n
+        else:
+            nb = self.prim3Dgroups[-2].n
+
+        for i in range(len(self.prim3Dgroups[-1])):
+            p = self.prim3Dgroups[-1][i]
+            if i != k:
+                IOR_dict[p.label] = nb
+        return IOR_dict
 
     
 class PhotonicLantern(Waveguide):
@@ -897,13 +917,6 @@ class PhotonicLantern(Waveguide):
     def transform(self,x0,y0,z0,z):
         scale =  self.taper_func(z)/self.taper_func(z0)
         return x0  * scale , y0  * scale
-
-    def isolate(self,k):
-        IOR_dict = copy.copy(self.IOR_dict)
-        for i in range(len(self.prim3Dgroups[-1])):
-            if i != k:
-                IOR_dict["core"+str(i)] = IOR_dict["cladding"]
-        return IOR_dict
 
     def isolate_isect(self,k,d):
         IOR_dict = copy.copy(d)
@@ -1002,14 +1015,6 @@ class Dicoupler(Waveguide):
         plt.legend(loc='best',frameon=False)
         plt.show()
 
-    def isolate(self,k):
-        IOR_dict = copy.copy(self.IOR_dict)
-        if k == 0:
-            IOR_dict["core2"] = IOR_dict["cladding"]
-        else:
-            IOR_dict["core1"] = IOR_dict["cladding"]
-        return IOR_dict
-
 class Tricoupler(Waveguide):
     """ generic class for symmetric equilateral tricouplers made of pipes """
 
@@ -1098,18 +1103,5 @@ class Tricoupler(Waveguide):
         axs[0].legend(loc='best',frameon=False)
         plt.subplots_adjust(hspace=0,wspace=0)
         plt.show()
-
-    def isolate(self,k):
-        IOR_dict = copy.copy(self.IOR_dict)
-        if k == 0:
-            IOR_dict["core2"] = IOR_dict["cladding"]
-            IOR_dict["core1"] = IOR_dict["cladding"]
-        elif k == 1:
-            IOR_dict["core2"] = IOR_dict["cladding"]
-            IOR_dict["core0"] = IOR_dict["cladding"]
-        else:
-            IOR_dict["core0"] = IOR_dict["cladding"]
-            IOR_dict["core1"] = IOR_dict["cladding"]
-        return IOR_dict
 
 #endregion

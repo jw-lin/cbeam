@@ -1,11 +1,13 @@
 import numpy as np
-from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,construct_B
+from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,construct_B,plot_eigenvector
 from wavesolve.shape_funcs import compute_NN
-from waveguide import load_meshio_mesh
+from waveguide import load_meshio_mesh,Waveguide
 from scipy.interpolate import UnivariateSpline,interp1d
 import copy,time,os,FEval
 from scipy.integrate import solve_ivp
 from scipy.sparse import lil_matrix
+import matplotlib.pyplot as plt
+from typing import Union
 
 def fast_interpolate(v,inmesh,triidxs,interpweights):
     idxs = inmesh.cells[1].data[triidxs]
@@ -41,7 +43,7 @@ class Propagator:
                                         # in interpolate mode: inner products are computed by evaulating one field on the the mesh of the other.
                                         # then, the inner product is estimated as v_1^T B v_2, where B is the "mass matrix" for the shared mesh.
 
-    def __init__(self,wl,wvg=None,Nmax=None,save_dir=None):
+    def __init__(self,wl,wvg:Union[None,Waveguide]=None,Nmax=None,save_dir=None):
         """
         ARGS:
         wl: propagation wavelength
@@ -114,9 +116,8 @@ class Propagator:
 
         RETURNS:
         za: the array of z values used by the ODE solver
-        u: the mode amplitudes of the wavefront, evaluated along za
-        uf: the final mode amplitudes of the wavefront, accounting for overall phase evolution of the eigenmodes
-        v: the final wavefront, computed over the finite element mesh
+        u: the mode amplitudes of the wavefront, evaluated along za, with fast phase evolution factored out.
+        uf: the final mode amplitudes of the wavefront, accounting for overall phase evolution of each individual eigenmodes
         """
         u0 = np.array(u0,dtype=np.complex128)
         if zi is None:
@@ -136,11 +137,20 @@ class Propagator:
         
         sol = solve_ivp(deriv,(zi,zf),u0,self.solver,rtol=1e-12,atol=1e-10)
         # multiply by phase factors
-        final_phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(zf)-self.compute_int_neff(zi)))
-        uf = sol.y[:,-1]*final_phase
-
+        uf = self.apply_phase(sol.y[:,-1],sol.t[-1])
         return sol.t,sol.y,uf
 
+    def apply_phase(self,u,z,zi=None):
+        """ apply e^{i beta_j z} phase variation to the mode amplitude of eigenmode j
+        ARGS:
+            u: mode amplitude vector
+            z: z coord. that u is evaluated at
+            zi (opt.) the starting z coordinate to measure the change in phase from. 
+        """
+        if zi is None:
+            zi = self.za[0]
+        phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(z)-self.compute_int_neff(zi)))
+        return u*phase
     #endregion
 
     #region setup computations
@@ -821,7 +831,7 @@ class Propagator:
         dbeta_dz = self.k * self.compute_dif_neff(z) 
         return -0.5 * dbeta_dz / self.compute_neff(z)
 
-    def compute_change_of_basis(self,newbasis,z,m,u=None):
+    def compute_change_of_basis(self,newbasis,z,u=None):
         """ compute the (N x N) change of basis matrix between the current N-dimensional eigenbasis at z and a new basis 
         ARGS: 
         newbasis: MxN array of N eigenmodes computed over M mesh points, which we want to expand in
@@ -832,7 +842,7 @@ class Propagator:
         cob: Nmax x Nmax change of basis matrix
         _u: Nx1 modal vector corresponding to u expressed in the new basis. None, if u is not provided.
         """
-
+        m = self.make_mesh_at_z(z)
         B = construct_B(m,sparse=True)
         oldbasis = self.compute_v(z)
         cob = B.dot(newbasis.T).T.dot(oldbasis.T)
@@ -841,6 +851,60 @@ class Propagator:
             return cob,np.dot(cob,u)
         return cob,None
     
+    def compute_isolated_basis(self,z=None):
+        """ compute a basis using Waveguide.isolate(), which is assumed to be defined for the loaded waveguide. 
+            this is will find the eigenbasis corresponding to "isolated" channels of the waveguide.
+            see the PhotonicLantern, Dicoupler, and Tricoupler classes for examples of isolate().
+        RETURNS:
+            _v: the new basis
+        """
+        if z is None:
+            z = self.za[-1]
+
+        m = self.make_mesh_at_z(z)
+        self.wvg.assign_IOR() 
+        _v = np.zeros((self.Nmax,self.vs.shape[-1])) # array to store the new basis
+
+        for i in range(6):
+            _dict = self.wvg.isolate(i) # use the PhotonicLantern.isolate() function to make a new dictionary of refractive index values which isolates a single core
+            _wi,_vi,_Ni = solve_waveguide(m,self.wl,_dict,sparse=True,Nmax=1) # then pass the new dictionary into the eigenmode solver
+            _v[i,:] = _vi # save the "port" eigenmode into _v
+
+        return _v
+
+    def make_field(self,mode_amps,z,plot=False):
+        """ construct the finite element field corresponding to the modal vector u and the eigenbasis at z. 
+        ARGS:
+            mode_amps: the modal vector expressing the field (with the fast e^{i beta z}) phase oscillation factored
+            z: the z coordinate corresponding to u
+            plot (opt.): set True to auto-plot the norm of the field. 
+        """
+        u = np.array(mode_amps,dtype=np.complex128)
+        basis = self.compute_v(z)
+        zi = self.za[0]
+        phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(z)-self.compute_int_neff(zi)))
+        uf = u*phase
+        field = np.sum(uf[:,None]*basis,axis=0)
+        if plot:
+            self.plot_field(np.abs(field),z)
+        return field
+    
+    def plot_field(self,field,z=None,mesh=None,ax=None,show_mesh=False):
+        """ plot a real-valued finite element field, evaluated on the points of the mesh corresponding to the waveguide cross-section at z
+        ARGS:
+            field: the finite element field to plot, e.g. the output of make_field()
+            z: the z coordinate corresponding to field
+            mesh (opt.): the mesh object defining the points that field is evaluated on. If None, a mesh will be auto-generated
+            ax (opt.): a matplotlib axis where the plot should go. if not None, you will need to call matplotlib.pyplot.show() manually
+            show_mesh (opt.): whether or not to draw the mesh in the plot
+        """
+        mesh = self.make_mesh_at_z(z) if mesh is None else mesh
+        show = False
+        if ax is None:
+            fig,ax = plt.subplots(1,1)
+            show = True
+        plot_eigenvector(mesh,field,show_mesh,ax,show)
+
     #endregion
         
     #region mesh gen
@@ -862,5 +926,9 @@ class Propagator:
         """
         m,d = self.wvg.make_intersection_mesh(z,dz,writeto=writeto)
         return m,d    
+
+    def make_mesh_at_z(self,z):
+        """ make the mesh corresponding to the waveguide cross-section at z. """
+        return self.wvg.transform_mesh(self.mesh,self.za[0],z)
 
     #endregion

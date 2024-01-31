@@ -59,6 +59,8 @@ class Propagator:
         self.cmat = None
         self.neff = None
         self.vs = None
+        self.mesh = None
+        self.za = None
 
         self.cmat_funcs = None
         self.neff_funcs = None
@@ -950,6 +952,14 @@ class Propagator:
 
     def make_mesh_at_z(self,z):
         """ make the mesh corresponding to the waveguide cross-section at z. """
-        return self.wvg.transform_mesh(self.mesh,self.za[0],z)
+        if self.mesh is None:
+            mesh = self.generate_mesh()
+        else:
+            mesh = self.mesh
+        if self.za is None:
+            zi = 0
+        else:
+            zi = self.za[0]
+        return self.wvg.transform_mesh(mesh,zi,z)
 
     #endregion

@@ -121,12 +121,17 @@ class Propagator:
         u: the mode amplitudes of the wavefront, evaluated along za, with fast phase evolution factored out.
         uf: the final mode amplitudes of the wavefront, accounting for overall phase evolution of each individual eigenmodes
         """
-        u0 = np.array(u0,dtype=np.complex128)
+  
         if zi is None:
             zi = self.za[0]
         if zf is None:
             zf = self.za[-1]
 
+        if zi > zf:
+            return self.backpropagate(u0,zi,zf)
+
+        u0 = np.array(u0,dtype=np.complex128)
+    
         def deriv(z,u):
             neffs = self.compute_neff(z)
             phases = (self.k * (self.compute_int_neff(z)-self.compute_int_neff(zi)))%(2*np.pi)
@@ -153,6 +158,32 @@ class Propagator:
             zi = self.za[0]
         phase = np.exp(1.j*self.k*np.array(self.compute_int_neff(z)-self.compute_int_neff(zi)))
         return u*phase
+    
+    def backpropagate(self,u0,zf=None,zi=None):
+        """ propagate a wavefront from the back of the waveguide to the front """
+        
+        u0 = np.array(u0,dtype=np.complex128)
+        if zi is None:
+            zi = self.za[0]
+        if zf is None:
+            zf = self.za[-1]
+
+        def deriv(z,u):
+            zp = self.za[-1] - z
+            neffs = self.compute_neff(zp)
+            phases = (self.k * (self.compute_int_neff(zp)-self.compute_int_neff(zf)))%(2*np.pi)
+            cmat = self.compute_cmat(zp)
+            phase_mat = np.exp(1.j * (phases[None,:] - phases[:,None]))
+            ddz = -1./neffs*np.dot(phase_mat*cmat,u*neffs)
+            if self.WKB: 
+                ddz += self.WKB_cor(zp)*u
+            return -ddz
+
+        sol = solve_ivp(deriv,(self.za[-1]-zf,self.za[-1]-zi),u0,self.solver,rtol=1e-12,atol=1e-10)
+        # multiply by phase factors
+        uf = self.apply_phase(sol.y[:,-1],zi,zf)
+        return sol.t,sol.y,uf
+
     #endregion
 
     #region setup computations

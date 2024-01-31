@@ -204,7 +204,7 @@ class Prim2DUnion(Prim2D):
     
     def boundary_dist(self,x,y): # does this need to be vectorized? idk
         return min(self.p1.boundary_dist(x,y),self.p2.boundary_dist(x,y))
-        
+
 #endregion    
 
 #region Prim3D
@@ -1103,5 +1103,73 @@ class Tricoupler(Waveguide):
         axs[0].legend(loc='best',frameon=False)
         plt.subplots_adjust(hspace=0,wspace=0)
         plt.show()
+
+class OAMPhotonicLantern(PhotonicLantern):
+    ''' OAM photonic lantern using ring core '''
+    
+    vectorized_transform = True
+    recon_midpts = False
+
+    def __init__(self,ring_radius,ring_width,rcores,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res_outer,clad_res_inner,jack_res,core_mesh_size=0.05,clad_mesh_size=0.2):
+        ''' ARGS: 
+            ring_radius: radius of cladding annulus (avg)
+            ring_width: width of cladding annulus
+            rcores: an array of core radii at z=0. the first value is placed in the middle; the rest spaced evenly in the ring
+            rjack: the jacket radius at z=0 (this sets the outer simulation boundary)
+            ncores: an array of refractive indices for the cores
+            nclad: the cladding annulus refractive index
+            njack: the jacket refractive index
+            z_ex: the lantern length
+            taper_factor: the amount the lantern scales by, going from z=0 -> z=z_ex
+            core_res: the number of line segments to resolve each core-cladding boundary with
+            clad_res_outer: the number of line segments to resolve the outer cladding annulus boundary
+            clad_res_inner: the number of line segments to resolve the inner cladding annulus boundary
+            jack_res: the number of line segments to resolve the outer jacket boundary
+            core_mesh_size: the target side length for triangles inside a lantern core, away from the boundary
+            clad_mesh_size: the target side length for triangles inside the lantern cladding, away from the boundary
+        '''
+
+        N_outer = len(rcores)-1
+        core_pos = np.array([[0,0]] + [[ring_radius*np.cos(i*2*np.pi/N_outer) , ring_radius*np.sin(i*2*np.pi/N_outer)] for i in range(N_outer)])
+
+        taper_func = linear_taper(taper_factor,z_ex)
+        self.taper_func = taper_func
+
+        cores = []
+
+        def rfunc(r):
+            def _inner_(z):
+                return taper_func(z)*r
+            return _inner_
+
+        def cfunc(c):
+            def _inner_(z):
+                return taper_func(z)*c[0],taper_func(z)*c[1]
+            return _inner_
+
+        for k,(c,r,n) in enumerate(zip(core_pos,rcores,ncores)):
+            cores.append(Pipe(n,"core"+str(k),core_res,rfunc(r),cfunc(c)))
+            cores[k].mesh_size = core_mesh_size
+
+        core_center = cores[0]
+        cores_outer = cores[1:]
+
+        cladrfunc_outer = lambda z: taper_func(z)*(ring_radius+ring_width/2)
+        cladrfunc_inner = lambda z: taper_func(z)*(ring_radius-ring_width/2)
+        cladcfunc = lambda z: (0,0)
+
+        _clad_outer = Pipe(nclad,"cladding",clad_res_outer,cladrfunc_outer,cladcfunc)
+        _clad_outer.mesh_size = clad_mesh_size
+        _clad_inner = Pipe(njack,"inner_cladding",clad_res_inner,cladrfunc_inner,cladcfunc)
+
+        jackrfunc = lambda z: taper_func(z)*rjack
+        jackcfunc = lambda z: (0,0)
+        _jack = Pipe(njack,"jacket",jack_res,jackrfunc,jackcfunc)
+        _jack.skip_refinement = True
+
+        els = [_jack,_clad_outer,[_clad_inner]+cores_outer,core_center]
+        
+        Waveguide.__init__(self,els)
+        self.z_ex = z_ex
 
 #endregion

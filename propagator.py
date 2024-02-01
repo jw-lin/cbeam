@@ -959,6 +959,33 @@ class Propagator:
         ax.set_ylabel(r"$\kappa_{ij}$")
         plt.show()
 
+    def plot_complex_field(self,field,z=None,mesh=None,ax=None):
+        
+        mesh = self.make_mesh_at_z(z) if mesh is None else mesh
+        show = False
+        if ax is None:
+            fig,ax = plt.subplots(1,1)
+            show = True
+
+        xlim = np.max(mesh.points[:,0])
+        ylim = np.max(mesh.points[:,1])
+        xa = np.linspace(-xlim,xlim,120)
+        ya = np.linspace(-xlim,xlim,120)
+        tree = FEval.create_tree_from_mesh(mesh)
+        fgrid = FEval.evaluate_grid(xa,ya,field,tree)
+
+        from matplotlib.colors import ListedColormap
+        normcmap = np.zeros([256, 4])
+        normcmap[:, 3] = np.linspace(0, 1, 256)[::-1]
+        normcmap = ListedColormap(normcmap)
+
+        im = ax.imshow(np.angle(fgrid),cmap='hsv')
+        ax.imshow(np.abs(fgrid),cmap=normcmap)
+        if fig is not None:
+            fig.colorbar(im,ax=ax)
+        if show:
+            plt.show()
+
     #endregion
         
     #region mesh gen

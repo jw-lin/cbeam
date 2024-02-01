@@ -1110,7 +1110,7 @@ class OAMPhotonicLantern(PhotonicLantern):
     vectorized_transform = True
     recon_midpts = False
 
-    def __init__(self,ring_radius,ring_width,rcores,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res_outer,clad_res_inner,jack_res,core_mesh_size=0.05,clad_mesh_size=0.2):
+    def __init__(self,ring_radius,ring_width,rcores,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res_outer,clad_res_inner,jack_res,core_mesh_size=0.05,clad_mesh_size=0.2,inner_clad_mesh_size=1.):
         ''' ARGS: 
             ring_radius: radius of cladding annulus (avg)
             ring_width: width of cladding annulus
@@ -1129,8 +1129,8 @@ class OAMPhotonicLantern(PhotonicLantern):
             clad_mesh_size: the target side length for triangles inside the lantern cladding, away from the boundary
         '''
 
-        N_outer = len(rcores)-1
-        core_pos = np.array([[0,0]] + [[ring_radius*np.cos(i*2*np.pi/N_outer) , ring_radius*np.sin(i*2*np.pi/N_outer)] for i in range(N_outer)])
+        N_outer = len(rcores)
+        core_pos = np.array([[ring_radius*np.cos(i*2*np.pi/N_outer) , ring_radius*np.sin(i*2*np.pi/N_outer)] for i in range(N_outer)])
 
         taper_func = linear_taper(taper_factor,z_ex)
         self.taper_func = taper_func
@@ -1151,9 +1151,6 @@ class OAMPhotonicLantern(PhotonicLantern):
             cores.append(Pipe(n,"core"+str(k),core_res,rfunc(r),cfunc(c)))
             cores[k].mesh_size = core_mesh_size
 
-        core_center = cores[0]
-        cores_outer = cores[1:]
-
         cladrfunc_outer = lambda z: taper_func(z)*(ring_radius+ring_width/2)
         cladrfunc_inner = lambda z: taper_func(z)*(ring_radius-ring_width/2)
         cladcfunc = lambda z: (0,0)
@@ -1161,13 +1158,14 @@ class OAMPhotonicLantern(PhotonicLantern):
         _clad_outer = Pipe(nclad,"cladding",clad_res_outer,cladrfunc_outer,cladcfunc)
         _clad_outer.mesh_size = clad_mesh_size
         _clad_inner = Pipe(njack,"inner_cladding",clad_res_inner,cladrfunc_inner,cladcfunc)
-
+        _clad_inner.mesh_size = inner_clad_mesh_size
+        
         jackrfunc = lambda z: taper_func(z)*rjack
         jackcfunc = lambda z: (0,0)
         _jack = Pipe(njack,"jacket",jack_res,jackrfunc,jackcfunc)
         _jack.skip_refinement = True
 
-        els = [_jack,_clad_outer,[_clad_inner]+cores_outer,core_center]
+        els = [_jack,_clad_outer,[_clad_inner]+cores]
         
         Waveguide.__init__(self,els)
         self.z_ex = z_ex

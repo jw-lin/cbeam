@@ -17,3 +17,4 @@ cbeam-checkpoint*
 dicoupler_neff.py
 general_transform.py
 dicoupler_testing.py
+OAMPL.py

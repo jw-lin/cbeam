@@ -1,17 +1,63 @@
 import numpy as np
 from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,construct_B,plot_eigenvector
 from wavesolve.shape_funcs import compute_NN
-from waveguide import load_meshio_mesh,Waveguide
+from waveguide import load_meshio_mesh,Waveguide,plot_mesh
 from scipy.interpolate import UnivariateSpline,interp1d
 import copy,time,os,FEval
 from scipy.integrate import solve_ivp
 from scipy.sparse import lil_matrix
 import matplotlib.pyplot as plt
 from typing import Union
+from matplotlib.colors import ListedColormap
+
+normcmap = np.zeros([256, 4])
+normcmap[:, 3] = np.linspace(0, 1, 256)[::-1]
+normcmap = ListedColormap(normcmap)
 
 def fast_interpolate(v,inmesh,triidxs,interpweights):
     idxs = inmesh.cells[1].data[triidxs]
     return np.sum(v[idxs]*interpweights,axis=1)
+
+def plot_cfield(field,mesh,ax=None,show_mesh=False,res=120,tree=None):
+    
+    show = False
+    if ax is None:
+        fig,ax = plt.subplots(1,1)
+        show = True
+
+    xlim = np.max(mesh.points[:,0])
+    ylim = np.max(mesh.points[:,1])
+    xa = np.linspace(-xlim,xlim,res)
+    ya = np.linspace(-ylim,ylim,res)
+    tree = FEval.create_tree_from_mesh(mesh) if tree is None else tree
+    fgrid = FEval.evaluate_grid(xa,ya,field,tree)
+
+    im = ax.imshow(np.angle(fgrid),extent=(-xlim,xlim,-ylim,ylim),cmap="hsv")
+    ax.imshow(np.abs(fgrid),extent=(-xlim,xlim,-ylim,ylim),cmap=normcmap,interpolation="bicubic")
+
+    if show_mesh:
+        plot_mesh(mesh,plot_points=False,ax=ax,alpha=0.15)
+
+    ax.set_xlabel(r"$x$")
+    ax.set_ylabel(r"$y$")
+    if fig is not None:
+        fig.colorbar(im,ax=ax,label="phase")
+    if show:
+        plt.show()
+
+def plot_field(field,mesh,ax=None,show_mesh=False):
+    """ plot a real-valued finite element field, evaluated on the points of the mesh corresponding to the waveguide cross-section at z
+    ARGS:
+        field: the finite element field to plot, e.g. the output of make_field()
+        mesh (opt.): the mesh object defining the points that field is evaluated on. If None, a mesh will be auto-generated
+        ax (opt.): a matplotlib axis where the plot should go. if not None, you will need to call matplotlib.pyplot.show() manually
+        show_mesh (opt.): whether or not to draw the mesh in the plot
+    """
+    show = False
+    if ax is None:
+        fig,ax = plt.subplots(1,1)
+        show = True
+    plot_eigenvector(mesh,field,show_mesh,ax,show)
 
 class Propagator:
     """ class for coupled mode propagation of tapered waveguides """
@@ -932,11 +978,7 @@ class Propagator:
             show_mesh (opt.): whether or not to draw the mesh in the plot
         """
         mesh = self.make_mesh_at_z(z) if mesh is None else mesh
-        show = False
-        if ax is None:
-            fig,ax = plt.subplots(1,1)
-            show = True
-        plot_eigenvector(mesh,field,show_mesh,ax,show)
+        plot_field(field,mesh,ax,show_mesh)
 
     def plot_coupling_coeffs(self):
         """ plot coupling coefficients """
@@ -959,32 +1001,9 @@ class Propagator:
         ax.set_ylabel(r"$\kappa_{ij}$")
         plt.show()
 
-    def plot_complex_field(self,field,z=None,mesh=None,ax=None):
-        
+    def plot_cfield(self,field,z=None,mesh=None,ax=None,show_mesh=False,res=120,tree=None):
         mesh = self.make_mesh_at_z(z) if mesh is None else mesh
-        show = False
-        if ax is None:
-            fig,ax = plt.subplots(1,1)
-            show = True
-
-        xlim = np.max(mesh.points[:,0])
-        ylim = np.max(mesh.points[:,1])
-        xa = np.linspace(-xlim,xlim,120)
-        ya = np.linspace(-xlim,xlim,120)
-        tree = FEval.create_tree_from_mesh(mesh)
-        fgrid = FEval.evaluate_grid(xa,ya,field,tree)
-
-        from matplotlib.colors import ListedColormap
-        normcmap = np.zeros([256, 4])
-        normcmap[:, 3] = np.linspace(0, 1, 256)[::-1]
-        normcmap = ListedColormap(normcmap)
-
-        im = ax.imshow(np.angle(fgrid),cmap='hsv')
-        ax.imshow(np.abs(fgrid),cmap=normcmap)
-        if fig is not None:
-            fig.colorbar(im,ax=ax)
-        if show:
-            plt.show()
+        plot_cfield(field,mesh,ax,show_mesh,res,tree)
 
     #endregion
         

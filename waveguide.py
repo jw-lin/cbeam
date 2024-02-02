@@ -4,10 +4,56 @@ import matplotlib.pyplot as plt
 import gmsh
 import meshio
 import copy
-from wavesolve.mesher import plot_mesh
+#from wavesolve.mesher import plot_mesh
 from itertools import combinations
 
 #region miscellaneous functions   
+
+def plot_mesh(mesh,IOR_dict=None,alpha=0.3,ax=None,plot_points=True):
+    """ plot a mesh and associated refractive index distribution
+    Args:
+    mesh: the mesh to be plotted. if None, we auto-compute a mesh using default values
+    IOR_dict: dictionary that assigns each named region in the mesh to a refractive index value
+    """
+    show=False
+    verts=3
+    if ax is None:
+        fig,ax = plt.subplots(figsize=(5,5))
+        show=True
+
+    ax.set_aspect('equal')
+
+    points = mesh.points
+    els = mesh.cells[1].data
+    materials = mesh.cell_sets.keys()
+
+    if IOR_dict is not None:
+        IORs = [ior[1] for ior in IOR_dict.items()]
+        n,n0 = max(IORs) , min(IORs)
+
+    for material in materials:   
+        if IOR_dict is not None:    
+            cval = IOR_dict[material]/(n-n0) - n0/(n-n0)
+            cm = plt.get_cmap("inferno")
+            color = cm(cval)
+        else:
+            color="None"
+
+        _els = els[tuple(mesh.cell_sets[material])][0,:,0,:]
+        for i,_el in enumerate(_els):
+            t=plt.Polygon(points[_el[:verts]][:,:2], facecolor=color)
+            t_edge=plt.Polygon(points[_el[:verts]][:,:2], lw=0.5,color='0.5',alpha=alpha,fill=False)
+            ax.add_patch(t)
+            ax.add_patch(t_edge)
+
+    ax.set_xlim(np.min(points[:,0]),np.max(points[:,0]) )
+    ax.set_ylim(np.min(points[:,1]),np.max(points[:,1]) )
+    if plot_points:
+        for point in points:
+            ax.plot(point[0],point[1],color='0.5',marker='o',ms=1.5,alpha=alpha)
+
+    if show:
+        plt.show()
 
 def load_meshio_mesh(meshname):
     mesh = meshio.read(meshname+".msh")
@@ -664,44 +710,12 @@ class Waveguide:
         mesh: the mesh to be plotted. if None, we auto-compute a mesh using default values
         IOR_dict: dictionary that assigns each named region in the mesh to a refractive index value
         """
-        show=False
-        verts=3
-        if ax is None:
-            fig,ax = plt.subplots(figsize=(5,5))
-            show=True
-
-        ax.set_aspect('equal')
         if mesh is None:
             mesh = self.make_mesh()
         if IOR_dict is None:
             IOR_dict = self.assign_IOR()
-        points = mesh.points
-        els = mesh.cells[1].data
-        materials = mesh.cell_sets.keys()
 
-        IORs = [ior[1] for ior in IOR_dict.items()]
-        n,n0 = max(IORs) , min(IORs)
-
-        for material in materials:       
-            cval = IOR_dict[material]/(n-n0) - n0/(n-n0)
-            cm = plt.get_cmap("inferno")
-            color = cm(cval)
-
-            _els = els[tuple(mesh.cell_sets[material])][0,:,0,:]
-            for i,_el in enumerate(_els):
-                t=plt.Polygon(points[_el[:verts]][:,:2], facecolor=color)
-                t_edge=plt.Polygon(points[_el[:verts]][:,:2], lw=0.5,color='0.5',alpha=alpha,fill=False)
-                ax.add_patch(t)
-                ax.add_patch(t_edge)
-
-        ax.set_xlim(np.min(points[:,0]),np.max(points[:,0]) )
-        ax.set_ylim(np.min(points[:,1]),np.max(points[:,1]) )
-        if plot_points:
-            for point in points:
-                ax.plot(point[0],point[1],color='0.5',marker='o',ms=1.5,alpha=alpha)
-
-        if show:
-            plt.show()
+        plot_mesh(mesh,IOR_dict,alpha,ax,plot_points)
     
     def plot_boundaries(self):
         """ plot the boundaries of all prim3Dgroups. For unioned primitives, all boundaries of 

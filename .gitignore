@@ -6,15 +6,5 @@ settings.json
 BVHtree/.CondaPkg/
 Manifest.toml
 data/
-analysis.py
-*.npz
-test.py
-dicoupler_neff
-meshtest.py
-run_prop*
-test*.py
 cbeam-checkpoint*
-dicoupler_neff.py
-general_transform.py
-dicoupler_testing.py
-OAMPL.py
+testing/

@@ -1118,6 +1118,74 @@ class Tricoupler(Waveguide):
         plt.subplots_adjust(hspace=0,wspace=0)
         plt.show()
 
+class PlanarTricoupler(Tricoupler):
+    """ tricoupler with 2D channel paths """
+    recon_midpts = True
+
+    def __init__(self,rcore_center,rcore_outer,ncore,dmax,dmin,nclad,coupling_length,a,core_res,core_mesh_size,clad_mesh_size):
+        """
+        ARGS:
+            rcore_center: the core radius of the center channel
+            rcore_outer: the core radius of the outer channel
+            ncore: the refractive index for all single mode channels
+            dmax: the distance between the left and right channels, at max separation
+            dmin: the distance between the left and right channels, at min separation
+            nclad: the cladding index
+            coupling_length: the approximate length in z over which the core separation is dmin
+            a: the approximate bend length
+            core_res: the # of segments used to resolve the core-cladding interface
+            core_mesh_size: the target mesh size inside cores
+            clad_mesh_size: the target mesh size inside the cladding
+        """
+        z_ex = coupling_length * 2 # roughly the middle half is coupling length
+
+        def c1func(z):
+            # waveguide channels will follow the blend (func)
+            if z <= z_ex/2:
+                b = blend(z,z_ex/4-a/2,a)
+                #b = blend(z,z_ex/4,a)
+                return  np.array([dmin/2,0])*b + np.array([dmax/2,0])*(1-b)
+            else:
+                b = blend(z,3*z_ex/4+a/2,a)
+                #b = blend(z,3*z_ex/4,a)
+                return np.array([dmax/2,0])*b + np.array([dmin/2,0])*(1-b)
+
+        def c2func(z):
+            c = c1func(z)
+            return -c[0],c[1]
+        
+        def c3func(z):
+            return 0,0
+
+        self.c1func = c1func
+        self.c2func = c2func
+        self.c3func = c3func
+
+        cladding = ScalingBox(nclad,"cladding",lambda z: self.c1func(z)[0]*8,lambda z: self.c1func(z)[0]*8)
+        cladding.mesh_size = clad_mesh_size
+        cladding.skip_refinement = True
+
+        core1 = Pipe(ncore,"core1",core_res,lambda z: rcore_outer,c1func)
+        core1.mesh_size = core_mesh_size
+        core1.preserve_shape = True
+
+        core2 = Pipe(ncore,"core2",core_res,lambda z: rcore_outer,c2func)
+        core2.mesh_size = core_mesh_size
+        core2.preserve_shape = True
+
+        # middle core
+        core3 = Pipe(ncore,"core2",core_res,lambda z: rcore_center,c3func)
+        core3.mesh_size = core_mesh_size
+        core3.preserve_shape = True
+
+        els = [cladding,[core1,core2,core3]]
+        self.rcore_center = rcore_center
+        self.rcore_outer = rcore_outer
+
+        Waveguide.__init__(self,els)
+        self.z_ex = z_ex
+    
+
 class OAMPhotonicLantern(PhotonicLantern):
     ''' OAM photonic lantern using ring core '''
     
@@ -1173,7 +1241,7 @@ class OAMPhotonicLantern(PhotonicLantern):
         _clad_outer.mesh_size = clad_mesh_size
         _clad_inner = Pipe(njack,"inner_cladding",clad_res_inner,cladrfunc_inner,cladcfunc)
         _clad_inner.mesh_size = inner_clad_mesh_size
-        
+
         jackrfunc = lambda z: taper_func(z)*rjack
         jackcfunc = lambda z: (0,0)
         _jack = Pipe(njack,"jacket",jack_res,jackrfunc,jackcfunc)

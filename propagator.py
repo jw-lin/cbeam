@@ -32,7 +32,7 @@ def plot_cfield(field,mesh,ax=None,show_mesh=False,res=120,tree=None):
     tree = FEval.create_tree_from_mesh(mesh) if tree is None else tree
     fgrid = FEval.evaluate_grid(xa,ya,field,tree)
 
-    im = ax.imshow(np.angle(fgrid),extent=(-xlim,xlim,-ylim,ylim),cmap="hsv")
+    im = ax.imshow(np.arctan2(np.imag(fgrid),np.real(fgrid)),extent=(-xlim,xlim,-ylim,ylim),cmap="hsv",vmin=-np.pi,vmax=np.pi)
     ax.imshow(np.abs(fgrid),extent=(-xlim,xlim,-ylim,ylim),cmap=normcmap,interpolation="bicubic")
 
     if show_mesh:

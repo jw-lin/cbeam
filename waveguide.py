@@ -265,6 +265,7 @@ class Prim3D:
 
         self._mesh_size = None
         self._skip_refinement = False
+        self.n = prim2D.n
 
     @property
     def mesh_size(self):
@@ -1086,7 +1087,7 @@ class Tricoupler(Waveguide):
         core2.preserve_shape = True
 
         # middle core
-        core3 = Pipe(ncore,"core2",core_res,lambda z: rcore,c3func)
+        core3 = Pipe(ncore,"core3",core_res,lambda z: rcore,c3func)
         core3.mesh_size = core_mesh_size
         core3.preserve_shape = True
 

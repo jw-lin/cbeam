@@ -253,19 +253,26 @@ class Propagator:
 
         # sign correction
         if vlast is None:
-            self.make_sign_consistent(v,_v)
+            # this is the initial eigensolve. try to make everything consistent sign.
+            for i in range(self.Nmax):
+                if np.sum(v[i]) < 0:
+                    v[i] *= -1
             # degeneracy correction
             for gr in degen_groups:
                 self.correct_degeneracy(gr,v,_v)
                 #self.avg_degen_neff(gr,neffs)
+            
+            self.make_sign_consistent(v,_v) # must come after since degen correction could flip signs (?)
+
         else:
-            self.make_sign_consistent(vlast,v)
-            self.make_sign_consistent(vlast,_v)
             # degeneracy correction
             for gr in degen_groups:
                 self.correct_degeneracy(gr,vlast,v)
                 self.correct_degeneracy(gr,vlast,_v)
                 #self.avg_degen_neff(gr,neffs)  
+                
+            self.make_sign_consistent(vlast,v)
+            self.make_sign_consistent(vlast,_v)
         vlast = 0.5*(v+_v)
 
         if self.inner_product_mode == "interpolate":
@@ -343,8 +350,6 @@ class Propagator:
         if plot:
             print("initial mesh: ")
             self.wvg.plot_mesh(mesh)
-            print("initial modes: ")
-            w,v,n = solve_waveguide(mesh0,self.wl,IOR_dict,plot=True,sparse=True,Nmax=self.Nmax)
 
         vlast = None
 
@@ -360,6 +365,12 @@ class Propagator:
                 dz = min(zstep0/10,dz0)
 
             cmat,neff,vlast_temp,degen_groups = self.compute_transform(z,zi,mesh0,mesh,_mesh,IOR_dict,dz,neffs,vlast=vlast,degen_groups=degen_groups,min_degen_dif=min_degen_dif)
+
+            if z == zi and plot:
+                print("initial modes: ")
+                for i in range(self.Nmax):
+                    plot_cfield(vlast_temp[i],mesh0)
+                    plt.show()
 
             cnorm = self.compute_cmat_norm(cmat,degen_groups)
 
@@ -942,11 +953,14 @@ class Propagator:
 
         m = self.make_mesh_at_z(z)
         self.wvg.assign_IOR() 
-        _v = np.zeros((self.Nmax,self.vs.shape[-1])) # array to store the new basis
+        _v = np.zeros((self.Nmax,m.points.shape[0])) # array to store the new basis
 
-        for i in range(6):
+        for i in range(self.Nmax):
             _dict = self.wvg.isolate(i) # use the PhotonicLantern.isolate() function to make a new dictionary of refractive index values which isolates a single core
+            print(_dict)
             _wi,_vi,_Ni = solve_waveguide(m,self.wl,_dict,sparse=True,Nmax=1) # then pass the new dictionary into the eigenmode solver
+            if np.sum(_vi) < 0: # attempt consistent sign
+                _vi *= -1
             _v[i,:] = _vi # save the "port" eigenmode into _v
 
         return _v

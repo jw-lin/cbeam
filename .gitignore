@@ -8,3 +8,4 @@ Manifest.toml
 data/
 cbeam-checkpoint*
 testing/
+*.gif

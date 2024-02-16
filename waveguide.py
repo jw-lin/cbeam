@@ -1175,7 +1175,7 @@ class PlanarTricoupler(Tricoupler):
         core2.preserve_shape = True
 
         # middle core
-        core3 = Pipe(ncore,"core2",core_res,lambda z: rcore_center,c3func)
+        core3 = Pipe(ncore,"core3",core_res,lambda z: rcore_center,c3func)
         core3.mesh_size = core_mesh_size
         core3.preserve_shape = True
 

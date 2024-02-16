@@ -957,7 +957,7 @@ class Propagator:
 
         for i in range(self.Nmax):
             _dict = self.wvg.isolate(i) # use the PhotonicLantern.isolate() function to make a new dictionary of refractive index values which isolates a single core
-            print(_dict)
+            #print(_dict)
             _wi,_vi,_Ni = solve_waveguide(m,self.wl,_dict,sparse=True,Nmax=1) # then pass the new dictionary into the eigenmode solver
             if np.sum(_vi) < 0: # attempt consistent sign
                 _vi *= -1

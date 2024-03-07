@@ -1,8 +1,11 @@
 from juliacall import Main as jl
 from juliacall import Pkg as jlPkg
 import numpy as np
+import os
 
-jlPkg.activate("FEval") 
+path = os.getcwd()
+print("path: ",path)
+jlPkg.activate(path+"FEval") 
 jl.seval("using FEval")
 
 def create_tree(points,connections):

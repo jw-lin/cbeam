@@ -1,1 +1,1 @@
-include FEval/*
+recursive-include src/cbeam/FEval *

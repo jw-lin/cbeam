@@ -5,8 +5,7 @@ import numpy as np
 import os
 
 path = os.path.dirname(cbeam.__file__)
-print("path: ",path)
-jlPkg.develop(jlPkg.PackageSpec(path = "C:/Users/jon88/miniconda3/envs/astro/Lib/site-packages/cbeam/FEval"))
+jlPkg.develop(jlPkg.PackageSpec(path = path+"\FEval") )
 jl.seval("using FEval")
 
 def create_tree(points,connections):

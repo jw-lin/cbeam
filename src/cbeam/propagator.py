@@ -1,9 +1,10 @@
 import numpy as np
 from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_AB,construct_B,plot_eigenvector
 from wavesolve.shape_funcs import compute_NN
-from waveguide import load_meshio_mesh,Waveguide,plot_mesh
+from cbeam.waveguide import load_meshio_mesh,Waveguide,plot_mesh
 from scipy.interpolate import UnivariateSpline,interp1d
-import copy,time,os,FEval
+import copy,time,os
+from cbeam import FEval
 from scipy.integrate import solve_ivp
 from scipy.sparse import lil_matrix
 import matplotlib.pyplot as plt

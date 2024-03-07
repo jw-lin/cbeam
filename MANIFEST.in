@@ -1,1 +1,2 @@
+include src/cbeam/FEval/Project.toml
 recursive-include src/cbeam/FEval *

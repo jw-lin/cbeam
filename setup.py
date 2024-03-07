@@ -6,10 +6,7 @@ class PostInstallCommand(install):
     """Post-installation for installation mode. Install julia dependencies."""
     def run(self):
         install.run(self)
-        print(os.getcwd())
-        import cbeam
-        path = os.path.dirname(cbeam.__file__)
-        os.chdir(path)
+        os.chdir("./src/cbeam")
         from juliacall import Pkg as jlPkg
         jlPkg.activate("FEval")
         jlPkg.add("PythonCall")

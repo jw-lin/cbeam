@@ -6,7 +6,7 @@ import os
 
 path = os.path.dirname(cbeam.__file__)
 print("path: ",path)
-jlPkg.activate(path+"FEval") 
+jlPkg.develop(jl.PackageSpec(path = "C:/Users/jon88/miniconda3/envs/astro/Lib/site-packages/cbeam/FEval"))
 jl.seval("using FEval")
 
 def create_tree(points,connections):

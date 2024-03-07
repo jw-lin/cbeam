@@ -1,9 +1,10 @@
 from juliacall import Main as jl
 from juliacall import Pkg as jlPkg
+import cbeam
 import numpy as np
 import os
 
-path = os.getcwd()
+path = os.path.dirname(cbeam.__file__)
 print("path: ",path)
 jlPkg.activate(path+"FEval") 
 jl.seval("using FEval")

@@ -1,11 +1,11 @@
 from juliacall import Main as jl
-from juliacall import Pkg as jlPkg
-import cbeam
 import numpy as np
-import os
 
-path = os.path.dirname(cbeam.__file__)
-jlPkg.develop(jlPkg.PackageSpec(path = path+"\FEval") )
+#from juliacall import Pkg as jlPkg
+#import cbeam
+#import os
+#path = os.path.dirname(cbeam.__file__)
+#jlPkg.develop(jlPkg.PackageSpec(path = path+"\FEval") )
 jl.seval("using FEval")
 
 def create_tree(points,connections):

@@ -1,7 +1,6 @@
 from setuptools import setup
 from setuptools.command.install import install
 import os
-setup(include_package_data=True)
 
 class PostInstallCommand(install):
     """Post-installation for installation mode. Install julia dependencies."""
@@ -16,3 +15,6 @@ class PostInstallCommand(install):
         jlPkg.add("StaticArrays")
         jlPkg.add("GrundmannMoeller")
         jlPkg.add("Cubature")
+
+setup(include_package_data=True,cmdclass={'install': PostInstallCommand,},)
+

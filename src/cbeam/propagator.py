@@ -935,7 +935,7 @@ class Propagator:
         """
         if z is None:
             z = self.za[-1]
-            
+
         m = self.make_mesh_at_z(z)
         B = construct_B(m,sparse=True)
         oldbasis = self.compute_v(z)
@@ -943,7 +943,7 @@ class Propagator:
 
         if u is not None:
             return cob,np.dot(cob,u)
-        return cob,None
+        return cob
     
     def compute_isolated_basis(self,z=None):
         """ compute a basis using Waveguide.isolate(), which is assumed to be defined for the loaded waveguide. 

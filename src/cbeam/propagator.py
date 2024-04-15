@@ -922,7 +922,7 @@ class Propagator:
         dbeta_dz = self.k * self.compute_dif_neff(z) 
         return -0.5 * dbeta_dz / self.compute_neff(z)
 
-    def compute_change_of_basis(self,newbasis,z,u=None):
+    def compute_change_of_basis(self,newbasis,z=None,u=None):
         """ compute the (N x N) change of basis matrix between the current N-dimensional eigenbasis at z and a new basis 
         ARGS: 
         newbasis: MxN array of N eigenmodes computed over M mesh points, which we want to expand in
@@ -933,6 +933,9 @@ class Propagator:
         cob: Nmax x Nmax change of basis matrix
         _u: Nx1 modal vector corresponding to u expressed in the new basis. None, if u is not provided.
         """
+        if z is None:
+            z = self.za[-1]
+            
         m = self.make_mesh_at_z(z)
         B = construct_B(m,sparse=True)
         oldbasis = self.compute_v(z)

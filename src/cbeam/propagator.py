@@ -1047,10 +1047,7 @@ class Propagator:
 
     def make_mesh_at_z(self,z):
         """ make the mesh corresponding to the waveguide cross-section at z. """
-        if self.mesh is None:
-            mesh = self.generate_mesh()
-        else:
-            mesh = self.mesh
+        mesh = self.generate_mesh()
         if self.za is None:
             zi = 0
         else:

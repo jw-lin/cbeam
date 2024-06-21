@@ -348,7 +348,7 @@ class Pipe(Prim3D):
         return r*rscale*np.cos(t) + _c[0] , r*rscale*np.sin(t) + _c[1] 
 
 class Box(Prim3D):
-    """ an InfiniteBox is a volume whose cross-section has a constant rectangular shape.
+    """ an Box is a volume whose cross-section has a constant rectangular shape.
         because the shape does not change, we initialize according to the 'starting' box
         geometry, unlike in Pipe where we initialized with functions.
     """
@@ -358,17 +358,28 @@ class Box(Prim3D):
         rect.update(points)
         super().__init__(rect,label)
 
-class ScalingBox(Prim3D):
-    """ an box whose width and height scale with z.
+class BoxPipe(Prim3D):
+    """ an box whose width, height, and center can scale with z.
     """
-    def __init__(self,n,label,xwfunc,ywfunc):
+    def __init__(self,n,label,xwfunc,ywfunc,cfunc=None):
+        """ ARGS
+            n : refractive index
+            label : string identifier for this waveguide part
+            xwfunc : a function controlling the width of the box wrt z
+            ywfunc : a function controlling the height of the box wrt z
+        """
         rect = Rectangle(n)
         super().__init__(rect,label)
         self.xwfunc = xwfunc
         self.ywfunc = ywfunc
+        if cfunc is None:
+            self.cfunc = lambda z: (0,0)
+        else:
+            self.cfunc = cfunc
     
     def make_points_at_z(self, z):
-        points = self.prim2D.make_points(-self.xwfunc(z)/2,self.xwfunc(z)/2,-self.ywfunc(z)/2,self.ywfunc(z)/2)
+        cx,cy = self.cfunc(z)
+        points = self.prim2D.make_points(-self.xwfunc(z)/2+cx,self.xwfunc(z)/2+cx,-self.ywfunc(z)/2+cy,self.ywfunc(z)/2+cy)
         return points
 
 #endregion

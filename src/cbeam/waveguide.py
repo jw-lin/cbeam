@@ -219,7 +219,8 @@ class Rectangle(Prim2D):
         dist = min(xdist,ydist)
         if bounds[0]<=x<=bounds[1] and bounds[2]<=y<=bounds[3]:
             return -dist
-        return dist
+        nx,ny = self.nearest_boundary_point(x,y)
+        return np.sqrt(np.power(nx-x,2)+np.power(ny-y,2))
     
     def nearest_boundary_point(self, x, y):
         bounds = self.bounds
@@ -227,13 +228,33 @@ class Rectangle(Prim2D):
         yd0,yd1 = abs(bounds[2]-y),abs(bounds[3]-y)
         i = np.argmin([xd0,xd1,yd0,yd1])
         if i==0:
-            return bounds[0],y
+            if bounds[2] <= y <= bounds[3]:
+                return bounds[0],y
+            elif y < bounds[2]:
+                return bounds[0],bounds[2]
+            else:
+                return bounds[0],bounds[3]
         elif i==1:
-            return bounds[1],y
+            if bounds[2] <= y <= bounds[3]:
+                return bounds[1],y
+            elif y < bounds[2]:
+                return bounds[1],bounds[2]
+            else:
+                return bounds[1],bounds[3]
         elif i==2:
-            return x,bounds[2]
+            if bounds[0] <= x <= bounds[1]:
+                return x,bounds[2]
+            elif x < bounds[0]:
+                return bounds[0],bounds[2]
+            else:
+                return bounds[1],bounds[2]
         else:
-            return x,bounds[3]
+            if bounds[0] <= x <= bounds[1]:
+                return x,bounds[3]
+            elif x < bounds[0]:
+                return bounds[0],bounds[3]
+            else:
+                return bounds[1],bounds[3]
 
 class Prim2DUnion(Prim2D):
     def __init__(self,p1:Prim2D,p2:Prim2D):

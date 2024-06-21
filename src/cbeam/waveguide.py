@@ -403,6 +403,14 @@ class BoxPipe(Prim3D):
         points = self.prim2D.make_points(-self.xwfunc(z)/2+cx,self.xwfunc(z)/2+cx,-self.ywfunc(z)/2+cy,self.ywfunc(z)/2+cy)
         return points
 
+    def transform_point_inside(self, x0, y0, z0, z):
+        c = self.cfunc(z0)
+        _c = self.cfunc(z)
+        xscale = self.xwfunc(z)/self.xwfunc(z0)
+        yscale = self.ywfunc(z)/self.ywfunc(z0)
+
+        return (x0-c[0])*xscale + _c[0] ,  (y0-c[1])*yscale + _c[1] 
+
 #endregion
 
 #region Waveguide
@@ -1022,7 +1030,7 @@ class Dicoupler(Waveguide):
         self.dfunc = dfunc
         self.eps = 1e-12
 
-        cladding = ScalingBox(nclad,"cladding",lambda z: self.dfunc(z)*6,lambda z: self.dfunc(z)*4)
+        cladding = BoxPipe(nclad,"cladding",lambda z: self.dfunc(z)*6,lambda z: self.dfunc(z)*4)
         cladding.mesh_size = clad_mesh_size
         cladding.skip_refinement = True
 

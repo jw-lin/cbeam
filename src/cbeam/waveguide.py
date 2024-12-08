@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import gmsh
 import meshio
 import copy
-#from wavesolve.mesher import plot_mesh
 from itertools import combinations
 
 #region miscellaneous functions   
@@ -121,10 +120,14 @@ def blend(z,zc,a):
     """ this is a function of z that continuously varies from 0 to 1, used to blend functions together. """
     return 0.5 + 0.5 * np.tanh((z-zc)/(0.25*a)) # the 0.25 is kinda empirical lol
 
-def dist(p1,p2):
+def dist(p1,p2,axis=None):
+    if axis:
+        return np.sqrt(np.sum(np.power(p1-p2,2),axis=axis))    
     return np.sqrt(np.sum(np.power(p1-p2,2)))
 
 def rotate(v,theta):
+    if v.ndim == 2:
+        return np.array([np.cos(theta)*v[:,0] - np.sin(theta)*v[:,1] , np.sin(theta)*v[:,0] + np.cos(theta)*v[:,1]]).T 
     return np.array([np.cos(theta)*v[0] - np.sin(theta)*v[1] , np.sin(theta)*v[0] + np.cos(theta)*v[1]])
 
 #endregion    
@@ -174,13 +177,31 @@ class Prim2D:
         plot_mesh(m)            
 
     def boundary_dist(self,x,y):
-        """ this function computes the distance between the point (x,y) and the boundary of the primitive. negative distances -> inside the boundary, while positive -> outside
-            note that this doesn't need to be exact. the "distance" just needs to be positive outside the boundary, negative inside the boundary, and go to 0 as you approach the boundary.
+        """ this function computes the distance between the point (x,y) and the boundary of the primitive. 
+        negative distances -> inside the boundary, while positive -> outside. note that this doesn't need to be exact, 
+        the "distance" just needs to be positive outside the boundary, negative inside the boundary, and go to 0 as you approach the boundary.
+        it is better if it works on vectorized inputs for x,y.
+
+        ARGS:
+            x (float or vector): x coordinate(s)  of point(s) to measure distance w/ boundary.
+            y (float or vector): y coordinate(s)  of point(s) to measure distance w/ boundary.
+        RETURNS:
+            (float or vector): the distance(s) to the boundary from the point(s)
         """
         pass
 
     def nearest_boundary_point(self,x,y):
-        """ this function computes the point on the boundary that is closest to a point (x,y). """
+        """ this function computes the point on the boundary that is closest to a point (x,y). 
+        it is better if it works on vectorized inputs for x,y.
+
+        ARGS:
+            x (float or vector): x coordinate(s)  of point(s) to measure distance w/ boundary.
+            y (float or vector): y coordinate(s)  of point(s) to measure distance w/ boundary.
+        RETURNS:
+            (tuple): a tuple containing:
+                - (float or vector): the x coordinate(s) of the nearest boundary point     
+                - (float or vector): the y coordinate(s) of the nearest boundary point        
+        """
         pass
 
 class Circle(Prim2D):
@@ -223,48 +244,69 @@ class Rectangle(Prim2D):
 
     def boundary_dist(self, x, y):
         bounds = self.bounds
-        xdist = min(abs(bounds[0]-x),abs(bounds[1]-x))
-        ydist = min(abs(bounds[2]-y),abs(bounds[3]-y))
-        dist = min(xdist,ydist)
-        if bounds[0]<=x<=bounds[1] and bounds[2]<=y<=bounds[3]:
-            return -dist
+        xdist = np.minimum(np.abs(bounds[0]-x),np.abs(bounds[1]-x))
+        ydist = np.minimum(np.abs(bounds[2]-y),np.abs(bounds[3]-y))
+        dist = np.minimum(xdist,ydist)
         nx,ny = self.nearest_boundary_point(x,y)
-        return np.sqrt(np.power(nx-x,2)+np.power(ny-y,2))
+        outdist = np.sqrt(np.power(nx-x,2)+np.power(ny-y,2))
+        out = np.where((bounds[0]<=x) & (x<=bounds[1]) & (bounds[2]<=y) & (y<=bounds[3]),-dist,outdist)
+        return out
     
     def nearest_boundary_point(self, x, y):
+        if type(x) != np.ndarray:
+            x = np.array([x])
+            y = np.array([y])
         bounds = self.bounds
-        xd0,xd1 = abs(bounds[0]-x),abs(bounds[1]-x)
-        yd0,yd1 = abs(bounds[2]-y),abs(bounds[3]-y)
-        i = np.argmin([xd0,xd1,yd0,yd1])
-        if i==0:
-            if bounds[2] <= y <= bounds[3]:
-                return bounds[0],y
-            elif y < bounds[2]:
-                return bounds[0],bounds[2]
-            else:
-                return bounds[0],bounds[3]
-        elif i==1:
-            if bounds[2] <= y <= bounds[3]:
-                return bounds[1],y
-            elif y < bounds[2]:
-                return bounds[1],bounds[2]
-            else:
-                return bounds[1],bounds[3]
-        elif i==2:
-            if bounds[0] <= x <= bounds[1]:
-                return x,bounds[2]
-            elif x < bounds[0]:
-                return bounds[0],bounds[2]
-            else:
-                return bounds[1],bounds[2]
-        else:
-            if bounds[0] <= x <= bounds[1]:
-                return x,bounds[3]
-            elif x < bounds[0]:
-                return bounds[0],bounds[3]
-            else:
-                return bounds[1],bounds[3]
+        xd0,xd1 = np.abs(bounds[0]-x),np.abs(bounds[1]-x)
+        yd0,yd1 = np.abs(bounds[2]-y),np.abs(bounds[3]-y)
+        i = np.argmin([xd0,xd1,yd0,yd1],axis=0)
+        outx = np.zeros_like(x)
+        outy = np.zeros_like(y)
+        
+        cond0 = (i==0) & (bounds[2]<=y) & (y<=bounds[3])
+        outx[cond0] = bounds[0]
+        outy[cond0] = y[cond0]
+        cond1 = (i==0) & (y<bounds[2])
+        outx[cond1] = bounds[0]
+        outy[cond1] = bounds[2]
+        cond2 = (i==0) & (y>bounds[3])
+        outx[cond2] = bounds[0]
+        outy[cond2] = bounds[3]
 
+        cond3 = (i==1) & (bounds[2]<=y) & (y<=bounds[3])
+        outx[cond3] = bounds[1]
+        outy[cond3] = y[cond3]
+        cond4 = (i==1) & (y<bounds[2])
+        outx[cond4] = bounds[1]
+        outy[cond4] = bounds[2]
+        cond5 = (i==1) & (y>bounds[3])
+        outx[cond5] = bounds[1]
+        outy[cond5] = bounds[3]
+
+        cond6 = (i==2) & (bounds[0]<=x) & (x<=bounds[1])
+        outx[cond6] = x[cond6]
+        outy[cond6] = bounds[2]
+        cond7 = (i==2) & (x<bounds[0])
+        outx[cond7] = bounds[0]
+        outy[cond7] = bounds[2]
+        cond8 = (i==2) & (x>bounds[1])
+        outx[cond8] = bounds[1]
+        outx[cond8] = bounds[2]
+
+        cond9 = (i==3) & (bounds[0]<=x) & (x<=bounds[1])
+        outx[cond9] = x[cond9]
+        outy[cond9] = bounds[3]
+        cond10 = (i==3) & (x<bounds[0])
+        outx[cond10] = bounds[0]
+        outy[cond10] = bounds[3]
+        cond11 = (i==3) & (x>bounds[1])
+        outx[cond11] = bounds[1]
+        outy[cond11] = bounds[3]
+
+        if outx.shape[0] == 1:
+            return outx[0],outy[0]
+        return outx,outy # yeesh
+    
 class Prim2DUnion(Prim2D):
     def __init__(self,p1:Prim2D,p2:Prim2D):
         """ initialize a boolean union of two primitives, p1 and p2. 
@@ -506,8 +548,9 @@ class Waveguide:
 
     recon_midpts = True
 
-    #: bool: whether or not the transform() function may take vector input. False for the default transform()
-    vectorized_transform = False
+    #: bool: whether or not the transform() function may take vector input. True for the default transform().
+    #: however, if you add/use Prim2Ds with unvectorized functions, you may need to set this False.
+    vectorized_transform = True
 
     fd_eps = 1e-6
 
@@ -902,24 +945,9 @@ class Waveguide:
         plt.show()
     
     # this really should be in Julia ... at the very least a lot of calcs could be saved and reused.
-    def transform(self,x0,y0,z0,z):
-        """ spatial transformation that should work with most meshes. kinda slow to compute currently, could be.
-        general idea: for a point (x0,y0) find the two nearest primitives at z0. this point, plus the two closest points to 
-        to it, each constrained to lie a primitive boundary, define a triangle. At z, the primitive boundaries move, and as such 
-        two of the triangle vertices move. The idea is to place the third point of the triangle, which is (x,y), to
-        preserve triangle similarity.
-
-        ARGS:
-            x0 : (scalar or vector, if self.vectorized_transform) x coord. at z0
-            y0 : (scalar or vector, if self.vectorized_transform) y coord. at z0
-            z0 : reference z coord.
-            z : new z coord.
-
-        RETURNS:
-            (tuple) : a tuple containing:
-
-                - x (scalar or vector): the transformed x coordinate at z.
-                - y (scalar or vector): the transformed y coordinate at z.
+    def transform_unvec(self,x0,y0,z0,z):
+        """ unvectorized version of transform(); this was the original version and is still
+        here just for reference.
         """
 
         if self.z_invariant:
@@ -979,6 +1007,95 @@ class Waveguide:
 
         return new_point[0],new_point[1]
     
+    def transform(self,x0,y0,z0,z):
+        """ spatial transformation that should work with most meshes. kinda slow to compute currently, maybe could be sped up.
+        general idea: for a point (x0,y0) find the two nearest primitives at z0. this point, plus the two closest points to 
+        to it, each constrained to lie on a primitive boundary, define a triangle. At z, the primitive boundaries move, and so 
+        two of the triangle vertices move. this transformation places the third point of the triangle, which is (x,y), to
+        preserve triangle similarity.
+
+        ARGS:
+            x0 : (scalar or vector, if self.vectorized_transform) x coord. at z0
+            y0 : (scalar or vector, if self.vectorized_transform) y coord. at z0
+            z0 : reference z coord.
+            z : new z coord.
+
+        RETURNS:
+            (tuple) : a tuple containing:
+
+                - x (scalar or vector): the transformed x coordinate at z.
+                - y (scalar or vector): the transformed y coordinate at z.
+        """
+        
+        if type(x0) != np.ndarray:
+            x0 = np.array([x0])
+            y0 = np.array([y0])
+
+        if self.z_invariant:
+            return x0,y0
+
+        pt = np.array([x0,y0]).T
+        if z0 != 0:
+            self.update(z0)
+
+        # collect all the prims we can't distort
+        preserved_prim3Ds = [p for p in self.prim3Dsflat if p.preserve_shape]
+
+        # here the point must be outside the preserved prim3Ds, so we will employ our scheme
+
+        boundary_points = np.zeros((len(x0),len(preserved_prim3Ds),2)) # compute the nearest intersection points at z0 and z for all preserved primitives
+        next_boundary_points = np.zeros_like(boundary_points)
+
+        for i,p in enumerate(preserved_prim3Ds):
+            bps = p.prim2D.nearest_boundary_point(x0,y0)
+            boundary_points[:,i,0] = bps[0]
+            boundary_points[:,i,1] = bps[1]
+            nbps = np.array(p.transform_point_inside(bps[0],bps[1],z0,z)).T
+            next_boundary_points[:,i,0] = nbps[:,0]
+            next_boundary_points[:,i,1] = nbps[:,1]
+
+        # iterate through pairs of preserved primitives
+        prim_pairs = np.array(list(combinations(np.arange(len(preserved_prim3Ds)),2)))
+
+        # find the pair with the lowest avg distance
+        avg_dists = np.array([ 0.5*(dist(boundary_points[:,i],pt,axis=1)+dist(boundary_points[:,j],pt,axis=1)) for (i,j) in prim_pairs])
+        idx_min_dist = np.argmin(avg_dists,axis=0)
+        ijs = np.array(prim_pairs[idx_min_dist])
+
+        idxrange = np.arange(x0.shape[0])
+
+        bps0 = boundary_points[idxrange,ijs[:,0]]
+        bps1 = boundary_points[idxrange,ijs[:,1]]
+
+        nbps0 = next_boundary_points[idxrange,ijs[:,0]]
+        nbps1 = next_boundary_points[idxrange,ijs[:,1]]
+
+        bp_sep = dist(bps0,bps1,axis=1)
+        next_bp_sep = dist(nbps0,nbps1,axis=1)
+        _scale = next_bp_sep/bp_sep
+
+        edge_vec1 = pt - bps0
+        edge_vec2 = pt - bps1
+        boundary_edge = bps0-bps1
+        next_boundary_edge = nbps0-nbps1
+
+        angl = np.arctan2(boundary_edge[:,1],boundary_edge[:,0])
+        next_angl = np.arctan2(next_boundary_edge[:,1],next_boundary_edge[:,0])
+        rot = next_angl-angl
+        np1 = rotate(edge_vec1*_scale[:,None],rot) + nbps0
+        np2 = rotate(edge_vec2*_scale[:,None],rot) + nbps1
+        npsx,npsy = (0.5*(np1+np2)).T
+        eps=1e-12
+        # check if the point is inside any of the preserved prim3Ds
+        for p in preserved_prim3Ds:
+            _in = p.prim2D.boundary_dist(x0,y0) <= eps
+            xi,yi = p.transform_point_inside(x0[_in],y0[_in],z0,z)
+            npsx[_in],npsy[_in] = xi,yi
+        
+        if len(npsx)==1:
+            return npsx[0],npsy[0]
+        return npsx,npsy
+
     def deriv_transform(self,x0,y0,z0,z):
         """ compute the derivative of the transformation law. default 
         implementation uses finite differences, but an explit law 

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cbeam.waveguide &#8212; cbeam 0.0.1 documentation</title>
+    <title>cbeam.waveguide &#8212; cbeam 0.0.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=e645c8fa"></script>
+    <script src="_static/documentation_options.js?v=f131489c"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -126,7 +126,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.1 documentation</p>
+    <p class="title logo__title">cbeam 0.0.2 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -311,6 +311,7 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.plot_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.plot_mesh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_unvec"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_unvec()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.update"><code class="docutils literal notranslate"><span class="pre">Waveguide.update()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.max_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.max_mesh_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_power"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_power</span></code></a></li>
@@ -514,10 +515,10 @@ the original parts of the union are plotted in a lighter color.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.transform" title="Link to this definition">#</a></dt>
-<dd><p>spatial transformation that should work with most meshes. kinda slow to compute currently, could be.
+<dd><p>spatial transformation that should work with most meshes. kinda slow to compute currently, maybe could be sped up.
 general idea: for a point (x0,y0) find the two nearest primitives at z0. this point, plus the two closest points to
-to it, each constrained to lie a primitive boundary, define a triangle. At z, the primitive boundaries move, and as such
-two of the triangle vertices move. The idea is to place the third point of the triangle, which is (x,y), to
+to it, each constrained to lie on a primitive boundary, define a triangle. At z, the primitive boundaries move, and so
+two of the triangle vertices move. this transformation places the third point of the triangle, which is (x,y), to
 preserve triangle similarity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -560,6 +561,13 @@ mesh from the reference mesh.</p>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.transform_unvec">
+<span class="sig-name descname"><span class="pre">transform_unvec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.transform_unvec" title="Link to this definition">#</a></dt>
+<dd><p>unvectorized version of transform(); this was the original version and is still
+here just for reference.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -620,8 +628,9 @@ updated to z=0 upon initialization.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.vectorized_transform">
-<span class="sig-name descname"><span class="pre">vectorized_transform</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.vectorized_transform" title="Link to this definition">#</a></dt>
-<dd><p>whether or not the transform() function may take vector input. False for the default transform()</p>
+<span class="sig-name descname"><span class="pre">vectorized_transform</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.vectorized_transform" title="Link to this definition">#</a></dt>
+<dd><p>whether or not the transform() function may take vector input. True for the default transform().
+however, if you add/use Prim2Ds or Prim3Ds with unvectorized functions, you may need to set this False.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
@@ -859,12 +868,13 @@ inheriting classes.</p>
 <dt class="sig sig-object py" id="cbeam.waveguide.Prim3D.transform_point_inside">
 <span class="sig-name descname"><span class="pre">transform_point_inside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim3D.transform_point_inside" title="Link to this definition">#</a></dt>
 <dd><p>for a point (x0,y0) inside the boundary at z0, compute a new point (x,y) at z, accounting
-for the z-variation of the Prim3D. should be implemented by inheriting classes.</p>
+for the z-variation of the Prim3D. should be implemented by inheriting classes, and
+should be vectorized if possible.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x0</strong> (<em>float</em>) – reference x coordinate inside the boundary at z0</p></li>
-<li><p><strong>y0</strong> (<em>float</em>) – reference y coordinate inside the boundary at z0</p></li>
+<li><p><strong>x0</strong> (<em>float</em><em> or </em><em>vector</em>) – reference x coordinate(s) inside the boundary at z0</p></li>
+<li><p><strong>y0</strong> (<em>float</em><em> or </em><em>vector</em>) – reference y coordinate(s) inside the boundary at z0</p></li>
 <li><p><strong>z0</strong> (<em>float</em>) – reference z coordiante</p></li>
 <li><p><strong>z</strong> (<em>float</em>) – new z coordinate</p></li>
 </ul>
@@ -872,8 +882,8 @@ for the z-variation of the Prim3D. should be implemented by inheriting classes.<
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><dl class="simple">
 <dt>a tuple containing:</dt><dd><ul class="simple">
-<li><p>x1 : the new x coordinate at z</p></li>
-<li><p>y1 : the new y coordinate at z</p></li>
+<li><p>x1 (float or vector): the new x coordinate(s) at z</p></li>
+<li><p>y1 (float or vector): the new y coordinate(s) at z</p></li>
 </ul>
 </dd>
 </dl>
@@ -967,8 +977,24 @@ inside the closed curve, the primitive has refractive index n.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.boundary_dist">
 <span class="sig-name descname"><span class="pre">boundary_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.boundary_dist" title="Link to this definition">#</a></dt>
-<dd><p>this function computes the distance between the point (x,y) and the boundary of the primitive. negative distances -&gt; inside the boundary, while positive -&gt; outside
-note that this doesn’t need to be exact. the “distance” just needs to be positive outside the boundary, negative inside the boundary, and go to 0 as you approach the boundary.</p>
+<dd><p>this function computes the distance between the point (x,y) and the boundary of the primitive.
+negative distances -&gt; inside the boundary, while positive -&gt; outside. note that this doesn’t need to be exact,
+the “distance” just needs to be positive outside the boundary, negative inside the boundary, and go to 0 as you approach the boundary.
+it is better if it works on vectorized inputs for x,y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em><em> or </em><em>vector</em>) – x coordinate(s)  of point(s) to measure distance w/ boundary.</p></li>
+<li><p><strong>y</strong> (<em>float</em><em> or </em><em>vector</em>) – y coordinate(s)  of point(s) to measure distance w/ boundary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the distance(s) to the boundary from the point(s)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float or vector)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -981,7 +1007,29 @@ according to some args.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cbeam.waveguide.Prim2D.nearest_boundary_point">
 <span class="sig-name descname"><span class="pre">nearest_boundary_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Prim2D.nearest_boundary_point" title="Link to this definition">#</a></dt>
-<dd><p>this function computes the point on the boundary that is closest to a point (x,y).</p>
+<dd><p>this function computes the point on the boundary that is closest to a point (x,y).
+it is better if it works on vectorized inputs for x,y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em><em> or </em><em>vector</em>) – x coordinate(s)  of point(s) to measure distance w/ boundary.</p></li>
+<li><p><strong>y</strong> (<em>float</em><em> or </em><em>vector</em>) – y coordinate(s)  of point(s) to measure distance w/ boundary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>a tuple containing:</dt><dd><ul class="simple">
+<li><p>(float or vector): the x coordinate(s) of the nearest boundary point</p></li>
+<li><p>(float or vector): the y coordinate(s) of the nearest boundary point</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(tuple)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1120,6 +1168,7 @@ not fully tested.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.plot_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.plot_mesh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_mesh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_unvec"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_unvec()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.update"><code class="docutils literal notranslate"><span class="pre">Waveguide.update()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.max_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.max_mesh_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_power"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_power</span></code></a></li>

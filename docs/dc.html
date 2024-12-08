@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>3. directional coupler &#8212; cbeam 0.0.1 documentation</title>
+    <title>3. directional coupler &#8212; cbeam 0.0.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=e645c8fa"></script>
+    <script src="_static/documentation_options.js?v=f131489c"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.1 documentation</p>
+    <p class="title logo__title">cbeam 0.0.2 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -149,10 +149,10 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="wvgdes.html">making custom waveguides</a></li>
-<li class="toctree-l2"><a class="reference internal" href="meshing.html">meshing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="propsettings.html">propagator settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="evaluation.html">evaluating fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. evaluating fields</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -373,10 +373,11 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
 <img alt="_images/dc-4.png" class="plot-directive" src="_images/dc-4.png" />
 </figure>
 <p>This is the antisymmetric mode in the coupling region.</p>
-<p>Next, let’s characterize and look at the coupling coefficients. This will take longer than the last example; one of the reasons is that <code class="docutils literal notranslate"><span class="pre">Dicoupler</span></code> uses the default mesh transformation law, which is not as efficient as the custom law written for <code class="docutils literal notranslate"><span class="pre">PhotonicLantern</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># uncomment below as necessary</span>
-<span class="c1"># dc_prop.characterize(save=True,tag=tag)</span>
-<span class="n">dc_prop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+<p>Next, let’s characterize and look at the coupling coefficients. For reference, this takes around 10s on my laptop.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment/uncomment below as necessary</span>
+<span class="n">dc_prop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
+<span class="c1"># dc_prop.load(tag)</span>
+
 <span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">()</span>
 </pre></div>
 </div>

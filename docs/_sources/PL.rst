@@ -55,15 +55,15 @@ We can do mode solves at specific :math:`z` values as before. Below I plot eigen
 solving through the waveguide
 -----------------------------
 
-We can also characterize the waveguide to get the effective indices and modes as a function of :math:`z`. Below I plot the effective indices.
+We can also characterize the waveguide to get the effective indices and modes as a function of :math:`z`. For reference, this takes around a minute on my laptop. Below I also plot the effective indices.
 
 .. plot::
     :context: close-figs
 
-    # uncomment below if necessary
-    # PLprop.characterize(save=True,tag="test")
+    # comment/uncomment below as necessary
+    PLprop.characterize(save=True,tag="test")
 
-    PLprop.load("test")
+    # PLprop.load("test")
 
     PLprop.plot_neffs()
 
@@ -99,10 +99,10 @@ I will run a ``characterize()`` again to show how the coupling coefficients chan
 .. plot::
     :context: close-figs
 
-    # uncomment below if necessary
-    # PLprop.characterize(save=True,tag="testdegen")
-
-    PLprop.load("testdegen")
+    # comment/uncomment below as necessary
+    PLprop.characterize(save=True,tag="testdegen")
+    # PLprop.load("testdegen")
+    
     PLprop.plot_coupling_coeffs()
 
 Comparing this plot with the previous, we notics that coupling coefficients are lower now, as expected.

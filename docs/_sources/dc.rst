@@ -73,14 +73,15 @@ Next, I'll initialize the propagator, and plot a mode.
 
 This is the antisymmetric mode in the coupling region.
 
-Next, let's characterize and look at the coupling coefficients. This will take longer than the last example; one of the reasons is that ``Dicoupler`` uses the default mesh transformation law, which is not as efficient as the custom law written for ``PhotonicLantern``.
+Next, let's characterize and look at the coupling coefficients. For reference, this takes around 10s on my laptop.
 
 .. plot::
     :context: close-figs
     
-    # uncomment below as necessary
-    # dc_prop.characterize(save=True,tag=tag) 
-    dc_prop.load(tag)
+    # comment/uncomment below as necessary
+    dc_prop.characterize(save=True,tag=tag) 
+    # dc_prop.load(tag)
+    
     dc_prop.plot_coupling_coeffs()
 
 We see two large spikes, corresponding to a shift in modal basis from the individual channel modes to the symmetric and antisymmetric modes of the coupling region.

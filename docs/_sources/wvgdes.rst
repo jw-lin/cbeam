@@ -7,12 +7,12 @@ making custom waveguides
 
 Defining a custom waveguide is kinda complicated without a proper CAD environment. In ``cbeam``, a ``Waveguide`` is a nested list of 3D objects, represented by the ``Prim3D`` class. In turn, a ``Prim3D`` is a 2D shape, like a circle or rectangle, combined with some functional :math:`z` dependence. This 2D shape is represented by the ``Prim2D`` class.
 
-This structure was chosen to make it easier to construct waveguides: the tradeoff is that it is harder to add new 2D shapes, since these shapes need some extra machinery needs to inform the mesh transformation law. This section gives a bottom-up overview of this hierarchy.
+This structure was chosen to make it easier to construct waveguides: the tradeoff is that it is harder to add new 2D shapes, since these shapes need some extra machinery to inform the mesh transformation law. This section shows to define custom waveguides from the bottom up.
 
 the ``Prim2D`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The most basic parent class that represents a refractive index geometry is a ``Prim2D``. Each ``Prim2D`` stores a refractive index value and an array of :math:`(x,y)` points bounding the physical region which contains that index value. A ``Prim2D`` is generically initialized through ::
+The most basic class that represents a refractive index geometry is a ``Prim2D``. Each ``Prim2D`` stores a refractive index value and an array of :math:`(x,y)` points bounding the physical region which contains that index value. A ``Prim2D`` is generically initialized through ::
 
     prim2D = waveguide.Prim2D(n,points)
 
@@ -24,7 +24,7 @@ To make specific types of geometries, users are encouraged to define subclasses 
 
 2. ``nearest_boundary_point(x, y)`` : compute the closest boundary point to the point :math:`(x,y)`.
 
-These functions enable the general mesh transformation law. See the ``Circle`` and ``Rectangle`` classes for examples. 
+These functions enable the general mesh transformation law. ``cbeam`` assumes that these functions are vectorized; if not, then mesh transformation will much slower (see the ``Waveguide.vectorized_transform`` attribute, covered in :ref:`wvg`). Also, see the ``Circle`` and ``Rectangle`` classes for example implementations.
 
 More complicated primitives can be created through the ``waveguide.Prim2DUnion`` class.
 
@@ -39,7 +39,7 @@ where ``prim2D`` is a ``Prim2D`` object representing the cross-section of the ``
 
 Users can make their own ``Prim3D`` subclasses, which implement their desired :math:`z`-dependence. Inheriting classes must implement the function ``make_points_at_z()``, which updates ``prim2D`` to the desired :math:`z` coordinate and returns the point array. Two subclasses currently implemented are ``Pipe`` and ``BoxPipe``, which can be used to represent primitives with circular or rectangular cross-sections.
 
-As mentioned in Section 1, ``cbeam`` models the :math:`z`-evolution of a waveguide by applying a continuous spatial transformation to a finite element mesh. A basic transformation that should work for a variety of different waveguide geometries is already implemented. However, to prevent this transformation from touching the mesh points within primitive boundaries, custom ``Prim3D`` subclasses should also implement the function ``transform_point_inside()``, which will override the mesh transformation rules within the primitive boundary. You can look at ``Pipe`` and ``BoxPipe`` as examples.
+As mentioned in Section 1, ``cbeam`` models the :math:`z`-evolution of a waveguide by applying a continuous spatial transformation to a finite element mesh. A basic transformation that should work for a variety of different waveguide geometries is already implemented. However, to prevent this transformation from touching the mesh points within primitive boundaries, custom ``Prim3D`` subclasses should also implement the function ``transform_point_inside()``, which will override the mesh transformation rules within the primitive boundary. Again, this function is assumed by default to be vectorized. You can look at ``Pipe`` and ``BoxPipe`` as examples.
 
 
 .. _wvg:
@@ -56,6 +56,12 @@ Users can define their own ``Waveguide`` subclasses, which initialize a set of `
 * ``transform(x0,y0,z0,z)`` : this function takes a point :math:`(x_0,y_0,z_0)` and returns a new point :math:`(x,y)` at the longitudinal coordinate :math:`z`. This transformation is used give :math:`z` dependence to the mesh geometry in a continuous manner. 
 
 This will override the base ``Waveguide.transform()`` function, which works for a variety of waveguides but may be slow. As an example, the ``PhotonicLantern`` class overrides ``transform()``.
+
+The default ``transform()`` function is vectorized; however, if you implement your own unvectorized function or use custom ``Prim2D`` classes with unvectorized functions, you will need to set the class attribute
+
+``Waveguide.vectorized_transform = False``
+
+which may cause a slowdown.
 
 The ``Waveguide`` class also handles mesh generation, which can be tuned via ``Waveguide`` class attributes. We will cover this next.
 

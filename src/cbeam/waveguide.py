@@ -398,17 +398,18 @@ class Prim3D:
 
     def transform_point_inside(self,x0,y0,z0,z):
         """ for a point (x0,y0) inside the boundary at z0, compute a new point (x,y) at z, accounting
-        for the z-variation of the Prim3D. should be implemented by inheriting classes.
+        for the z-variation of the Prim3D. should be implemented by inheriting classes, and 
+        should be vectorized if possible.
 
         ARGS:
-            x0 (float): reference x coordinate inside the boundary at z0
-            y0 (float): reference y coordinate inside the boundary at z0
+            x0 (float or vector): reference x coordinate(s) inside the boundary at z0
+            y0 (float or vector): reference y coordinate(s) inside the boundary at z0
             z0 (float): reference z coordiante
             z (float): new z coordinate
         RETURNS:
             (tuple): a tuple containing:
-                - x1 : the new x coordinate at z
-                - y1 : the new y coordinate at z
+                - x1 (float or vector): the new x coordinate(s) at z
+                - y1 (float or vector): the new y coordinate(s) at z
         """
         return x0,y0
 
@@ -549,7 +550,7 @@ class Waveguide:
     recon_midpts = True
 
     #: bool: whether or not the transform() function may take vector input. True for the default transform().
-    #: however, if you add/use Prim2Ds with unvectorized functions, you may need to set this False.
+    #: however, if you add/use Prim2Ds or Prim3Ds with unvectorized functions, you may need to set this False.
     vectorized_transform = True
 
     fd_eps = 1e-6

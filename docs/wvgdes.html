@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>1. making custom waveguides &#8212; cbeam 0.0.1 documentation</title>
+    <title>1. making custom waveguides &#8212; cbeam 0.0.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=e645c8fa"></script>
+    <script src="_static/documentation_options.js?v=f131489c"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.1 documentation</p>
+    <p class="title logo__title">cbeam 0.0.2 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -325,10 +325,10 @@
 </ul>
 </nav>
 <p>Defining a custom waveguide is kinda complicated without a proper CAD environment. In <code class="docutils literal notranslate"><span class="pre">cbeam</span></code>, a <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code> is a nested list of 3D objects, represented by the <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code> class. In turn, a <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code> is a 2D shape, like a circle or rectangle, combined with some functional <span class="math notranslate nohighlight">\(z\)</span> dependence. This 2D shape is represented by the <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> class.</p>
-<p>This structure was chosen to make it easier to construct waveguides: the tradeoff is that it is harder to add new 2D shapes, since these shapes need some extra machinery needs to inform the mesh transformation law. This section gives a bottom-up overview of this hierarchy.</p>
+<p>This structure was chosen to make it easier to construct waveguides: the tradeoff is that it is harder to add new 2D shapes, since these shapes need some extra machinery to inform the mesh transformation law. This section shows to define custom waveguides from the bottom up.</p>
 <section id="the-prim2d-class">
 <h2><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">1.1. </span>the <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> class</a><a class="headerlink" href="#the-prim2d-class" title="Link to this heading">#</a></h2>
-<p>The most basic parent class that represents a refractive index geometry is a <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code>. Each <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> stores a refractive index value and an array of <span class="math notranslate nohighlight">\((x,y)\)</span> points bounding the physical region which contains that index value. A <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> is generically initialized through</p>
+<p>The most basic class that represents a refractive index geometry is a <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code>. Each <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> stores a refractive index value and an array of <span class="math notranslate nohighlight">\((x,y)\)</span> points bounding the physical region which contains that index value. A <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> is generically initialized through</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prim2D</span> <span class="o">=</span> <span class="n">waveguide</span><span class="o">.</span><span class="n">Prim2D</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -338,7 +338,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">boundary_dist(x,y)</span></code> : compute the minimum distance between the point <span class="math notranslate nohighlight">\((x,y)\)</span> and the primitive boundary, returning a negative value if the point is inside the boundary.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">nearest_boundary_point(x,</span> <span class="pre">y)</span></code> : compute the closest boundary point to the point <span class="math notranslate nohighlight">\((x,y)\)</span>.</p></li>
 </ol>
-<p>These functions enable the general mesh transformation law. See the <code class="docutils literal notranslate"><span class="pre">Circle</span></code> and <code class="docutils literal notranslate"><span class="pre">Rectangle</span></code> classes for examples.</p>
+<p>These functions enable the general mesh transformation law. <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> assumes that these functions are vectorized; if not, then mesh transformation will much slower (see the <code class="docutils literal notranslate"><span class="pre">Waveguide.vectorized_transform</span></code> attribute, covered in <a class="reference internal" href="#wvg"><span class="std std-ref">the Waveguide class</span></a>). Also, see the <code class="docutils literal notranslate"><span class="pre">Circle</span></code> and <code class="docutils literal notranslate"><span class="pre">Rectangle</span></code> classes for example implementations.</p>
 <p>More complicated primitives can be created through the <code class="docutils literal notranslate"><span class="pre">waveguide.Prim2DUnion</span></code> class.</p>
 </section>
 <section id="the-prim3d-class">
@@ -349,7 +349,7 @@
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">prim2D</span></code> is a <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> object representing the cross-section of the <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code> is a user-specified string to attach to the bound region (e.g. “core” or “cladding” for a step-index fiber.)</p>
 <p>Users can make their own <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code> subclasses, which implement their desired <span class="math notranslate nohighlight">\(z\)</span>-dependence. Inheriting classes must implement the function <code class="docutils literal notranslate"><span class="pre">make_points_at_z()</span></code>, which updates <code class="docutils literal notranslate"><span class="pre">prim2D</span></code> to the desired <span class="math notranslate nohighlight">\(z\)</span> coordinate and returns the point array. Two subclasses currently implemented are <code class="docutils literal notranslate"><span class="pre">Pipe</span></code> and <code class="docutils literal notranslate"><span class="pre">BoxPipe</span></code>, which can be used to represent primitives with circular or rectangular cross-sections.</p>
-<p>As mentioned in Section 1, <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> models the <span class="math notranslate nohighlight">\(z\)</span>-evolution of a waveguide by applying a continuous spatial transformation to a finite element mesh. A basic transformation that should work for a variety of different waveguide geometries is already implemented. However, to prevent this transformation from touching the mesh points within primitive boundaries, custom <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code> subclasses should also implement the function <code class="docutils literal notranslate"><span class="pre">transform_point_inside()</span></code>, which will override the mesh transformation rules within the primitive boundary. You can look at <code class="docutils literal notranslate"><span class="pre">Pipe</span></code> and <code class="docutils literal notranslate"><span class="pre">BoxPipe</span></code> as examples.</p>
+<p>As mentioned in Section 1, <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> models the <span class="math notranslate nohighlight">\(z\)</span>-evolution of a waveguide by applying a continuous spatial transformation to a finite element mesh. A basic transformation that should work for a variety of different waveguide geometries is already implemented. However, to prevent this transformation from touching the mesh points within primitive boundaries, custom <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code> subclasses should also implement the function <code class="docutils literal notranslate"><span class="pre">transform_point_inside()</span></code>, which will override the mesh transformation rules within the primitive boundary. Again, this function is assumed by default to be vectorized. You can look at <code class="docutils literal notranslate"><span class="pre">Pipe</span></code> and <code class="docutils literal notranslate"><span class="pre">BoxPipe</span></code> as examples.</p>
 </section>
 <section id="the-waveguide-class">
 <span id="wvg"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink"><span class="section-number">1.3. </span>the <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code> class</a><a class="headerlink" href="#the-waveguide-class" title="Link to this heading">#</a></h2>
@@ -362,6 +362,9 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">transform(x0,y0,z0,z)</span></code> : this function takes a point <span class="math notranslate nohighlight">\((x_0,y_0,z_0)\)</span> and returns a new point <span class="math notranslate nohighlight">\((x,y)\)</span> at the longitudinal coordinate <span class="math notranslate nohighlight">\(z\)</span>. This transformation is used give <span class="math notranslate nohighlight">\(z\)</span> dependence to the mesh geometry in a continuous manner.</p></li>
 </ul>
 <p>This will override the base <code class="docutils literal notranslate"><span class="pre">Waveguide.transform()</span></code> function, which works for a variety of waveguides but may be slow. As an example, the <code class="docutils literal notranslate"><span class="pre">PhotonicLantern</span></code> class overrides <code class="docutils literal notranslate"><span class="pre">transform()</span></code>.</p>
+<p>The default <code class="docutils literal notranslate"><span class="pre">transform()</span></code> function is vectorized; however, if you implement your own unvectorized function or use custom <code class="docutils literal notranslate"><span class="pre">Prim2D</span></code> classes with unvectorized functions, you will need to set the class attribute</p>
+<p><code class="docutils literal notranslate"><span class="pre">Waveguide.vectorized_transform</span> <span class="pre">=</span> <span class="pre">False</span></code></p>
+<p>which may cause a slowdown.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code> class also handles mesh generation, which can be tuned via <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code> class attributes. We will cover this next.</p>
 <p><span class="math notranslate nohighlight">\(^\dagger\)</span> <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code> objects in the same sublist should never intersect. However, they can have different <code class="docutils literal notranslate"><span class="pre">label</span></code> s and refractive indices. If you want to model intersecting primitives, you should make a <code class="docutils literal notranslate"><span class="pre">Prim2DUnion</span></code>, and then apply some <span class="math notranslate nohighlight">\(z\)</span>-dependence to make a custom <code class="docutils literal notranslate"><span class="pre">Prim3D</span></code>.</p>
 </section>

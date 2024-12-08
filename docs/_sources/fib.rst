@@ -108,9 +108,9 @@ Moving on, we'll now solve for the modes of this waveguide as a function of :mat
 
     rect_tag = "tapered_box"
 
-    # uncomment below as necessary
-    # rect_prop.compute_modes(0,length,save=True,tag=rect_tag)
-    rect_prop.load(rect_tag)
+    # comment/uncomment below as necessary
+    rect_prop.compute_modes(0,length,save=True,tag=rect_tag)
+    # rect_prop.load(rect_tag)
 
 Now, we'll take a look at the effective indices of the modes.
 

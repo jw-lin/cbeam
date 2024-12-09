@@ -25,7 +25,7 @@ function isleaf(a::Union{leaf,idxtree})
     return typeof(a) == leaf
 end
 
-function compute_SAH(cmins::Vector{Float64},cmaxs::Vector{Float64},csplit::Float64)
+function compute_SAH(cmins::AbstractVector{Float64},cmaxs::AbstractVector{Float64},csplit::Float64)
     total_interval = cmaxs[end]-cmins[1]
     area_A = (csplit-cmins[1])/total_interval
     area_B = 1 - area_A
@@ -36,7 +36,7 @@ function compute_SAH(cmins::Vector{Float64},cmaxs::Vector{Float64},csplit::Float
     return 1 + area_A*num_tris_A*4 + area_B*num_tris_B*4
 end
 
-function minimize_SAH(cmins::Vector{Float64},cmaxs::Vector{Float64},num_buckets=8)
+function minimize_SAH(cmins::AbstractVector{Float64},cmaxs::AbstractVector{Float64},num_buckets=8)
     start_minidx = Int(ceil(length(cmins)/2))
     N = size(cmins,1)
     if N <= 8
@@ -147,15 +147,15 @@ function update_tritree(_tritree::tritree,scale_factor::Float64)
     modify_idx_tree_recursive(_tritree._idxtree,scale_factor)
 end
 
-function inside(point::Vector{Float64},bbox::Vector{Float64})
+function inside(point::AbstractVector{Float64},bbox::AbstractVector{Float64})
     return (bbox[1]<=point[1]<=bbox[2]) & (bbox[3]<=point[2]<=bbox[4])
 end
 
-function det(u::Vector{Float64},v::Vector{Float64})
+function det(u::AbstractVector{Float64},v::AbstractVector{Float64})
     return u[1]*v[2] - u[2]*v[1]
 end
 
-function inside(point::Vector{Float64},tri::Array{Float64,2},_eps=1e-12)::Bool
+function inside(point::AbstractVector{Float64},tri::Array{Float64,2},_eps=1e-12)::Bool
     x,y = point
     dot1 = (tri[2,2]-tri[1,2])*(x-tri[1,1]) + (tri[1,1]-tri[2,1])*(y-tri[1,2])
     if dot1 > _eps
@@ -172,7 +172,7 @@ function inside(point::Vector{Float64},tri::Array{Float64,2},_eps=1e-12)::Bool
     return true
 end
 
-function query_recursive(point::Union{Vector{Float64},PyArray{Float64,1}},tripoints::Array{Float64,3},_idxtree::Union{idxtree,leaf,Nothing}) :: Int64
+function query_recursive(point::Union{AbstractVector{Float64},PyArray{Float64,1}},tripoints::Array{Float64,3},_idxtree::Union{idxtree,leaf,Nothing}) :: Int64
     if typeof(point) <: PyArray
         point = pyconvert(Vector{Float64},point)
     end
@@ -202,7 +202,7 @@ function query_recursive(point::Union{Vector{Float64},PyArray{Float64,1}},tripoi
     end
 end
 
-function query(point::Union{Vector{Float64},PyArray{Float64,1}},_tritree::tritree) :: Int64
+function query(point::Union{AbstractVector{Float64},PyArray{Float64,1}},_tritree::tritree) :: Int64
     if typeof(point) <: PyArray
         point = pyconvert(Vector{Float64},point)
     end
@@ -297,7 +297,7 @@ function affine_transform_matrix_inv(vertices::Array{Float64,2})
     return [x21 x31 ; y21 y31]
 end
 
-function apply_affine_transform(vertices::AbstractArray{Float64,2},xy::Vector{Float64})
+function apply_affine_transform(vertices::AbstractArray{Float64,2},xy::AbstractVector{Float64})
     M = affine_transform_matrix(vertices)
     return M * (xy .- vertices[1,:])
 end
@@ -339,7 +339,7 @@ function get_interp_weights(new_points::PyArray{Float64,2},_tritree::tritree)
     return (_triidxs,_weights)
 end
 
-function evaluate(point::Union{Vector{Float64},PyArray{Float64,1}},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: T where T<:Union{Float64,ComplexF64}
+function evaluate(point::Union{AbstractVector{Float64},PyArray{Float64,1}},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: T where T<:Union{Float64,ComplexF64}
     dtype = eltype(field)
     if typeof(point) <: PyArray
         point = pyconvert(Vector{Float64},point)
@@ -362,15 +362,15 @@ function evaluate(point::Union{Vector{Float64},PyArray{Float64,1}},field::Union{
     return val
 end
 
-function evaluate(point::PyArray{Float64,2},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: T where T<:Union{Float64,ComplexF64}
+function evaluate(point::Union{PyMatrix{Float64},Matrix{Float64}},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: Vector{T} where T<:Union{Float64,ComplexF64}
     dtype = eltype(field)
     if typeof(point) <: PyArray
-        point = pyconvert(Vector{Float64},point)
+        point = pyconvert(Matrix{Float64},point)
     end
     if typeof(field) <: PyArray
         field = pyconvert(Vector{dtype},field)
     end
-    out = Vector{dtype}(undef,size(points,1))
+    out = Vector{dtype}(undef,size(point,1))
 
     for i in axes(point,1)
         @views _point = point[i,:]
@@ -400,7 +400,7 @@ function evaluate_func(field::PyArray{T,1} where T<:Union{Float64,ComplexF64},_t
     dtype = eltype(field)
     field = pyconvert(Vector{dtype},field)
 
-    function _inner_(point::Union{Vector{Float64},PyArray{Float64,1}})
+    function _inner_(point::Union{AbstractVector{Float64},PyArray{Float64,1}})
         if typeof(point) <: PyArray
             point = pyconvert(Vector{Float64},point)
         end
@@ -425,7 +425,7 @@ end
 
 global const guvs = [-3.0 -1.0 0.0 4.0 0.0 -0.0; 1.0 3.0 0.0 -4.0 0.0 -0.0; 1.0 -1.0 0.0 0.0 4.0 -4.0; -1.0 1.0 0.0 0.0 0.0 -0.0; 1.0 1.0 0.0 -2.0 2.0 -2.0; -1.0 -1.0 0.0 2.0 2.0 -2.0;;; -3.0 0.0 -1.0 -0.0 0.0 4.0; 1.0 0.0 -1.0 -4.0 4.0 0.0; 1.0 0.0 3.0 -0.0 0.0 -4.0; -1.0 0.0 -1.0 -2.0 2.0 2.0; 1.0 0.0 1.0 -2.0 2.0 -2.0; -1.0 0.0 1.0 -0.0 0.0 0.0] :: Array{Float64,3}
 
-function transverse_gradient(field::Vector{Float64},tris::Matrix{T} where T<:Int,points::Matrix{Float64})
+function transverse_gradient(field::AbstractVector{Float64},tris::Matrix{T} where T<:Int,points::Matrix{Float64})
     total_gradient = zeros(Float64,size(field)[1],2)
     counts = zeros(UInt32,size(field)[1])
     M = zeros(Float64,2,2)
@@ -447,7 +447,7 @@ function transverse_gradient(field::Vector{Float64},tris::Matrix{T} where T<:Int
     return total_gradient
 end
 
-function transverse_gradient(field::Union{PyVector{Float64},Vector{Float64}} ,tris::PyMatrix{UInt64},points::PyMatrix{Float64})
+function transverse_gradient(field::Union{PyVector{Float64},AbstractVector{Float64}} ,tris::PyMatrix{UInt64},points::PyMatrix{Float64})
     """ compute the gradient of the finite element field wrt x,y - python version """
     tris = pyconvert(Array{UInt32,2},tris) .+ 1
     points = pyconvert(Array{Float64,2},points)

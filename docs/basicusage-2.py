@@ -32,13 +32,11 @@ import matplotlib.pyplot as plt
 fig,axs = plt.subplots(1,2,)
 
 prop.plot_cfield(input_field,z=0,ax=axs[0],show_mesh=True)
-prop.plot_cfield(output_field,z=zs[-1],ax=axs[1],show_mesh=True)
+prop.plot_cfield(output_field,z=zs[-1],ax=axs[1],show_mesh=True,xlim=(-100,100),ylim=(-100,100))
 
 # plot decoration
 axs[0].set_title("initial field")
 axs[1].set_title("final field")
-axs[1].set_xlim(-100,100)
-axs[1].set_ylim(-100,100)
 
 # must manually call show() if you're plotting on a premade axis
 plt.show()

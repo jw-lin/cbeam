@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>4. evaluating fields &#8212; cbeam 0.0.2 documentation</title>
+    <title>4. resampling and evaluating fields &#8212; cbeam 0.0.3 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=f131489c"></script>
+    <script src="_static/documentation_options.js?v=4acdca81"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.2 documentation</p>
+    <p class="title logo__title">cbeam 0.0.3 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -146,13 +146,14 @@
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
 <li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">4. evaluating fields</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">4. resampling and evaluating fields</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -289,7 +290,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>evaluating fields</h1>
+    <h1>resampling and evaluating fields</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -303,9 +304,27 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="evaluating-fields">
-<h1><span class="section-number">4. </span>evaluating fields<a class="headerlink" href="#evaluating-fields" title="Link to this heading">#</a></h1>
-<p>In <code class="docutils literal notranslate"><span class="pre">cbeam</span></code>, field values are saved only over the mesh nodes. To evaluate a <code class="docutils literal notranslate"><span class="pre">field</span></code> computed on a <code class="docutils literal notranslate"><span class="pre">mesh</span></code> at an <em>arbitrary</em> <code class="docutils literal notranslate"><span class="pre">point</span> <span class="pre">=</span> <span class="pre">(x,y)</span></code>, we use the <code class="docutils literal notranslate"><span class="pre">FEval</span></code> submodule. This package accelerates the evaluation of finite element fields by storing mesh triangles in a bounding volume hierarchy (BVH) tree. For instance, to perform the field evaluation mentioned above, we can use</p>
+  <section id="resampling-and-evaluating-fields">
+<h1><span class="section-number">4. </span>resampling and evaluating fields<a class="headerlink" href="#resampling-and-evaluating-fields" title="Link to this heading">#</a></h1>
+<p>In <code class="docutils literal notranslate"><span class="pre">cbeam</span></code>, field values are saved only over the mesh nodes. If you have a field from one mesh and want to make it work with another mesh, you must resample the field on the new mesh’s points. This is done using the <code class="docutils literal notranslate"><span class="pre">FEval</span></code> submodule, as follows.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam</span> <span class="kn">import</span> <span class="n">FEval</span>
+
+<span class="c1"># resample takes: field, input mesh, output mesh</span>
+<span class="n">resampled_field</span> <span class="o">=</span> <span class="n">FEval</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">newmesh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to propagate this resampled field, you then need to decompose the field into the modal basis of the propagator, which uses <code class="docutils literal notranslate"><span class="pre">newmesh</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.propator</span> <span class="kn">import</span> <span class="n">Propagator</span>
+
+<span class="c1"># initialize propagator however</span>
+<span class="c1"># and characterize() or load()</span>
+<span class="n">prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="n">mode_vector</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">make_mode_vector</span><span class="p">(</span><span class="n">resampled_field</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Take a look at <a class="reference internal" href="mmi.html"><span class="doc">multimode interference coupler</span></a> for an example.</p>
+<p>We can also evaluate a <code class="docutils literal notranslate"><span class="pre">field</span></code> computed on a <code class="docutils literal notranslate"><span class="pre">mesh</span></code> at an <em>arbitrary</em> <code class="docutils literal notranslate"><span class="pre">point</span> <span class="pre">=</span> <span class="pre">(x,y)</span></code>. <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> accelerates the repeated evaluation of fields on the same mesh by storing the mesh’s triangles in a bounding volume hierarchy (BVH) tree. For instance, to perform the field evaluation mentioned above, we can use</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">val</span> <span class="o">=</span> <span class="n">FEval</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">point</span><span class="p">,</span><span class="n">field</span><span class="p">,</span><span class="n">tree</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -315,11 +334,11 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">field</span></code>: the field to be evaluated, discretized as a length <span class="math notranslate nohighlight">\(M\)</span> array where <span class="math notranslate nohighlight">\(M\)</span> is the number of mesh points.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tree</span></code>: the BVHtree representing the finite element mesh that <code class="docutils literal notranslate"><span class="pre">field</span></code> is discretized over (more on this next).</p></li>
 </ol>
-<p>To construct a BVH tree, you can use</p>
+<p>To construct a BVH tree, we use</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tree</span> <span class="o">=</span> <span class="n">FEval</span><span class="o">.</span><span class="n">create_tree_from_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You can also resample onto <span class="math notranslate nohighlight">\(N\)</span> points at once (e.g. the points of another mesh) by passing an <span class="math notranslate nohighlight">\(N\times 2\)</span> <code class="docutils literal notranslate"><span class="pre">point</span></code> array, or resample onto a grid using <code class="docutils literal notranslate"><span class="pre">FEval.evaluate_grid()</span></code>.</p>
+<p>You can also resample onto <span class="math notranslate nohighlight">\(N\)</span> points at once (e.g. the points of another mesh, which is what <code class="docutils literal notranslate"><span class="pre">resample()</span></code> does under the hood) by passing an <span class="math notranslate nohighlight">\(N\times 2\)</span> <code class="docutils literal notranslate"><span class="pre">point</span></code> array, or resample onto a grid using <code class="docutils literal notranslate"><span class="pre">FEval.evaluate_grid()</span></code>.</p>
 </section>
 
 

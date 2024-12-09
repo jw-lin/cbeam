@@ -13,7 +13,7 @@ If you have questions, suggestions, or would like to contribute, feel free to co
 
 .. note::
 
-   ``cbeam`` is still under active development. Currently, the package assumes weak guidance and unidirectional/paraxial propagation. Vectorial propagation, radiative losses, graded refractive indices, and back reflection are not supported (for now).
+   ``cbeam`` is still under active development. Currently, the package assumes weak guidance and unidirectional/paraxial propagation. Vectorial propagation, radiative losses, graded refractive indices, and back reflection are not supported (for now). There may be bugs.
 
 
 ^^^^^^^^^^^^^^^^^

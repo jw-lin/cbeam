@@ -1,9 +1,14 @@
 directional coupler
 ===================
+.. contents::
+    :local:
 
 The simplest directional coupler is composed of two embedded single-mode channels, which are "squeezed" to some minimum core-to-core separation over the course of some "coupling length". Along the coupling length, power between the channels oscillates. If the overall waveguide is symmetric, the net power transfer between the cores can vary from 0 to 1, and will oscillate sinusoidally with the coupling length.
 
 A wavefront originally confined to one channel of a symmetric dicoupler will evenly excite both the symmetric and antisymmetric modes along the coupling length . Due to the difference in effective index, the supermodes beat against each other. The net effect is an oscillation in power between the dicoupler channels. As the coupling length changes, the amount of phase beating changes, which in turn changes the power splitting ratio of the dicoupler.
+
+waveguide setup
+---------------
 
 We will use the ``Dicoupler`` class to define a dicoupler. First, let's set our parameters.
 
@@ -60,18 +65,24 @@ Lets take a look at the mesh, especially how it transforms with :math:`z`:
 
 In order to improve the regularity of the triangles, the outer cladding boundary is allowed to deform as the two cores are brought closer together.
 
+mode solving
+------------
+
 Next, I'll initialize the propagator, and plot a mode.
 
 .. plot::
     :context: close-figs
 
-    from cbeam import propagator
+    from cbeam import propagator 
     dc_prop = propagator.Propagator(wl,dicoupler,Nmax=2)
 
     neff,modes = dc_prop.solve_at(z=dicoupler.z_ex/2)
-    dc_prop.plot_cfield(modes[1],z=dicoupler.z_ex/2) 
+    dc_prop.plot_cfield(modes[1],mesh=dc_prop.mesh) 
 
 This is the antisymmetric mode in the coupling region.
+
+characterization
+----------------
 
 Next, let's characterize and look at the coupling coefficients. For reference, this takes around 10s on my laptop.
 
@@ -81,10 +92,13 @@ Next, let's characterize and look at the coupling coefficients. For reference, t
     # comment/uncomment below as necessary
     dc_prop.characterize(save=True,tag=tag) 
     # dc_prop.load(tag)
-    
+
     dc_prop.plot_coupling_coeffs()
 
 We see two large spikes, corresponding to a shift in modal basis from the individual channel modes to the symmetric and antisymmetric modes of the coupling region.
+
+propagation
+-----------
 
 Let's launch light into one end and look at how the mode powers change with :math:`z`.
 
@@ -96,6 +110,9 @@ Let's launch light into one end and look at how the mode powers change with :mat
     dc_prop.plot_mode_powers(zs,us)
 
 We see that the light, initially confined in one of the channels, couples evenly into both modes within the couplng region, and then splits.
+
+varying the coupling length
+-----------------------------
 
 Suppose we wanted to look at how the splitting ratio changes with the coupling length. We can play a trick that allows us to reuse the above calculation without rerunning ``characterize``. The idea is to apply a transformation to the $z$ array, preserving monotonicity, to change the length of the waveguide. Below is an example.
 

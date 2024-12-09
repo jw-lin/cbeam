@@ -10,9 +10,10 @@ Below is a collection of examples, ordered mostly in increasing complexity. Thes
 contents
 --------
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :numbered:
 
     fib
     PL
     dc
+    mmi

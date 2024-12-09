@@ -23,6 +23,7 @@ def plot_mesh(mesh,IOR_dict=None,alpha=0.3,ax=None,plot_points=True):
     ax.set_aspect('equal')
 
     points = mesh.points
+    print("mesh has ",points.shape[0]," points")
     els = mesh.cells[1].data
     materials = mesh.cell_sets.keys()
 
@@ -243,6 +244,9 @@ class Rectangle(Prim2D):
         return points
 
     def boundary_dist(self, x, y):
+        if type(x) != np.ndarray:
+            x = np.array([x])
+            y = np.array([y])
         bounds = self.bounds
         xdist = np.minimum(np.abs(bounds[0]-x),np.abs(bounds[1]-x))
         ydist = np.minimum(np.abs(bounds[2]-y),np.abs(bounds[3]-y))
@@ -250,6 +254,8 @@ class Rectangle(Prim2D):
         nx,ny = self.nearest_boundary_point(x,y)
         outdist = np.sqrt(np.power(nx-x,2)+np.power(ny-y,2))
         out = np.where((bounds[0]<=x) & (x<=bounds[1]) & (bounds[2]<=y) & (y<=bounds[3]),-dist,outdist)
+        if out.shape[0] == 1:
+            return out[0]
         return out
     
     def nearest_boundary_point(self, x, y):
@@ -660,7 +666,6 @@ class Waveguide:
         """
         
         prims = self.primsflat
-
         dists = np.zeros(len(prims)) # compute a distance to each primitive boundary
         for i,p in enumerate(prims): 
             if p.skip_refinement and p.mesh_size is not None:
@@ -672,7 +677,8 @@ class Waveguide:
         mesh_sizes = np.zeros(len(prims))
         for i,d in enumerate(dists): 
             p = prims[i]
-            boundary_mesh_size = np.sqrt((p.points[0,0]-p.points[1,0])**2 + (p.points[0,1]-p.points[1,1])**2) 
+            ms = np.inf if p.mesh_size is None else p.mesh_size
+            boundary_mesh_size = min(ms,np.sqrt((p.points[0,0]-p.points[1,0])**2 + (p.points[0,1]-p.points[1,1])**2))
             scaled_size = np.power(1+np.abs(d)/boundary_mesh_size *_scale ,_power) * boundary_mesh_size # this goes to boundary_mesh_size as d->0, and increases as d->inf for _power>0
             if d<=0 and p.mesh_size is not None:
                 mesh_sizes[i] = min(scaled_size,p.mesh_size)
@@ -687,7 +693,6 @@ class Waveguide:
     
     def make_mesh(self,writeto=None):
         """ construct a finite element mesh for the waveguide at current z (default 0).
-            currently aliased to make_mesh_bndry_ref().
         
         ARGS:
             writeto (str or None): filename for mesh (no extension). if None, no file is saved.  
@@ -920,7 +925,7 @@ class Waveguide:
             IOR_dict = self.assign_IOR()
 
         plot_mesh(transformed_mesh,IOR_dict,alpha,ax,plot_points)
-    
+
     def plot_boundaries(self):
         """ plot the boundaries of all prim3Dgroups. For unioned primitives, all boundaries of 
             the original parts of the union are plotted in a lighter color. """
@@ -1160,6 +1165,7 @@ class Waveguide:
         mesh.points = np.array([xp,yp]).T
         if self.recon_midpts:
             self.reconstruct_midpoints(mesh)
+        
         return mesh
     
     def reconstruct_midpoints(self,mesh):
@@ -1250,7 +1256,7 @@ class RectangularStepIndexFiber(Waveguide):
         core = BoxPipe(ncore,"core",xw,yw)
         clad = BoxPipe(nclad,"clad",xw_clad,yw_clad)
         core.mesh_size = min(xw,yw)/10 if core_mesh_size is None else core_mesh_size
-        core.mesh_size = min(xw_clad,yw_clad)/10 if clad_mesh_size is None else clad_mesh_size
+        clad.mesh_size = min(xw_clad,yw_clad)/10 if clad_mesh_size is None else clad_mesh_size
         clad.skip_refinement = True
         els = [clad,core]
         super().__init__(els)

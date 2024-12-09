@@ -30,11 +30,6 @@ Below are some pre-defined waveguides.
 * ``Tricoupler`` : a 3x3 directional coupler with circular channels, in equilateral triangle configuration.
 * ``PhotonicLantern`` : a linearly-tapered photonic lantern, with circular cores, cladding, and jacket.
 
-I plan on adding the following (but they don't exist yet!)
-
-* ``MMI``: a multimode interferometer
-* ``RectangularDicoupler`` : a 2x2 directional coupler using rectangular channels.
-
 ``Waveguide`` objects have several important functions. *First*, the ``Waveguide`` object is responsible for creating a finite-element mesh, e.g. through ::
 
     mesh = Waveguide.make_mesh()
@@ -112,6 +107,13 @@ where ``mode_vector`` is an array of complex-valued mode amplitudes (e.g. any co
     
     Propagator.plot_cfield(field,z)
 
+For plotting eigenmodes, there is a dedicated function ::
+
+    # plot eigenmode i
+    Propagator.plot_waveguide_mode(i)
+
+which comes with a slider so you can vary :math:`z`.
+
 ^^^^^^^^^^^^^^^^^^^^^^^
 putting it all together
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -138,13 +140,13 @@ putting it all together
     # just use the the following if you already ran the above
     prop.load(tag)
 
-    # propagation
+    # propagation 
 
     u0 = [1,0,0,0,0,0] # starting mode vector, corresponding to fundamental mode
 
     zs,us,uf = prop.propagate(u0) # default behavior is to propagate through the entire waveguide
 
-    # get the fields and plot
+    # get the fields and plot 
 
     input_field = prop.make_field(u0,0)
     output_field = prop.make_field(us[:,-1],zs[-1])
@@ -153,15 +155,25 @@ putting it all together
     fig,axs = plt.subplots(1,2,)
 
     prop.plot_cfield(input_field,z=0,ax=axs[0],show_mesh=True)
-    prop.plot_cfield(output_field,z=zs[-1],ax=axs[1],show_mesh=True)
+    prop.plot_cfield(output_field,z=zs[-1],ax=axs[1],show_mesh=True,xlim=(-100,100),ylim=(-100,100))
 
     # plot decoration
     axs[0].set_title("initial field")
     axs[1].set_title("final field")
-    axs[1].set_xlim(-100,100)
-    axs[1].set_ylim(-100,100)
     
     # must manually call show() if you're plotting on a premade axis
     plt.show()
 
+
+--------
+4. tips
+--------
+
+* Keep track of how many points are in your mesh. The ``plot_mesh()`` function will tell you this. Most testing so far has been done on meshes with 1,000 to 10,000 points.
+
+* Try some preliminary eigenmode solves at various :math:`z` values before a full characterization.
+
+* Look at the waveguide eigenmodes after characterizing to make sure ``cbeam`` has handled things like eigenvalue crossing correctly, all the modes remain guided, etc.
+
 Now you are ready to look at the examples!
+

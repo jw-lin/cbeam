@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>3. directional coupler &#8212; cbeam 0.0.2 documentation</title>
+    <title>3. directional coupler &#8212; cbeam 0.0.3 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=f131489c"></script>
+    <script src="_static/documentation_options.js?v=4acdca81"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -48,7 +48,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'dc';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="advanced usage" href="advancedusage.html" />
+    <link rel="next" title="4. multimode interference coupler" href="mmi.html" />
     <link rel="prev" title="2. photonic lantern" href="PL.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.2 documentation</p>
+    <p class="title logo__title">cbeam 0.0.3 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -146,13 +146,14 @@
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">3. directional coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
 <li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. evaluating fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. resampling and evaluating fields</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -278,7 +279,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -294,6 +297,18 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveguide-setup">3.1. waveguide setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mode-solving">3.2. mode solving</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characterization">3.3. characterization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#propagation">3.4. propagation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#varying-the-coupling-length">3.5. varying the coupling length</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -305,8 +320,19 @@
                   
   <section id="directional-coupler">
 <h1><span class="section-number">3. </span>directional coupler<a class="headerlink" href="#directional-coupler" title="Link to this heading">#</a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#waveguide-setup" id="id1">waveguide setup</a></p></li>
+<li><p><a class="reference internal" href="#mode-solving" id="id2">mode solving</a></p></li>
+<li><p><a class="reference internal" href="#characterization" id="id3">characterization</a></p></li>
+<li><p><a class="reference internal" href="#propagation" id="id4">propagation</a></p></li>
+<li><p><a class="reference internal" href="#varying-the-coupling-length" id="id5">varying the coupling length</a></p></li>
+</ul>
+</nav>
 <p>The simplest directional coupler is composed of two embedded single-mode channels, which are “squeezed” to some minimum core-to-core separation over the course of some “coupling length”. Along the coupling length, power between the channels oscillates. If the overall waveguide is symmetric, the net power transfer between the cores can vary from 0 to 1, and will oscillate sinusoidally with the coupling length.</p>
 <p>A wavefront originally confined to one channel of a symmetric dicoupler will evenly excite both the symmetric and antisymmetric modes along the coupling length . Due to the difference in effective index, the supermodes beat against each other. The net effect is an oscillation in power between the dicoupler channels. As the coupling length changes, the amount of phase beating changes, which in turn changes the power splitting ratio of the dicoupler.</p>
+<section id="waveguide-setup">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">3.1. </span>waveguide setup</a><a class="headerlink" href="#waveguide-setup" title="Link to this heading">#</a></h2>
 <p>We will use the <code class="docutils literal notranslate"><span class="pre">Dicoupler</span></code> class to define a dicoupler. First, let’s set our parameters.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### symmetric dicoupler propagation parameters ###</span>
 
@@ -360,12 +386,15 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
 <img alt="_images/dc-3.png" class="plot-directive" src="_images/dc-3.png" />
 </figure>
 <p>In order to improve the regularity of the triangles, the outer cladding boundary is allowed to deform as the two cores are brought closer together.</p>
+</section>
+<section id="mode-solving">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">3.2. </span>mode solving</a><a class="headerlink" href="#mode-solving" title="Link to this heading">#</a></h2>
 <p>Next, I’ll initialize the propagator, and plot a mode.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam</span> <span class="kn">import</span> <span class="n">propagator</span>
 <span class="n">dc_prop</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">wl</span><span class="p">,</span><span class="n">dicoupler</span><span class="p">,</span><span class="n">Nmax</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="n">neff</span><span class="p">,</span><span class="n">modes</span> <span class="o">=</span> <span class="n">dc_prop</span><span class="o">.</span><span class="n">solve_at</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="n">dicoupler</span><span class="o">.</span><span class="n">z_ex</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">modes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">z</span><span class="o">=</span><span class="n">dicoupler</span><span class="o">.</span><span class="n">z_ex</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">modes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">mesh</span><span class="o">=</span><span class="n">dc_prop</span><span class="o">.</span><span class="n">mesh</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>(<a class="reference external" href=".//dc-4.py">Source code</a>, <a class="reference external" href=".//dc-4.png">png</a>, <a class="reference external" href=".//dc-4.hires.png">hires.png</a>, <a class="reference external" href=".//dc-4.pdf">pdf</a>)</p>
@@ -373,6 +402,9 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
 <img alt="_images/dc-4.png" class="plot-directive" src="_images/dc-4.png" />
 </figure>
 <p>This is the antisymmetric mode in the coupling region.</p>
+</section>
+<section id="characterization">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink"><span class="section-number">3.3. </span>characterization</a><a class="headerlink" href="#characterization" title="Link to this heading">#</a></h2>
 <p>Next, let’s characterize and look at the coupling coefficients. For reference, this takes around 10s on my laptop.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment/uncomment below as necessary</span>
 <span class="n">dc_prop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
@@ -386,6 +418,9 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
 <img alt="_images/dc-5.png" class="plot-directive" src="_images/dc-5.png" />
 </figure>
 <p>We see two large spikes, corresponding to a shift in modal basis from the individual channel modes to the symmetric and antisymmetric modes of the coupling region.</p>
+</section>
+<section id="propagation">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink"><span class="section-number">3.4. </span>propagation</a><a class="headerlink" href="#propagation" title="Link to this heading">#</a></h2>
 <p>Let’s launch light into one end and look at how the mode powers change with <span class="math notranslate nohighlight">\(z\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">,</span><span class="n">uf</span> <span class="o">=</span> <span class="n">dc_prop</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">u0</span><span class="p">)</span>
@@ -397,6 +432,9 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
 <img alt="_images/dc-6.png" class="plot-directive" src="_images/dc-6.png" />
 </figure>
 <p>We see that the light, initially confined in one of the channels, couples evenly into both modes within the couplng region, and then splits.</p>
+</section>
+<section id="varying-the-coupling-length">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">3.5. </span>varying the coupling length</a><a class="headerlink" href="#varying-the-coupling-length" title="Link to this heading">#</a></h2>
 <p>Suppose we wanted to look at how the splitting ratio changes with the coupling length. We can play a trick that allows us to reuse the above calculation without rerunning <code class="docutils literal notranslate"><span class="pre">characterize</span></code>. The idea is to apply a transformation to the $z$ array, preserving monotonicity, to change the length of the waveguide. Below is an example.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># we will run 100 dicoupler simulations with different lenghts</span>
 <span class="n">stretch_amounts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10000</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
@@ -452,6 +490,7 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
 <p><strong>References</strong></p>
 <p>[1] R. Tewari and K. Thyagarajan, “Analysis of tunable single-mode fiber directional couplers using simple and accurate relations,” in Journal of Lightwave Technology, vol. 4, no. 4, pp. 386-390, April 1986, doi: 10.1109/JLT.1986.1074731</p>
 </section>
+</section>
 
 
                 </article>
@@ -474,11 +513,11 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
       </div>
     </a>
     <a class="right-next"
-       href="advancedusage.html"
+       href="mmi.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">advanced usage</p>
+        <p class="prev-next-title"><span class="section-number">4. </span>multimode interference coupler</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -488,6 +527,26 @@ Let’s make the dicoupler and inspect the channel paths. I’ve made a built-in
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveguide-setup">3.1. waveguide setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mode-solving">3.2. mode solving</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characterization">3.3. characterization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#propagation">3.4. propagation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#varying-the-coupling-length">3.5. varying the coupling length</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; cbeam 0.0.2 documentation</title>
+    <title>Index &#8212; cbeam 0.0.3 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=f131489c"></script>
+    <script src="_static/documentation_options.js?v=4acdca81"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -125,7 +125,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.2 documentation</p>
+    <p class="title logo__title">cbeam 0.0.3 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -144,13 +144,14 @@
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
 <li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. evaluating fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. resampling and evaluating fields</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -266,6 +267,7 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -438,6 +440,14 @@
   </ul></td>
 </tr></table>
 
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.load">load() (cbeam.propagator.Propagator method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -450,6 +460,8 @@
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.make_mesh_at_z">make_mesh_at_z() (cbeam.propagator.Propagator method)</a>
 </li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.make_mesh_bndry_ref">make_mesh_bndry_ref() (cbeam.waveguide.Waveguide method)</a>
+</li>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.make_mode_vector">make_mode_vector() (cbeam.propagator.Propagator method)</a>
 </li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Circle.make_points">make_points() (cbeam.waveguide.Circle method)</a>
 
@@ -566,6 +578,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.RectangularStepIndexFiber">RectangularStepIndexFiber (class in cbeam.waveguide)</a>
 </li>
+      <li><a href="cbeam.FEval.html#cbeam.FEval.resample">resample() (in module cbeam.FEval)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -574,9 +588,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.solve_at">solve_at() (cbeam.propagator.Propagator method)</a>
 </li>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.solver">solver (cbeam.propagator.Propagator attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.solver">solver (cbeam.propagator.Propagator attribute)</a>
+      <li><a href="cbeam.FEval.html#cbeam.FEval.sort_mesh">sort_mesh() (in module cbeam.FEval)</a>
 </li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.swap_modes">swap_modes() (cbeam.propagator.Propagator method)</a>
 </li>

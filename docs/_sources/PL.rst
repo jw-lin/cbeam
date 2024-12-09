@@ -61,9 +61,9 @@ We can also characterize the waveguide to get the effective indices and modes as
     :context: close-figs
 
     # comment/uncomment below as necessary
-    PLprop.characterize(save=True,tag="test")
+    # PLprop.characterize(save=True,tag="test")
 
-    # PLprop.load("test")
+    PLprop.load("test")
 
     PLprop.plot_neffs()
 
@@ -102,7 +102,7 @@ I will run a ``characterize()`` again to show how the coupling coefficients chan
     # comment/uncomment below as necessary
     PLprop.characterize(save=True,tag="testdegen")
     # PLprop.load("testdegen")
-    
+
     PLprop.plot_coupling_coeffs()
 
 Comparing this plot with the previous, we notics that coupling coefficients are lower now, as expected.

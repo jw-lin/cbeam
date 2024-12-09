@@ -4,7 +4,7 @@
 
 Now with website [documentation](https://jw-lin.github.io/cbeam/)!
 
-Current version: v0.0.2
+Current version: v0.0.3
 
 ## Dependencies
 Python: `numpy`,`scipy`,`juliacall`,`wavesolve`,`pygmsh`,`meshio`,`matplotlib`

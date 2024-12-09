@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>examples &#8212; cbeam 0.0.2 documentation</title>
+    <title>examples &#8212; cbeam 0.0.3 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=f131489c"></script>
+    <script src="_static/documentation_options.js?v=4acdca81"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.2 documentation</p>
+    <p class="title logo__title">cbeam 0.0.3 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -146,13 +146,14 @@
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
 <li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. evaluating fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. resampling and evaluating fields</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -324,20 +325,10 @@
 <h2>contents<a class="headerlink" href="#contents" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="fib.html">1. fiber mode solving</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="fib.html#straight-circular-fiber">1.1. straight circular fiber</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fib.html#tapered-square-fiber">1.2. tapered square fiber</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="PL.html">2. photonic lantern</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="PL.html#solving-at-z">2.1. solving at <span class="math notranslate nohighlight">\(z\)</span></a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html#solving-through-the-waveguide">2.2. solving through the waveguide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html#coupling-coefficients">2.3. coupling coefficients</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html#dealing-with-degenerate-modes">2.4. dealing with degenerate modes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html#extract-channel-powers">2.5. extract channel powers</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
 </ul>
 </div>
 </section>

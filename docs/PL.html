@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2. photonic lantern &#8212; cbeam 0.0.2 documentation</title>
+    <title>2. photonic lantern &#8212; cbeam 0.0.3 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=f131489c"></script>
+    <script src="_static/documentation_options.js?v=4acdca81"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.2 documentation</p>
+    <p class="title logo__title">cbeam 0.0.3 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -146,13 +146,14 @@
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">2. photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
 <li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. evaluating fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. resampling and evaluating fields</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -376,9 +377,9 @@
 <h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">2.2. </span>solving through the waveguide</a><a class="headerlink" href="#solving-through-the-waveguide" title="Link to this heading">#</a></h2>
 <p>We can also characterize the waveguide to get the effective indices and modes as a function of <span class="math notranslate nohighlight">\(z\)</span>. For reference, this takes around a minute on my laptop. Below I also plot the effective indices.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment/uncomment below as necessary</span>
-<span class="n">PLprop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="c1"># PLprop.characterize(save=True,tag=&quot;test&quot;)</span>
 
-<span class="c1"># PLprop.load(&quot;test&quot;)</span>
+<span class="n">PLprop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
 
 <span class="n">PLprop</span><span class="o">.</span><span class="n">plot_neffs</span><span class="p">()</span>
 </pre></div>

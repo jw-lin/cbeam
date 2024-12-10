@@ -4,7 +4,7 @@ multimode interference coupler
     :local:
 
 .. note::
-    This example is for a *weakly-guided* multimode interference (MMI) coupler, which is a little unusual: typical MMI couplers use strong index contrasts and have highly confined modes, which I think give better performance.
+    This example is for a *weakly guided* multimode interference (MMI) coupler, which is a little unusual: typical MMI couplers use strong index contrasts and have highly confined modes, which I think give better performance.
 
 A multimode interference (MMI) coupler can be constructed using a series of :math:`M` "access" waveguides and :math:`N` output waveguides which are connected in the middle by a larger, multimoded slab waveguide. Under certain design parameters, an MMI coupler acts as an :math:`M\times N` beam recombiner. Such devices leverage the "self-imaging" property of the central slab waveguide. This section presents a partial simulation of a :math:`1 \times 3` MMI coupler, and also shows how electric fields from one waveguide mesh can be transferred to another.
 
@@ -100,7 +100,7 @@ The last step before propagation is to convert our field into a mode amplitude v
 
     [6.59948619e-01 3.83775210e-05 -5.32959493e-01 2.76286527e-05 -3.80385142e-01 3.48737666e-05 2.56268483e-01 3.06148543e-05]
 
-The total power of the above turns out to be less than 1, indicating that some power will be lost to radiative modes. These losses can be mitigated by tapering the access waveguide, though this is outside the scope of the example. 
+The total power of the above turns out to be less than 1, indicating that some power will be lost to radiative modes. These losses can be mitigated by tapering the access waveguide (like the tapered box fiber in :doc:`fib`), though this is outside the scope of the example. 
 
 propagation
 -----------
@@ -110,7 +110,7 @@ One nuance in this example is that we don't need to formally propagate, since al
     :context: close-figs
 
     betas = mmi_prop.neffs[0] * 2 * np.pi / wl
-    L = np.pi/(betas[0]-betas[1]) 
+    L = np.pi/(betas[0]-betas[1])
 
     f = mmi_prop.make_field(launch_modes,z=L/4,apply_phase=True)
 

@@ -208,6 +208,53 @@
 
 
 
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/jw-lin/cbeam" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/jw-lin/cbeam/edit/main/docs_source/basicusage.rst" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
 <div class="dropdown dropdown-download-buttons">
   <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
     <i class="fas fa-download"></i>
@@ -448,11 +495,11 @@
 <span class="c1"># make the propagator</span>
 <span class="n">prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span><span class="n">wvg</span><span class="p">,</span><span class="n">num_modes</span><span class="p">)</span>
 
-<span class="c1"># characterization - uncomment below if you haven&#39;t run this yet</span>
-<span class="c1"># prop.characterize(save=True,tag=tag)</span>
+<span class="c1"># characterization - comment/uncomment below as needed</span>
+<span class="n">prop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
 
 <span class="c1"># just use the the following if you already ran the above</span>
-<span class="n">prop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+<span class="c1"># prop.load(tag)</span>
 
 <span class="c1"># propagation</span>
 

@@ -11,11 +11,11 @@ tag = "test"
 # make the propagator
 prop = Propagator(wavelength,wvg,num_modes)
 
-# characterization - uncomment below if you haven't run this yet
-# prop.characterize(save=True,tag=tag)
+# characterization - comment/uncomment below as needed
+prop.characterize(save=True,tag=tag)
 
 # just use the the following if you already ran the above
-prop.load(tag)
+# prop.load(tag)
 
 # propagation
 

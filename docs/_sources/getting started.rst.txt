@@ -1,9 +1,0 @@
-getting started
-===================
-
-.. toctree::
-   :maxdepth: 2
-
-   installation
-   
-   basic usage

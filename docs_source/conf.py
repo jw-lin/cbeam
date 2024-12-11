@@ -38,5 +38,6 @@ html_theme_options = {
     "repository_url": "https://github.com/jw-lin/cbeam",
     "use_repository_button": True,
     "use_edit_page_button": True,
-    "path_to_docs": "docs_source/"
+    "path_to_docs": "docs_source/",
+    "repository_branch": "package"
 }

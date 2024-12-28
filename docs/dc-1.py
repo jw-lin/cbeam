@@ -12,7 +12,7 @@ nclad = 1.444                   # cladding refractive index
 ncore = nclad + 8.8e-3          # SM core refractive index
 
 # mesh params #
-core_res = 20                    # no. of line segments to use to resolve the core-cladding interface(s)
+core_res = 15                    # no. of line segments to use to resolve the core-cladding interface(s)
 clad_mesh_size = 20.0               # mesh size (triangle side length) to use in the cladding region
 core_mesh_size = 1.0                # mesh size (triangle side length) to use inside the cores
 

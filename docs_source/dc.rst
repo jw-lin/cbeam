@@ -3,17 +3,15 @@ directional coupler
 .. contents::
     :local:
 
-The simplest directional coupler is composed of two embedded single-mode channels, which are "squeezed" to some minimum core-to-core separation over the course of some "coupling length". Along the coupling length, power between the channels oscillates. If the overall waveguide is symmetric, the net power transfer between the cores can vary from 0 to 1, and will oscillate sinusoidally with the coupling length.
-
-A wavefront originally confined to one channel of a symmetric dicoupler will evenly excite both the symmetric and antisymmetric modes along the coupling length . Due to the difference in effective index, the supermodes beat against each other. The net effect is an oscillation in power between the dicoupler channels. As the coupling length changes, the amount of phase beating changes, which in turn changes the power splitting ratio of the dicoupler.
+A simple directional coupler can be formed using two embedded single-mode channels, which are temporarily brought close together along some "coupling length". Along the coupling length, power oscillates between the channels. If the waveguide is symmetric, the net power transfer between the cores can vary from 0 to 1, and will vary sinusoidally with the coupling length.
 
 waveguide setup
 ---------------
 
-We will use the ``Dicoupler`` class to define a dicoupler. First, let's set our parameters.
+We will use the ``Dicoupler`` class to model a :math:`2\times2` directional coupler. First, let's set our parameters.
 
 .. plot::
-    :context:
+    :context: close-figs
     :nofigs:
 
     ### symmetric dicoupler propagation parameters ###
@@ -30,28 +28,25 @@ We will use the ``Dicoupler`` class to define a dicoupler. First, let's set our 
     ncore = nclad + 8.8e-3          # SM core refractive index
 
     # mesh params #
-    core_res = 20                    # no. of line segments to use to resolve the core-cladding interface(s)
+    core_res = 15                    # no. of line segments to use to resolve the core-cladding interface(s)
     clad_mesh_size = 20.0               # mesh size (triangle side length) to use in the cladding region
     core_mesh_size = 1.0                # mesh size (triangle side length) to use inside the cores
 
     tag = "test_dicoupler"
 
-Note that for the ``Dicoupler`` class, we specify a coupling length, not the overall waveguide length like we did with the ``PhotonicLantern``. The overall waveguide length is auto-computed (in this basic implementation, it's two times the coupling length) and can be accessed through ``Dicoupler.z_ex``. 
-Let's make the dicoupler and inspect the channel paths. I've made a built-in plotting function for this.
+With the ``Dicoupler`` class, we specify a coupling length, not the overall waveguide length like we did with the ``PhotonicLantern``. The overall waveguide length is auto-computed (in this basic implementation, it's :math:`2\times` the coupling length) and can be accessed through ``Dicoupler.z_ex``. 
+Let's make the dicoupler and inspect the channel paths.
 
 .. plot::
-    :context:
+    :context: close-figs
 
     from cbeam import waveguide
 
     dicoupler = waveguide.Dicoupler(rcore,rcore,ncore,ncore,dmax,dmin,nclad,coupling_length,bend_length,core_res,core_mesh_size=core_mesh_size,clad_mesh_size=clad_mesh_size)
 
-    # here we could adjust the boundary refinement mesh parameters, e.g.
-    # dicoupler.min_mesh_size = <minimum mesh element size>
-
     dicoupler.plot_paths()
 
-Lets take a look at the mesh, especially how it transforms with :math:`z`:
+Next, let's take a look at the mesh, especially how it transforms with :math:`z`:
 
 .. plot::
     :context: close-figs
@@ -59,8 +54,8 @@ Lets take a look at the mesh, especially how it transforms with :math:`z`:
     import matplotlib.pyplot as plt
     fig,axs = plt.subplots(1,2)
     
-    dicoupler.plot_mesh(z=0,ax=axs[0],alpha=0.1)
-    dicoupler.plot_mesh(z=dicoupler.z_ex/2,ax=axs[1],alpha=0.1)
+    dicoupler.plot_mesh(z=0,ax=axs[0])
+    dicoupler.plot_mesh(z=dicoupler.z_ex/2,ax=axs[1])
     plt.show() 
 
 In order to improve the regularity of the triangles, the outer cladding boundary is allowed to deform as the two cores are brought closer together.
@@ -68,7 +63,7 @@ In order to improve the regularity of the triangles, the outer cladding boundary
 mode solving
 ------------
 
-Next, I'll initialize the propagator, and plot a mode.
+Next, I'll initialize the propagator, and solve for the eigenmodes in the middle of the waveguide.
 
 .. plot::
     :context: close-figs
@@ -84,18 +79,34 @@ This is the antisymmetric mode in the coupling region.
 characterization
 ----------------
 
-Next, let's characterize and look at the coupling coefficients. For reference, this takes around 10s on my laptop.
+Next, let's characterize and look at the coupling coefficients. For reference, this takes around 15 seconds on my laptop.
 
 .. plot::
     :context: close-figs
+    :nofigs:
     
     # comment/uncomment below as necessary
-    dc_prop.characterize(save=True,tag=tag) 
-    # dc_prop.load(tag)
+    # dc_prop.z_acc = -1 # loosen accuracy
+    # dc_prop.characterize(save=True,tag=tag) 
+    dc_prop.load(tag)
 
-    dc_prop.plot_coupling_coeffs()
+We'll look at the effective indices of the modes first:
 
-We see two large spikes, corresponding to a shift in modal basis from the individual channel modes to the symmetric and antisymmetric modes of the coupling region.
+.. plot::
+    :context: close-figs
+
+    dc_prop.plot_neffs()
+
+The two eigenmodes are essentially degenerate at the beginning and end of the waveguide; in the middle, the degeneracy splits. (Aside: if the boundaries of single-mode cores were less resolved, we might actually see the modes cross in eigenvalue, which complicates the characterization).
+
+Next, let's look at the coupling coefficients.
+
+.. plot::
+    :context: close-figs
+
+    dc_prop.plot_coupling_coeffs() 
+
+We see two large spikes, corresponding to a shift in eigenbasis from the individual channel modes to the symmetric and antisymmetric modes of the coupling region.
 
 propagation
 -----------
@@ -111,15 +122,24 @@ Let's launch light into one end and look at how the mode powers change with :mat
 
 We see that the light, initially confined in one of the channels, couples evenly into both modes within the couplng region, and then splits.
 
-varying the coupling length
------------------------------
-
-Suppose we wanted to look at how the splitting ratio changes with the coupling length. We can play a trick that allows us to reuse the above calculation without rerunning ``characterize``. The idea is to apply a transformation to the $z$ array, preserving monotonicity, to change the length of the waveguide. Below is an example.
+You can also try tracking the wavefront through the waveguide, e.g. with
 
 .. plot::
     :context: close-figs
 
-    # we will run 100 dicoupler simulations with different lenghts
+    dc_prop.plot_wavefront(zs,us,zi=dicoupler.z_ex/2)
+
+In the coupling region, you'll see the field oscillate between the two channels with :math:`z`.
+
+varying the coupling length
+-----------------------------
+
+Suppose we want to see how the splitting ratio changes with the coupling length. We can play a trick that allows us to reuse the above calculation without rerunning ``characterize``. The idea is to apply a transformation to the :math:`z` array, preserving monotonicity, to change the length of the waveguide. Below is an example.
+
+.. plot::
+    :context: close-figs
+
+    # we will run 100 dicoupler simulations with different lengths
     stretch_amounts = np.linspace(0,10000,100)
 
     u0 = [1,0]

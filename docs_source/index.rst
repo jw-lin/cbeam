@@ -7,7 +7,7 @@
 cbeam: a coupled-mode optical propagator
 ----------------------------------------
 
-``cbeam`` is a Python/Julia package which simulates the propagation of light through slowly varying waveguides. It has a completely Pythonic interface, and under the hood uses coupled-mode theory combined with the method of finite elements. This method is much faster than FD-BPM. If you're interested in the math, check out the arXiv paper `here <https://arxiv.org/abs/2411.08118>`_. 
+``cbeam`` is a Python package which simulates the propagation of light through slowly varying waveguides. Under the hood, it uses coupled-mode theory combined with the method of finite elements, and is typically much faster than FD-BPM when applicable. If you're interested in the math, check out the arXiv paper `here <https://arxiv.org/abs/2411.08118>`_. 
 
 If you have questions, suggestions, or would like to contribute, feel free to contact me at ``jon880@astro.ucla.edu``.
 

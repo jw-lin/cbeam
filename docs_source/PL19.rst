@@ -1,0 +1,190 @@
+19-port photonic lantern
+========================
+.. contents::
+    :local:
+
+overview and challenges
+-----------------------
+
+In this example, we will simulate a 19-port photonic lantern with hexagonally packed cores. The two main complexities are: a (perhaps unexpected) eigenvalue crossing; and widespread degeneracy of the modes at the larger end of the lantern. While a straight calculation using the techniques from prior examples will work, such a calculation would require a very fine :math:`z`-step resolution and take a long time.
+
+To identify these issues before actually running ``characterize()``, we will first compute the effective index structure of the device, which is *often much faster than a blind calculation of the eigenmodes* because the effective indices will vary more smoothly than the eigenmodes. This will be done using the function ::
+
+    propagator.compute_neffs()
+
+computing effective indices
+---------------------------
+
+First, I'll set the parameters.
+
+.. plot::
+    :nofigs:
+    :context: close-figs
+
+    wl = 0.8                         # wavelength, um
+    taper_factor = 12.               # relative scale factor between frontside and backside waveguide geometry    
+    rcore = 1.8/taper_factor         # radius of tapered-down single-mode cores at frontside (small end), um
+    rclad = 9.0                      # radius of cladding-jacket interface at frontside, um
+    rjack = 27                       # radius of outer jacket boundary at frontside, um
+    z_ex = 100000                    # lantern length, um
+
+    nclad = 1.444                    # cladding refractive index
+    ncore = nclad + 8.8e-3           # SM core refractive index
+    njack = nclad - 5.5e-3           # jacket (low-index capillary) refractive index
+
+    rcores = [rcore]*19
+    ncores = [ncore]*19
+
+Next, we'll make the lantern. The 19 cores will be placed in a hexagonal array.
+
+.. plot::
+    :nofigs:
+    :context: close-figs
+
+    from cbeam.waveguide import get_19port_positions
+    core_pos = get_19port_positions(rclad/2.5)
+
+    # mesh params #
+    core_res = 16
+    clad_res = 60
+    jack_res = 30
+
+    from cbeam.waveguide import PhotonicLantern
+    PL19 = PhotonicLantern(core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res,clad_res,jack_res)
+
+Finally, we'll run ``compute_neffs()``. The syntax is similar to ``characterize()``, and you can save and load files as well. Even though we expect this waveguide to support 19 guided modes, we will solve for the 21 highest effective indices, since there is no guarantee that the 19 highest index modes at the start of the waveguide correspond with the 19 highest index modes at the end of the waveguide. (In practice, you would probably design the waveguide such that there are no crossings in the first place, at least for the modes you care about). 
+
+.. plot::
+    :nofigs:
+    :context: close-figs
+
+    from cbeam.propagator import Propagator
+
+    prop = Propagator(wl,PL19,Nmax=21)
+
+    # comment/uncomment as necessary
+    # this take around 10 minutes on my laptop 
+    # prop.compute_neffs()
+    prop.load(tag="19port_neffs")
+
+Next, I'll plot the effective indices, as well as the difference in index between modes 18 and 19, to show that they cross early on.
+
+.. plot::
+    :context: close-figs
+
+    import matplotlib.pyplot as plt
+    plt.plot(prop.zs,prop.neffs[:,18]-prop.neffs[:,19])
+    plt.axhline(y=0,color='k',ls='dashed')
+    plt.xlabel("z")
+    plt.title("difference in effective index, modes 18 & 19")
+    plt.show()
+
+    prop.plot_neff_diffs()
+
+As before, the vertical lines show the :math:`z` locations traversed during the computation. The dark band a little after :math:`z=40` mm is actually a result of another eigenvalue crossing, this time between a cladding mode and a higher-order mode that was not included in the 21 initial modes. 
+
+From the effective index information, we can identify groups of degenerate modes. First, certain mode pairs remain degenerate through the entirety of the waveguide; second, *all* of the *guided* eigenmodes become degenerate in the back half of the waveguide. This suggests that the simulation should be done in two or more pieces, each with different specifications for mode degeneracy.
+
+.. note::
+    
+    Why does accounting for mode degeneracy need to be done manually? In the past, I tried to manage this automatically, by fixing subspaces of the eigenbasis when the difference in eigenvalues was sufficiently low. However, switching this correction on and off breaks eigenmode differentiability. Situations where a degeneracy is formed and then later broken add even more complexity.
+
+characterize the front half
+----------------------------------
+
+Below is the characterization of the front half of the lantern. I also plot the coupling coefficients.
+
+.. plot::
+    :context: close-figs
+
+    # from the previous analysis, we only need to track the top 20 modes
+    # to ensure that all guided modes are tracked
+    prop1 = Propagator(wl,PL19,20)
+
+    prop1.degen_groups = [[1,2],[3,4],[6,7],[8,9],[10,11],[12,13],[15,16]]
+    
+    # during characterization, we specify modes we don't care about
+    # to speed things up. mode 18 becomes a cladding mode, as 
+    # per previous analysis.
+    prop1.skipped_modes = [18]
+
+    tag1 = "19port_0800_front"
+    #prop1.characterize(0,50000,save=True,tag=tag1)
+    prop1.load(tag1)
+
+    # prop1.compute_neffs(tag=tag1,save=True)
+    prop1.load(tag=tag1)
+    prop1.plot_coupling_coeffs(legend=False)
+
+characterize the back half
+--------------------------
+
+We will make another ``Propagator`` object to perform the back half characterization, where all guided modes (i.e. every mode except 18) are assumed degenerate. We also need to ensure this propagator uses the final eigenbasis from earlier, which we can do using ``Propagator.load_init_conds()``.
+
+.. plot::
+    :context: close-figs
+
+    tag2 = "19port_0800_back"
+    prop2 = Propagator(wl,PL19,20)
+    prop2.skipped_modes = [18]
+
+    # every mode except 18 is degenerate w/ each other
+    prop2.degen_groups = [[i for i in range(20)]]
+    del prop2.degen_groups[0][18]
+
+    # use the final modes of prop1 as the 
+    # initial modes of prop2
+    prop2.load_init_conds(prop1) 
+
+    # prop2.characterize(50000,100000,save=True,tag=tag2)
+    prop2.load(tag2)
+
+    prop2.plot_coupling_coeffs(legend=False)
+
+Yeah, it looks like a mess. 
+
+Collectively, both characterizations take around 800 seconds on my laptop.
+
+end-to-end propagation
+----------------------
+
+We will combine the two propagators using the ``ChainPropagator`` class, which lets us to send wavefronts through a list of propagators. Below, I launch the :math:`LP_{01}` mode.
+
+.. plot::
+    :context: close-figs
+
+    from cbeam.propagator import ChainPropagator
+    prop12 = ChainPropagator([prop1,prop2])
+
+    u0 = [0.]*20
+    # launch LP01
+    u0[0] = 1.
+
+    # propagate as normal
+    zs,us,uf = prop12.propagate(u0)
+
+    prop12.plot_mode_powers(zs,us) 
+
+You can see the mode powers are nearly frozen in the back half of the lantern, because the eigenbasis has been fixed (as much as possible) for that portion of the calculation. We can also view fields as usual:
+
+.. plot::
+    :context: close-figs
+
+    f = prop12.make_field(uf,zs[-1])
+    prop12.plot_cfield(f,zs[-1],res=0.25,show_mesh=True,xlim=(-100,100),ylim=(-100,100))
+
+Finally, we can extract the channel powers using ::
+
+    out = prop12.to_channel_basis(uf)
+    print(np.power(np.abs(out),2))
+
+.. testoutput::
+
+    [0.15500923 0.09659393 0.09643943 0.09675434 0.09645291 0.09614298 0.09628183 0.01389994 0.03049378 0.01387824 0.0304683 0.013861 0.03046653 0.01387356 0.0305389 0.01387932 0.03056357 0.01384288 0.03056049]
+
+In this example, propagations take a few seconds. For repeat 
+propagations, it is much faster to use a transfer matrix. This can be done with ::
+
+    M = prop12.compute_transfer_matrix()
+    # and then propagation is ...
+    uf = np.dot(M,u0)

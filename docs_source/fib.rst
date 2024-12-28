@@ -29,7 +29,7 @@ On this page, we'll use ``cbeam`` to solve for the modes of some optical fibers.
     fiber = waveguide.Waveguide([clad,core])
     fiber.z_invariant = True # tell cbeam that this waveguide does not change with z
     
-Note that ``core`` comes *after* ``clad``, ensuring that the region inside the ``core`` cylinder has index ``ncore`` instead of ``nclad``. Let's check out work by making a mesh and plotting.
+Note that ``core`` comes *after* ``clad``, ensuring that the region inside the ``core`` cylinder has index ``ncore`` instead of ``nclad``. Let's check our work by making a mesh and plotting.
 
 .. plot::
     :context: close-figs
@@ -47,12 +47,12 @@ Because ``fiber`` cross section doesn't change with :math:`z`, running a charact
     Nmax = 10 # solve for 10 modes
     prop = Propagator(wavelength,fiber,Nmax)
     effective_indices, modes = prop.solve_at(0) # could solve at any z value too
-    prop.plot_cfield(modes[1]) # look at LP_11
+    prop.plot_cfield(modes[1],res=0.5) # look at LP_11
 
 tapered square fiber
 --------------------
 
-For a slightly more involved example, we'll make a rectangular fiber which tapers in one axis with :math:`z`. Such a structure is sometimes seen in the design of edge couplers for photonic chips; in any case it is instructive on the capabilities and limitations of ``cbeam``. We'll use the ``BoxPipe`` class to construct this tapered fiber. 
+For a slightly more involved example, we'll make a rectangular fiber which tapers in one axis with :math:`z`, loosely inspired by edge couplers and tapers for multimode interferometers. We'll use the ``BoxPipe`` class to construct this tapered fiber. 
 
 .. plot::
     :context: close-figs
@@ -69,7 +69,7 @@ For a slightly more involved example, we'll make a rectangular fiber which taper
     # cladding will just be a bigger core
     rect_clad = waveguide.BoxPipe(nclad,"clad",xw_clad,3*yw_core)
 
-To make sure the generated meshes are refined enough, we'll also set target mesh sizes inside the core and cladding, then create the ``Waveguide``. 
+We'll also set target mesh sizes inside the core and cladding, then create the ``Waveguide``. 
 
 .. plot::
     :context:
@@ -97,20 +97,23 @@ Note the following:
 1. A transformation rule did not have to be specified. The ``Waveguide`` class performs the transformation automatically.
 2. The transformation in this case increases triangle skewness. This can lead to lower accuracy; in cases of extreme skewness, you should consider breaking up the waveguide in :math:`z`, or checking convergence properties by increasing the mesh resolution.
 
-Moving on, we'll now solve for the modes of this waveguide as a function of :math:`z`.
+Moving on, let's solve for the effective indices and modes of this waveguide as a function of :math:`z`.
 
 .. plot::
     :context: close-figs
     :nofigs:
 
-    # solve for top 4 modes in terms of effective index
-    rect_prop = Propagator(wavelength,rect_fiber,4)
+    # solve for top 6 modes in terms of effective index
+    rect_prop = Propagator(wavelength,rect_fiber,6)
 
-    rect_tag = "tapered_box"
+    rect_tag = "tapered_box" 
 
     # comment/uncomment below as necessary
-    rect_prop.compute_modes(0,length,save=True,tag=rect_tag)
+    rect_prop.compute_neffs(0,length,save=True,tag=rect_tag)
     # rect_prop.load(rect_tag)
+
+    # if you wanted a more careful computation of the modes, you could also use
+    # rect_prop.compute_modes()
 
 Now, we'll take a look at the effective indices of the modes.
 
@@ -119,11 +122,9 @@ Now, we'll take a look at the effective indices of the modes.
     
     rect_prop.plot_neffs()
 
-The fundamental mode has the highest effective index, and is the blue curve in the above. The next two modes (orange and green), which are :math:`LP_{11}`-like, start out as degenerate in eigenvalue,as expected; the degeneracy splits with :math:`z`. Lastly, mode 3 is initially spurious (a cladding mode or radiative mode) - you can tell because the effective index starts lower than lowest index in our waveguide. But as the waveguide widens, this mode becomes bound, and then *crosses* mode 2. 
+Vertical lines indicate the :math:`z` values used during the calculation. The fundamental mode has the highest effective index, and is the blue curve in the above. The next two modes (orange and green), which are :math:`LP_{11}`-like, start out as degenerate in eigenvalue, as expected; the degeneracy splits with :math:`z`. All modes after mode 2 are initially cladding modes - you can tell because the effective index starts lower than lowest index in our waveguide. But as the waveguide widens, these modes becomes bound, and their eigenvalues cross in complicated ways. 
 
-A final limitation can be seen towards the end of the mode 2 curve; the upwards kink is a sign that there is another crossing in effective index, which ``cbeam`` is unable to deal with since we told it to only solve for 4 modes.
-
-Finally, we will view the :math:`z`-dependent eigenmodes of the waveguide using ``plot_waveguide``. If you run the below on your own you should get a slider which can be used to set the :math:`z` value. Unfortunately, slider rendered below is not interactive.
+Finally, we will view the :math:`z`-dependent eigenmodes of the waveguide using ``plot_waveguide_mode()``. If you run the below on your own you should get a slider which can be used to set the :math:`z` value. Unfortunately, the slider rendered below is not interactive.
 
 .. plot::
     :context: close-figs

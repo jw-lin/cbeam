@@ -1,6 +1,10 @@
 meshing
 -------
 
+.. note::
+
+    Different meshes corresponding to the same waveguide may lead to very different computation times in cases of eigenmode degeneracy. It's unclear to me what makes a mesh "good" or "bad", but it suffices to say for now that even a "bad" mesh can be used for an accurate simulation.
+
 Mesh generation is handled through the ``Waveguide`` class function ``make_mesh()``. This function will adaptively refine the mesh element size near boundaries so that mesh sizes vary smoothly over the waveguide cross-section. The target mesh size is computed as follows. For a single ``Prim3D`` object, a target mesh size at a given :math:`(x,y)` point is computed as 
 
 .. math::

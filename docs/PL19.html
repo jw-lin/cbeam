@@ -1,0 +1,657 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>5. 19-port photonic lantern &#8212; cbeam 0.0.4 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="_static/documentation_options.js?v=dfd84850"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'PL19';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="advanced usage" href="advancedusage.html" />
+    <link rel="prev" title="4. multimode interference coupler" href="mmi.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">cbeam 0.0.4 documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="examples.html">examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. 6-port photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">5. 19-port photonic lantern</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="wvgdes.html">1. making custom waveguides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshing.html">2. meshing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="propsettings.html">3. propagator settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">4. resampling and evaluating fields</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cbeam.waveguide.html">cbeam.waveguide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbeam.propagator.html">cbeam.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbeam.FEval.html">cbeam.FEval</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/jw-lin/cbeam" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/jw-lin/cbeam/edit/package/docs_source/PL19.rst" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/PL19.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>19-port photonic lantern</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview-and-challenges">5.1. overview and challenges</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computing-effective-indices">5.2. computing effective indices</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characterize-the-front-half">5.3. characterize the front half</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characterize-the-back-half">5.4. characterize the back half</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#end-to-end-propagation">5.5. end-to-end propagation</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="port-photonic-lantern">
+<h1><span class="section-number">5. </span>19-port photonic lantern<a class="headerlink" href="#port-photonic-lantern" title="Link to this heading">#</a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview-and-challenges" id="id1">overview and challenges</a></p></li>
+<li><p><a class="reference internal" href="#computing-effective-indices" id="id2">computing effective indices</a></p></li>
+<li><p><a class="reference internal" href="#characterize-the-front-half" id="id3">characterize the front half</a></p></li>
+<li><p><a class="reference internal" href="#characterize-the-back-half" id="id4">characterize the back half</a></p></li>
+<li><p><a class="reference internal" href="#end-to-end-propagation" id="id5">end-to-end propagation</a></p></li>
+</ul>
+</nav>
+<section id="overview-and-challenges">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">5.1. </span>overview and challenges</a><a class="headerlink" href="#overview-and-challenges" title="Link to this heading">#</a></h2>
+<p>In this example, we will simulate a 19-port photonic lantern with hexagonally packed cores. The two main complexities are: a (perhaps unexpected) eigenvalue crossing; and widespread degeneracy of the modes at the larger end of the lantern. While a straight calculation using the techniques from prior examples will work, such a calculation would require a very fine <span class="math notranslate nohighlight">\(z\)</span>-step resolution and take a long time.</p>
+<p>To identify these issues before actually running <code class="docutils literal notranslate"><span class="pre">characterize()</span></code>, we will first compute the effective index structure of the device, which is <em>often much faster than a blind calculation of the eigenmodes</em> because the effective indices will vary more smoothly than the eigenmodes. This will be done using the function</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">propagator</span><span class="o">.</span><span class="n">compute_neffs</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="computing-effective-indices">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">5.2. </span>computing effective indices</a><a class="headerlink" href="#computing-effective-indices" title="Link to this heading">#</a></h2>
+<p>First, I’ll set the parameters.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">wl</span> <span class="o">=</span> <span class="mf">0.8</span>                         <span class="c1"># wavelength, um</span>
+<span class="n">taper_factor</span> <span class="o">=</span> <span class="mf">12.</span>               <span class="c1"># relative scale factor between frontside and backside waveguide geometry</span>
+<span class="n">rcore</span> <span class="o">=</span> <span class="mf">1.8</span><span class="o">/</span><span class="n">taper_factor</span>         <span class="c1"># radius of tapered-down single-mode cores at frontside (small end), um</span>
+<span class="n">rclad</span> <span class="o">=</span> <span class="mf">9.0</span>                      <span class="c1"># radius of cladding-jacket interface at frontside, um</span>
+<span class="n">rjack</span> <span class="o">=</span> <span class="mi">27</span>                       <span class="c1"># radius of outer jacket boundary at frontside, um</span>
+<span class="n">z_ex</span> <span class="o">=</span> <span class="mi">100000</span>                    <span class="c1"># lantern length, um</span>
+
+<span class="n">nclad</span> <span class="o">=</span> <span class="mf">1.444</span>                    <span class="c1"># cladding refractive index</span>
+<span class="n">ncore</span> <span class="o">=</span> <span class="n">nclad</span> <span class="o">+</span> <span class="mf">8.8e-3</span>           <span class="c1"># SM core refractive index</span>
+<span class="n">njack</span> <span class="o">=</span> <span class="n">nclad</span> <span class="o">-</span> <span class="mf">5.5e-3</span>           <span class="c1"># jacket (low-index capillary) refractive index</span>
+
+<span class="n">rcores</span> <span class="o">=</span> <span class="p">[</span><span class="n">rcore</span><span class="p">]</span><span class="o">*</span><span class="mi">19</span>
+<span class="n">ncores</span> <span class="o">=</span> <span class="p">[</span><span class="n">ncore</span><span class="p">]</span><span class="o">*</span><span class="mi">19</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-1.py">Source code</a>)</p>
+<p>Next, we’ll make the lantern. The 19 cores will be placed in a hexagonal array.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.waveguide</span> <span class="kn">import</span> <span class="n">get_19port_positions</span>
+<span class="n">core_pos</span> <span class="o">=</span> <span class="n">get_19port_positions</span><span class="p">(</span><span class="n">rclad</span><span class="o">/</span><span class="mf">2.5</span><span class="p">)</span>
+
+<span class="c1"># mesh params #</span>
+<span class="n">core_res</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">clad_res</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">jack_res</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="kn">from</span> <span class="nn">cbeam.waveguide</span> <span class="kn">import</span> <span class="n">PhotonicLantern</span>
+<span class="n">PL19</span> <span class="o">=</span> <span class="n">PhotonicLantern</span><span class="p">(</span><span class="n">core_pos</span><span class="p">,</span><span class="n">rcores</span><span class="p">,</span><span class="n">rclad</span><span class="p">,</span><span class="n">rjack</span><span class="p">,</span><span class="n">ncores</span><span class="p">,</span><span class="n">nclad</span><span class="p">,</span><span class="n">njack</span><span class="p">,</span><span class="n">z_ex</span><span class="p">,</span><span class="n">taper_factor</span><span class="p">,</span><span class="n">core_res</span><span class="p">,</span><span class="n">clad_res</span><span class="p">,</span><span class="n">jack_res</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-2.py">Source code</a>)</p>
+<p>Finally, we’ll run <code class="docutils literal notranslate"><span class="pre">compute_neffs()</span></code>. The syntax is similar to <code class="docutils literal notranslate"><span class="pre">characterize()</span></code>, and you can save and load files as well. Even though we expect this waveguide to support 19 guided modes, we will solve for the 21 highest effective indices, since there is no guarantee that the 19 highest index modes at the start of the waveguide correspond with the 19 highest index modes at the end of the waveguide. (In practice, you would probably design the waveguide such that there are no crossings in the first place, at least for the modes you care about).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.propagator</span> <span class="kn">import</span> <span class="n">Propagator</span>
+
+<span class="n">prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wl</span><span class="p">,</span><span class="n">PL19</span><span class="p">,</span><span class="n">Nmax</span><span class="o">=</span><span class="mi">21</span><span class="p">)</span>
+
+<span class="c1"># comment/uncomment as necessary</span>
+<span class="c1"># this take around 10 minutes on my laptop</span>
+<span class="c1"># prop.compute_neffs()</span>
+<span class="n">prop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;19port_neffs&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-3.py">Source code</a>)</p>
+<p>Next, I’ll plot the effective indices, as well as the difference in index between modes 18 and 19, to show that they cross early on.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">zs</span><span class="p">,</span><span class="n">prop</span><span class="o">.</span><span class="n">neffs</span><span class="p">[:,</span><span class="mi">18</span><span class="p">]</span><span class="o">-</span><span class="n">prop</span><span class="o">.</span><span class="n">neffs</span><span class="p">[:,</span><span class="mi">19</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="n">ls</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;difference in effective index, modes 18 &amp; 19&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-4.py">Source code</a>, <a class="reference external" href=".//PL19-4_00_00.png">png</a>, <a class="reference external" href=".//PL19-4_00_00.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-4_00_00.pdf">pdf</a>)</p>
+<figure class="align-default">
+<img alt="_images/PL19-4_00_00.png" class="plot-directive" src="_images/PL19-4_00_00.png" />
+</figure>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prop</span><span class="o">.</span><span class="n">plot_neff_diffs</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-4_01_00.png">png</a>, <a class="reference external" href=".//PL19-4_01_00.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-4_01_00.pdf">pdf</a>)</p>
+<figure class="align-default">
+<img alt="_images/PL19-4_01_00.png" class="plot-directive" src="_images/PL19-4_01_00.png" />
+</figure>
+<p>As before, the vertical lines show the <span class="math notranslate nohighlight">\(z\)</span> locations traversed during the computation. The dark band a little after <span class="math notranslate nohighlight">\(z=40\)</span> mm is actually a result of another eigenvalue crossing, this time between a cladding mode and a higher-order mode that was not included in the 21 initial modes.</p>
+<p>From the effective index information, we can identify groups of degenerate modes. First, certain mode pairs remain degenerate through the entirety of the waveguide; second, <em>all</em> of the <em>guided</em> eigenmodes become degenerate in the back half of the waveguide. This suggests that the simulation should be done in two or more pieces, each with different specifications for mode degeneracy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Why does accounting for mode degeneracy need to be done manually? In the past, I tried to manage this automatically, by fixing subspaces of the eigenbasis when the difference in eigenvalues was sufficiently low. However, switching this correction on and off breaks eigenmode differentiability. Situations where a degeneracy is formed and then later broken add even more complexity.</p>
+</div>
+</section>
+<section id="characterize-the-front-half">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink"><span class="section-number">5.3. </span>characterize the front half</a><a class="headerlink" href="#characterize-the-front-half" title="Link to this heading">#</a></h2>
+<p>Below is the characterization of the front half of the lantern. I also plot the coupling coefficients.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from the previous analysis, we only need to track the top 20 modes</span>
+<span class="c1"># to ensure that all guided modes are tracked</span>
+<span class="n">prop1</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wl</span><span class="p">,</span><span class="n">PL19</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">prop1</span><span class="o">.</span><span class="n">degen_groups</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">],[</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">],[</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">],[</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="p">],[</span><span class="mi">15</span><span class="p">,</span><span class="mi">16</span><span class="p">]]</span>
+
+<span class="c1"># during characterization, we specify modes we don&#39;t care about</span>
+<span class="c1"># to speed things up. mode 18 becomes a cladding mode, as</span>
+<span class="c1"># per previous analysis.</span>
+<span class="n">prop1</span><span class="o">.</span><span class="n">skipped_modes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">18</span><span class="p">]</span>
+
+<span class="n">tag1</span> <span class="o">=</span> <span class="s2">&quot;19port_0800_front&quot;</span>
+<span class="c1">#prop1.characterize(0,50000,save=True,tag=tag1)</span>
+<span class="n">prop1</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag1</span><span class="p">)</span>
+
+<span class="c1"># prop1.compute_neffs(tag=tag1,save=True)</span>
+<span class="n">prop1</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag1</span><span class="p">)</span>
+<span class="n">prop1</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-5.py">Source code</a>, <a class="reference external" href=".//PL19-5.png">png</a>, <a class="reference external" href=".//PL19-5.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-5.pdf">pdf</a>)</p>
+<figure class="align-default">
+<img alt="_images/PL19-5.png" class="plot-directive" src="_images/PL19-5.png" />
+</figure>
+</section>
+<section id="characterize-the-back-half">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink"><span class="section-number">5.4. </span>characterize the back half</a><a class="headerlink" href="#characterize-the-back-half" title="Link to this heading">#</a></h2>
+<p>We will make another <code class="docutils literal notranslate"><span class="pre">Propagator</span></code> object to perform the back half characterization, where all guided modes (i.e. every mode except 18) are assumed degenerate. We also need to ensure this propagator uses the final eigenbasis from earlier, which we can do using <code class="docutils literal notranslate"><span class="pre">Propagator.load_init_conds()</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tag2</span> <span class="o">=</span> <span class="s2">&quot;19port_0800_back&quot;</span>
+<span class="n">prop2</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wl</span><span class="p">,</span><span class="n">PL19</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">prop2</span><span class="o">.</span><span class="n">skipped_modes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">18</span><span class="p">]</span>
+
+<span class="c1"># every mode except 18 is degenerate w/ each other</span>
+<span class="n">prop2</span><span class="o">.</span><span class="n">degen_groups</span> <span class="o">=</span> <span class="p">[[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)]]</span>
+<span class="k">del</span> <span class="n">prop2</span><span class="o">.</span><span class="n">degen_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">18</span><span class="p">]</span>
+
+<span class="c1"># use the final modes of prop1 as the</span>
+<span class="c1"># initial modes of prop2</span>
+<span class="n">prop2</span><span class="o">.</span><span class="n">load_init_conds</span><span class="p">(</span><span class="n">prop1</span><span class="p">)</span>
+
+<span class="c1"># prop2.characterize(50000,100000,save=True,tag=tag2)</span>
+<span class="n">prop2</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag2</span><span class="p">)</span>
+
+<span class="n">prop2</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-6.py">Source code</a>, <a class="reference external" href=".//PL19-6.png">png</a>, <a class="reference external" href=".//PL19-6.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-6.pdf">pdf</a>)</p>
+<figure class="align-default">
+<img alt="_images/PL19-6.png" class="plot-directive" src="_images/PL19-6.png" />
+</figure>
+<p>Yeah, it looks like a mess.</p>
+<p>Collectively, both characterizations take around 800 seconds on my laptop.</p>
+</section>
+<section id="end-to-end-propagation">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">5.5. </span>end-to-end propagation</a><a class="headerlink" href="#end-to-end-propagation" title="Link to this heading">#</a></h2>
+<p>We will combine the two propagators using the <code class="docutils literal notranslate"><span class="pre">ChainPropagator</span></code> class, which lets us to send wavefronts through a list of propagators. Below, I launch the <span class="math notranslate nohighlight">\(LP_{01}\)</span> mode.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.propagator</span> <span class="kn">import</span> <span class="n">ChainPropagator</span>
+<span class="n">prop12</span> <span class="o">=</span> <span class="n">ChainPropagator</span><span class="p">([</span><span class="n">prop1</span><span class="p">,</span><span class="n">prop2</span><span class="p">])</span>
+
+<span class="n">u0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">]</span><span class="o">*</span><span class="mi">20</span>
+<span class="c1"># launch LP01</span>
+<span class="n">u0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+<span class="c1"># propagate as normal</span>
+<span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">,</span><span class="n">uf</span> <span class="o">=</span> <span class="n">prop12</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">u0</span><span class="p">)</span>
+
+<span class="n">prop12</span><span class="o">.</span><span class="n">plot_mode_powers</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-7.py">Source code</a>, <a class="reference external" href=".//PL19-7.png">png</a>, <a class="reference external" href=".//PL19-7.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-7.pdf">pdf</a>)</p>
+<figure class="align-default">
+<img alt="_images/PL19-7.png" class="plot-directive" src="_images/PL19-7.png" />
+</figure>
+<p>You can see the mode powers are nearly frozen in the back half of the lantern, because the eigenbasis has been fixed (as much as possible) for that portion of the calculation. We can also view fields as usual:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">prop12</span><span class="o">.</span><span class="n">make_field</span><span class="p">(</span><span class="n">uf</span><span class="p">,</span><span class="n">zs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">prop12</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">zs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">res</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span><span class="n">show_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//PL19-8.py">Source code</a>, <a class="reference external" href=".//PL19-8.png">png</a>, <a class="reference external" href=".//PL19-8.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-8.pdf">pdf</a>)</p>
+<figure class="align-default">
+<img alt="_images/PL19-8.png" class="plot-directive" src="_images/PL19-8.png" />
+</figure>
+<p>Finally, we can extract the channel powers using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">out</span> <span class="o">=</span> <span class="n">prop12</span><span class="o">.</span><span class="n">to_channel_basis</span><span class="p">(</span><span class="n">uf</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">out</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.15500923 0.09659393 0.09643943 0.09675434 0.09645291 0.09614298 0.09628183 0.01389994 0.03049378 0.01387824 0.0304683 0.013861 0.03046653 0.01387356 0.0305389 0.01387932 0.03056357 0.01384288 0.03056049]
+</pre></div>
+</div>
+<p>In this example, propagations take a few seconds. For repeat
+propagations, it is much faster to use a transfer matrix. This can be done with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">M</span> <span class="o">=</span> <span class="n">prop12</span><span class="o">.</span><span class="n">compute_transfer_matrix</span><span class="p">()</span>
+<span class="c1"># and then propagation is ...</span>
+<span class="n">uf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">u0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="mmi.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><span class="section-number">4. </span>multimode interference coupler</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="advancedusage.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">advanced usage</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview-and-challenges">5.1. overview and challenges</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computing-effective-indices">5.2. computing effective indices</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characterize-the-front-half">5.3. characterize the front half</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characterize-the-back-half">5.4. characterize the back half</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#end-to-end-propagation">5.5. end-to-end propagation</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -7,9 +7,9 @@ propagator settings
 :math:`z`-stepping parameters for characterization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``Propagator.characterize()`` applies an adaptive algorithm to select the :math:`z` step size between calculations. This algorithm is as follows. At a given step, we interpolate through the eigenmodes at the last few :math:`z` values and compare the current eigenmodes with the extrapolated prediction. If the error is below the threshhold ``zstep_tol``, then the step is accepted, and if the error is less than a tenth the threshhold, the next step is doubled; otherwise, the step is divided in two and the couping-coefficient matrix is re-computed at this new step. The starting step size is 10. ``zstep_tol`` and other parameters are accessible as ``Propagator`` class attributes, listed below:
+``Propagator.characterize()`` applies an adaptive algorithm to select the :math:`z` step size between calculations. This algorithm is as follows. At a given step, we interpolate through the eigenmodes at the last few :math:`z` values and compare the current eigenmodes with the extrapolated prediction. If the error is below a threshhold controlled by ``z_acc``, then the step is accepted, and if the error is less than a tenth the threshhold, the next step is doubled; otherwise, the step is divided in two and the couping-coefficient matrix is re-computed at this new step. ``z_acc`` and other parameters are accessible as ``Propagator`` class attributes, listed below:
 
-* ``zstep_tol`` : this tolerance parameter controls the adaptive stepping. Smaller = more careful stepping (default 1e-3).
+* ``z_acc`` : this parameter controls the adaptive stepping. Higher = more accurate; the scale is logarithmic, and the default value is 0.
 
 * ``fixed_zstep`` : set this to a numeric value to use a fixed :math:`z` step, bypassing the adaptive scheme.
 
@@ -17,10 +17,16 @@ propagator settings
 
 * ``max_zstep`` : this is the maximum :math:`z` step that can be chosen by the adaptive scheme. This is useful to prevent the adaptive stepper from skippin over small, peaked features in the cross-coupling matrix, default 640.
 
+* ``init_zstep`` : the starting :math:`z` step; defaults to 10.
+
 specifying degenerate modes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The presence of degenerate modes in a waveguide will typically slow down computation and can sometimes cause issues with numerical stability. This is because such modes, as computed by the finite-element solver, can "rotate" rapidly as we advance in :math:`z`. This produces sharp peaks in the coupling-coefficients. 
+The presence of degenerate modes in a waveguide will typically slow down computation and can sometimes cause issues with numerical stability. This is because such modes, as computed by the finite-element solver, can "rotate" rapidly as we advance in :math:`z`. This produces sharp peaks in the coupling coefficients. 
+
+.. note::
+
+    From my testing, a rule of thumb is that modes can be treated as degenerate if the difference in effective index is less than :math:`10^{-5}`. 
 
 If we know that certain modes will remain degenerate throughout the entire waveguide (e.g. we ran ``Propagator.compute_neffs()`` before hand), we can pass that information into the following ``Propagator`` attribute.
 
@@ -28,7 +34,7 @@ If we know that certain modes will remain degenerate throughout the entire waveg
 
 Given this information, the code will apply a change of basis to each degenerate mode group which minimizes rotation with :math:`z`. 
 
-What if the mode degeneracies are not consistent through the waveguide? As far as I can tell, this is pretty tricky to simulate, especially in cases where eigenvalues split and converge repeatedly. Thus, my official advice (for now) is to break up such a waveguide into regions in :math:`z` where the degeneracy structure is consistent, and perform the characterizations and propagations in parts.
+What if the mode degeneracies are not consistent through the waveguide? As far as I can tell, this is pretty tricky to simulate, especially in cases where eigenvalues split and converge repeatedly. Thus, my official advice (for now) is to break up such a waveguide into regions in :math:`z` where the degeneracy structure is consistent, and perform the characterizations and propagations in parts. See :doc:`PL19` for an example.
 
 accessing the data
 ^^^^^^^^^^^^^^^^^^^

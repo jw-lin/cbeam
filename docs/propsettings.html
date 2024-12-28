@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>3. propagator settings &#8212; cbeam 0.0.3 documentation</title>
+    <title>3. propagator settings &#8212; cbeam 0.0.4 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=4acdca81"></script>
+    <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.3 documentation</p>
+    <p class="title logo__title">cbeam 0.0.4 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -144,9 +144,10 @@
 <li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. 6-port photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL19.html">5. 19-port photonic lantern</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -376,23 +377,28 @@
 </nav>
 <section id="z-stepping-parameters-for-characterization">
 <h2><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">3.1. </span><span class="math notranslate nohighlight">\(z\)</span>-stepping parameters for characterization</a><a class="headerlink" href="#z-stepping-parameters-for-characterization" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Propagator.characterize()</span></code> applies an adaptive algorithm to select the <span class="math notranslate nohighlight">\(z\)</span> step size between calculations. This algorithm is as follows. At a given step, we interpolate through the eigenmodes at the last few <span class="math notranslate nohighlight">\(z\)</span> values and compare the current eigenmodes with the extrapolated prediction. If the error is below the threshhold <code class="docutils literal notranslate"><span class="pre">zstep_tol</span></code>, then the step is accepted, and if the error is less than a tenth the threshhold, the next step is doubled; otherwise, the step is divided in two and the couping-coefficient matrix is re-computed at this new step. The starting step size is 10. <code class="docutils literal notranslate"><span class="pre">zstep_tol</span></code> and other parameters are accessible as <code class="docutils literal notranslate"><span class="pre">Propagator</span></code> class attributes, listed below:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Propagator.characterize()</span></code> applies an adaptive algorithm to select the <span class="math notranslate nohighlight">\(z\)</span> step size between calculations. This algorithm is as follows. At a given step, we interpolate through the eigenmodes at the last few <span class="math notranslate nohighlight">\(z\)</span> values and compare the current eigenmodes with the extrapolated prediction. If the error is below a threshhold controlled by <code class="docutils literal notranslate"><span class="pre">z_acc</span></code>, then the step is accepted, and if the error is less than a tenth the threshhold, the next step is doubled; otherwise, the step is divided in two and the couping-coefficient matrix is re-computed at this new step. <code class="docutils literal notranslate"><span class="pre">z_acc</span></code> and other parameters are accessible as <code class="docutils literal notranslate"><span class="pre">Propagator</span></code> class attributes, listed below:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">zstep_tol</span></code> : this tolerance parameter controls the adaptive stepping. Smaller = more careful stepping (default 1e-3).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">z_acc</span></code> : this parameter controls the adaptive stepping. Higher = more accurate; the scale is logarithmic, and the default value is 0.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">fixed_zstep</span></code> : set this to a numeric value to use a fixed <span class="math notranslate nohighlight">\(z\)</span> step, bypassing the adaptive scheme.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">min_zstep</span></code> : this is the minimum <span class="math notranslate nohighlight">\(z\)</span> step that can be chosen by the adaptive scheme, default 1.25.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">max_zstep</span></code> : this is the maximum <span class="math notranslate nohighlight">\(z\)</span> step that can be chosen by the adaptive scheme. This is useful to prevent the adaptive stepper from skippin over small, peaked features in the cross-coupling matrix, default 640.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init_zstep</span></code> : the starting <span class="math notranslate nohighlight">\(z\)</span> step; defaults to 10.</p></li>
 </ul>
 </section>
 <section id="specifying-degenerate-modes">
 <h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">3.2. </span>specifying degenerate modes</a><a class="headerlink" href="#specifying-degenerate-modes" title="Link to this heading">#</a></h2>
-<p>The presence of degenerate modes in a waveguide will typically slow down computation and can sometimes cause issues with numerical stability. This is because such modes, as computed by the finite-element solver, can “rotate” rapidly as we advance in <span class="math notranslate nohighlight">\(z\)</span>. This produces sharp peaks in the coupling-coefficients.</p>
+<p>The presence of degenerate modes in a waveguide will typically slow down computation and can sometimes cause issues with numerical stability. This is because such modes, as computed by the finite-element solver, can “rotate” rapidly as we advance in <span class="math notranslate nohighlight">\(z\)</span>. This produces sharp peaks in the coupling coefficients.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>From my testing, a rule of thumb is that modes can be treated as degenerate if the difference in effective index is less than <span class="math notranslate nohighlight">\(10^{-5}\)</span>.</p>
+</div>
 <p>If we know that certain modes will remain degenerate throughout the entire waveguide (e.g. we ran <code class="docutils literal notranslate"><span class="pre">Propagator.compute_neffs()</span></code> before hand), we can pass that information into the following <code class="docutils literal notranslate"><span class="pre">Propagator</span></code> attribute.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">degen_groups</span></code> : a nested list of indices which identify groups of modes that remain degenerate throughout the entire waveguide. For instance, if we know <em>a priori</em> that modes (1,2) and modes (3,4) form degenerate pairs, we could pass in <code class="docutils literal notranslate"><span class="pre">[[1,2],[3,4]]</span></code>. <strong>This is highly recommended whenever possible.</strong></p></li>
 </ul>
 <p>Given this information, the code will apply a change of basis to each degenerate mode group which minimizes rotation with <span class="math notranslate nohighlight">\(z\)</span>.</p>
-<p>What if the mode degeneracies are not consistent through the waveguide? As far as I can tell, this is pretty tricky to simulate, especially in cases where eigenvalues split and converge repeatedly. Thus, my official advice (for now) is to break up such a waveguide into regions in <span class="math notranslate nohighlight">\(z\)</span> where the degeneracy structure is consistent, and perform the characterizations and propagations in parts.</p>
+<p>What if the mode degeneracies are not consistent through the waveguide? As far as I can tell, this is pretty tricky to simulate, especially in cases where eigenvalues split and converge repeatedly. Thus, my official advice (for now) is to break up such a waveguide into regions in <span class="math notranslate nohighlight">\(z\)</span> where the degeneracy structure is consistent, and perform the characterizations and propagations in parts. See <a class="reference internal" href="PL19.html"><span class="doc">19-port photonic lantern</span></a> for an example.</p>
 </section>
 <section id="accessing-the-data">
 <h2><a class="toc-backref" href="#id3" role="doc-backlink"><span class="section-number">3.3. </span>accessing the data</a><a class="headerlink" href="#accessing-the-data" title="Link to this heading">#</a></h2>
@@ -498,21 +504,10 @@
   
   <div class="footer-item">
     
-<p class="component-author">
-By Jon Lin
-</p>
-
   </div>
   
   <div class="footer-item">
     
-
-  <p class="copyright">
-    
-      © Copyright 2024, Jon Lin.
-      <br/>
-    
-  </p>
 
   </div>
   

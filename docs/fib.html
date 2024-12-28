@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>1. fiber mode solving &#8212; cbeam 0.0.3 documentation</title>
+    <title>1. fiber mode solving &#8212; cbeam 0.0.4 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=4acdca81"></script>
+    <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -48,7 +48,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'fib';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="2. photonic lantern" href="PL.html" />
+    <link rel="next" title="2. 6-port photonic lantern" href="PL.html" />
     <link rel="prev" title="examples" href="examples.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.3 documentation</p>
+    <p class="title logo__title">cbeam 0.0.4 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -144,9 +144,10 @@
 <li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="examples.html">examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">1. fiber mode solving</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. 6-port photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL19.html">5. 19-port photonic lantern</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -388,7 +389,7 @@
 </pre></div>
 </div>
 <p>(<a class="reference external" href=".//fib-2.py">Source code</a>)</p>
-<p>Note that <code class="docutils literal notranslate"><span class="pre">core</span></code> comes <em>after</em> <code class="docutils literal notranslate"><span class="pre">clad</span></code>, ensuring that the region inside the <code class="docutils literal notranslate"><span class="pre">core</span></code> cylinder has index <code class="docutils literal notranslate"><span class="pre">ncore</span></code> instead of <code class="docutils literal notranslate"><span class="pre">nclad</span></code>. Let’s check out work by making a mesh and plotting.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">core</span></code> comes <em>after</em> <code class="docutils literal notranslate"><span class="pre">clad</span></code>, ensuring that the region inside the <code class="docutils literal notranslate"><span class="pre">core</span></code> cylinder has index <code class="docutils literal notranslate"><span class="pre">ncore</span></code> instead of <code class="docutils literal notranslate"><span class="pre">nclad</span></code>. Let’s check our work by making a mesh and plotting.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mesh</span> <span class="o">=</span> <span class="n">fiber</span><span class="o">.</span><span class="n">make_mesh</span><span class="p">()</span>
 <span class="n">fiber</span><span class="o">.</span><span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">)</span>
 </pre></div>
@@ -403,7 +404,7 @@
 <span class="n">Nmax</span> <span class="o">=</span> <span class="mi">10</span> <span class="c1"># solve for 10 modes</span>
 <span class="n">prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span><span class="n">fiber</span><span class="p">,</span><span class="n">Nmax</span><span class="p">)</span>
 <span class="n">effective_indices</span><span class="p">,</span> <span class="n">modes</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">solve_at</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># could solve at any z value too</span>
-<span class="n">prop</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">modes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># look at LP_11</span>
+<span class="n">prop</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">modes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">res</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># look at LP_11</span>
 </pre></div>
 </div>
 <p>(<a class="reference external" href=".//fib-4.py">Source code</a>, <a class="reference external" href=".//fib-4.png">png</a>, <a class="reference external" href=".//fib-4.hires.png">hires.png</a>, <a class="reference external" href=".//fib-4.pdf">pdf</a>)</p>
@@ -413,7 +414,7 @@
 </section>
 <section id="tapered-square-fiber">
 <h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">1.2. </span>tapered square fiber</a><a class="headerlink" href="#tapered-square-fiber" title="Link to this heading">#</a></h2>
-<p>For a slightly more involved example, we’ll make a rectangular fiber which tapers in one axis with <span class="math notranslate nohighlight">\(z\)</span>. Such a structure is sometimes seen in the design of edge couplers for photonic chips; in any case it is instructive on the capabilities and limitations of <code class="docutils literal notranslate"><span class="pre">cbeam</span></code>. We’ll use the <code class="docutils literal notranslate"><span class="pre">BoxPipe</span></code> class to construct this tapered fiber.</p>
+<p>For a slightly more involved example, we’ll make a rectangular fiber which tapers in one axis with <span class="math notranslate nohighlight">\(z\)</span>, loosely inspired by edge couplers and tapers for multimode interferometers. We’ll use the <code class="docutils literal notranslate"><span class="pre">BoxPipe</span></code> class to construct this tapered fiber.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">length</span> <span class="o">=</span> <span class="mi">10000</span> <span class="c1"># um</span>
 <span class="n">xw_core</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">z</span><span class="p">:</span> <span class="mi">10</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">z</span><span class="o">/</span><span class="n">length</span><span class="p">)</span> <span class="c1"># triples in thickness over length</span>
 <span class="n">yw_core</span> <span class="o">=</span> <span class="mi">10</span> <span class="c1"># fixed height</span>
@@ -427,7 +428,7 @@
 </pre></div>
 </div>
 <p>(<a class="reference external" href=".//fib-5.py">Source code</a>)</p>
-<p>To make sure the generated meshes are refined enough, we’ll also set target mesh sizes inside the core and cladding, then create the <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code>.</p>
+<p>We’ll also set target mesh sizes inside the core and cladding, then create the <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rect_clad</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">=</span> <span class="mf">3.</span> <span class="c1"># target size of triangles in cladding (but not core)</span>
 <span class="n">rect_core</span><span class="o">.</span><span class="n">mesh_size</span> <span class="o">=</span> <span class="mf">1.</span> <span class="c1"># target size in core</span>
 
@@ -453,15 +454,18 @@
 <li><p>A transformation rule did not have to be specified. The <code class="docutils literal notranslate"><span class="pre">Waveguide</span></code> class performs the transformation automatically.</p></li>
 <li><p>The transformation in this case increases triangle skewness. This can lead to lower accuracy; in cases of extreme skewness, you should consider breaking up the waveguide in <span class="math notranslate nohighlight">\(z\)</span>, or checking convergence properties by increasing the mesh resolution.</p></li>
 </ol>
-<p>Moving on, we’ll now solve for the modes of this waveguide as a function of <span class="math notranslate nohighlight">\(z\)</span>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># solve for top 4 modes in terms of effective index</span>
-<span class="n">rect_prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span><span class="n">rect_fiber</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<p>Moving on, let’s solve for the effective indices and modes of this waveguide as a function of <span class="math notranslate nohighlight">\(z\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># solve for top 6 modes in terms of effective index</span>
+<span class="n">rect_prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span><span class="n">rect_fiber</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span>
 
 <span class="n">rect_tag</span> <span class="o">=</span> <span class="s2">&quot;tapered_box&quot;</span>
 
 <span class="c1"># comment/uncomment below as necessary</span>
-<span class="n">rect_prop</span><span class="o">.</span><span class="n">compute_modes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">length</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">rect_tag</span><span class="p">)</span>
+<span class="n">rect_prop</span><span class="o">.</span><span class="n">compute_neffs</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">length</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">rect_tag</span><span class="p">)</span>
 <span class="c1"># rect_prop.load(rect_tag)</span>
+
+<span class="c1"># if you wanted a more careful computation of the modes, you could also use</span>
+<span class="c1"># rect_prop.compute_modes()</span>
 </pre></div>
 </div>
 <p>(<a class="reference external" href=".//fib-8.py">Source code</a>)</p>
@@ -473,9 +477,8 @@
 <figure class="align-default">
 <img alt="_images/fib-9.png" class="plot-directive" src="_images/fib-9.png" />
 </figure>
-<p>The fundamental mode has the highest effective index, and is the blue curve in the above. The next two modes (orange and green), which are <span class="math notranslate nohighlight">\(LP_{11}\)</span>-like, start out as degenerate in eigenvalue,as expected; the degeneracy splits with <span class="math notranslate nohighlight">\(z\)</span>. Lastly, mode 3 is initially spurious (a cladding mode or radiative mode) - you can tell because the effective index starts lower than lowest index in our waveguide. But as the waveguide widens, this mode becomes bound, and then <em>crosses</em> mode 2.</p>
-<p>A final limitation can be seen towards the end of the mode 2 curve; the upwards kink is a sign that there is another crossing in effective index, which <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> is unable to deal with since we told it to only solve for 4 modes.</p>
-<p>Finally, we will view the <span class="math notranslate nohighlight">\(z\)</span>-dependent eigenmodes of the waveguide using <code class="docutils literal notranslate"><span class="pre">plot_waveguide</span></code>. If you run the below on your own you should get a slider which can be used to set the <span class="math notranslate nohighlight">\(z\)</span> value. Unfortunately, slider rendered below is not interactive.</p>
+<p>Vertical lines indicate the <span class="math notranslate nohighlight">\(z\)</span> values used during the calculation. The fundamental mode has the highest effective index, and is the blue curve in the above. The next two modes (orange and green), which are <span class="math notranslate nohighlight">\(LP_{11}\)</span>-like, start out as degenerate in eigenvalue, as expected; the degeneracy splits with <span class="math notranslate nohighlight">\(z\)</span>. All modes after mode 2 are initially cladding modes - you can tell because the effective index starts lower than lowest index in our waveguide. But as the waveguide widens, these modes becomes bound, and their eigenvalues cross in complicated ways.</p>
+<p>Finally, we will view the <span class="math notranslate nohighlight">\(z\)</span>-dependent eigenmodes of the waveguide using <code class="docutils literal notranslate"><span class="pre">plot_waveguide_mode()</span></code>. If you run the below on your own you should get a slider which can be used to set the <span class="math notranslate nohighlight">\(z\)</span> value. Unfortunately, the slider rendered below is not interactive.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot eigenmode 2</span>
 <span class="n">rect_prop</span><span class="o">.</span><span class="n">plot_waveguide_mode</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
@@ -512,7 +515,7 @@
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">2. </span>photonic lantern</p>
+        <p class="prev-next-title"><span class="section-number">2. </span>6-port photonic lantern</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -548,21 +551,10 @@
   
   <div class="footer-item">
     
-<p class="component-author">
-By Jon Lin
-</p>
-
   </div>
   
   <div class="footer-item">
     
-
-  <p class="copyright">
-    
-      © Copyright 2024, Jon Lin.
-      <br/>
-    
-  </p>
 
   </div>
   

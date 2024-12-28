@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2. photonic lantern &#8212; cbeam 0.0.3 documentation</title>
+    <title>2. 6-port photonic lantern &#8212; cbeam 0.0.4 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=4acdca81"></script>
+    <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -127,7 +127,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.3 documentation</p>
+    <p class="title logo__title">cbeam 0.0.4 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -144,9 +144,10 @@
 <li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="examples.html">examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">2. photonic lantern</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">2. 6-port photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL19.html">5. 19-port photonic lantern</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -339,7 +340,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>photonic lantern</h1>
+    <h1>6-port photonic lantern</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -365,8 +366,8 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="photonic-lantern">
-<h1><span class="section-number">2. </span>photonic lantern<a class="headerlink" href="#photonic-lantern" title="Link to this heading">#</a></h1>
+  <section id="port-photonic-lantern">
+<h1><span class="section-number">2. </span>6-port photonic lantern<a class="headerlink" href="#port-photonic-lantern" title="Link to this heading">#</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#solving-at-z" id="id1">solving at <span class="math notranslate nohighlight">\(z\)</span></a></p></li>
@@ -447,11 +448,11 @@
 <figure class="align-default">
 <img alt="_images/PL-4.png" class="plot-directive" src="_images/PL-4.png" />
 </figure>
-<p>The vertical lines indicate the <span class="math notranslate nohighlight">\(z\)</span> values which <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> adaptively chose to compute at. The plot also looks kind of spiky! But the spikes are not particularly surprising since we have a lot of mode degeneracy, so our eigenbasis can rotate more or less freely with <span class="math notranslate nohighlight">\(z\)</span>. This is fine as long as the spikes sufficiently well-sampled in <span class="math notranslate nohighlight">\(z\)</span>.</p>
+<p>It looks kind of bumpy! But the bumps are not particularly surprising since we have a lot of mode degeneracy, so our eigenbasis can rotate more or less freely with <span class="math notranslate nohighlight">\(z\)</span>. This is fine as long as the bumps are sufficiently well-sampled in <span class="math notranslate nohighlight">\(z\)</span>.</p>
 </section>
 <section id="dealing-with-degenerate-modes">
 <h2><a class="toc-backref" href="#id4" role="doc-backlink"><span class="section-number">2.4. </span>dealing with degenerate modes</a><a class="headerlink" href="#dealing-with-degenerate-modes" title="Link to this heading">#</a></h2>
-<p>While the above calculation is fine, <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> provides a way to “derotate” a degenerate eigenbasis, which can improve computation speed and accuracy. This involves specifying which modes are degenerate in <code class="docutils literal notranslate"><span class="pre">Propagator.degen_groups</span></code>:</p>
+<p>While the above calculation is fine, <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> provides a way to “fix” a degenerate eigenbasis, which can improve computation speed and accuracy. This involves specifying which modes are degenerate in <code class="docutils literal notranslate"><span class="pre">Propagator.degen_groups</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># modes 1&amp;2 , 3&amp;4 are degenerate</span>
 <span class="n">PLprop</span><span class="o">.</span><span class="n">degen_groups</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]]</span>
 </pre></div>
@@ -459,8 +460,8 @@
 <p>(<a class="reference external" href=".//PL-5.py">Source code</a>)</p>
 <p>I will run a <code class="docutils literal notranslate"><span class="pre">characterize()</span></code> again to show how the coupling coefficients change, even though the waveguide and the physics are the same.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment/uncomment below as necessary</span>
-<span class="n">PLprop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;testdegen&quot;</span><span class="p">)</span>
-<span class="c1"># PLprop.load(&quot;testdegen&quot;)</span>
+<span class="c1"># PLprop.characterize(save=True,tag=&quot;test_degen&quot;)</span>
+<span class="n">PLprop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;test_degen&quot;</span><span class="p">)</span>
 
 <span class="n">PLprop</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">()</span>
 </pre></div>
@@ -469,36 +470,33 @@
 <figure class="align-default">
 <img alt="_images/PL-6.png" class="plot-directive" src="_images/PL-6.png" />
 </figure>
-<p>Comparing this plot with the previous, we notics that coupling coefficients are lower now, as expected.</p>
+<p>Comparing this plot with the previous, the coupling coefficients are lower now, as expected.</p>
 </section>
 <section id="extract-channel-powers">
 <h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">2.5. </span>extract channel powers</a><a class="headerlink" href="#extract-channel-powers" title="Link to this heading">#</a></h2>
-<p>Degeneracy throws one last complication at us. Suppose we want to propagate a field through the lantern and get the output powers in each single-mode core. A simple propagation will not give us the information, because the modes at the end of the waveguide might not match the modes we are interested in. I will propagate the fundamental mode through the lantern to illustrate.</p>
+<p>Degeneracy leaves one last complication. Suppose we want to propagate a field through the lantern and get the output powers in each single mode core. A simple propagation will not give us the information, because the modes at the end of the waveguide might not match the modes we are interested in. The propagation below demonstrates this.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">u0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># launch field, LP01</span>
-<span class="c1"># you can try loading &quot;test&quot; here as well</span>
 <span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">,</span><span class="n">uf</span> <span class="o">=</span> <span class="n">PLprop</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">u0</span><span class="p">)</span>
 
 <span class="n">PLprop</span><span class="o">.</span><span class="n">plot_mode_powers</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>(<a class="reference external" href=".//PL-7.py">Source code</a>, <a class="reference external" href=".//PL-7.png">png</a>, <a class="reference external" href=".//PL-7.hires.png">hires.png</a>, <a class="reference external" href=".//PL-7.pdf">pdf</a>)</p>
 <figure class="align-default">
 <img alt="_images/PL-7.png" class="plot-directive" src="_images/PL-7.png" />
 </figure>
-<p>5 of the modes should share the same power, which we clearly do not see. To properly extract the channel powers, we can use <code class="docutils literal notranslate"><span class="pre">Propagator.to_channel_basis(uf)</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># note that this function uses the phased mode amplitudes uf, not the unphased amplitudes in u.</span>
+<p>If the output modes of the waveguide corresponded to the modes of each single mode channel, 5 of the modes should share the same power, which we clearly do not see. To properly extract the channel powers, we can use <code class="docutils literal notranslate"><span class="pre">Propagator.to_channel_basis()</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># this function takes the phased mode amplitudes uf</span>
 <span class="n">amps</span> <span class="o">=</span> <span class="n">PLprop</span><span class="o">.</span><span class="n">to_channel_basis</span><span class="p">(</span><span class="n">uf</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">amps</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-8.py">Source code</a>)</p>
 <p>This should give the following channel powers (or close to it):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.49554017 0.10090713 0.10091332 0.10088415 0.10088725 0.10087432]
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.49546678 0.10094314 0.10086274 0.10092145 0.10089747 0.10091481]
 </pre></div>
 </div>
 </section>
@@ -568,21 +566,10 @@
   
   <div class="footer-item">
     
-<p class="component-author">
-By Jon Lin
-</p>
-
   </div>
   
   <div class="footer-item">
     
-
-  <p class="copyright">
-    
-      © Copyright 2024, Jon Lin.
-      <br/>
-    
-  </p>
 
   </div>
   

@@ -1,5 +1,5 @@
-photonic lantern
-=================
+6-port photonic lantern
+=======================
 .. contents::
     :local:
     :depth: 2
@@ -79,13 +79,13 @@ Let's also plot the coupling coefficients.
 
     PLprop.plot_coupling_coeffs()
 
-The vertical lines indicate the :math:`z` values which ``cbeam`` adaptively chose to compute at. The plot also looks kind of spiky! But the spikes are not particularly surprising since we have a lot of mode degeneracy, so our eigenbasis can rotate more or less freely with :math:`z`. This is fine as long as the spikes sufficiently well-sampled in :math:`z`.
+It looks kind of bumpy! But the bumps are not particularly surprising since we have a lot of mode degeneracy, so our eigenbasis can rotate more or less freely with :math:`z`. This is fine as long as the bumps are sufficiently well-sampled in :math:`z`.
 
 
 dealing with degenerate modes
 -----------------------------
 
-While the above calculation is fine, ``cbeam`` provides a way to "derotate" a degenerate eigenbasis, which can improve computation speed and accuracy. This involves specifying which modes are degenerate in ``Propagator.degen_groups``:
+While the above calculation is fine, ``cbeam`` provides a way to "fix" a degenerate eigenbasis, which can improve computation speed and accuracy. This involves specifying which modes are degenerate in ``Propagator.degen_groups``:
 
 .. plot::
     :context: close-figs
@@ -100,18 +100,18 @@ I will run a ``characterize()`` again to show how the coupling coefficients chan
     :context: close-figs
 
     # comment/uncomment below as necessary
-    PLprop.characterize(save=True,tag="testdegen")
-    # PLprop.load("testdegen")
+    # PLprop.characterize(save=True,tag="test_degen")
+    PLprop.load("test_degen")
 
     PLprop.plot_coupling_coeffs()
 
-Comparing this plot with the previous, we notics that coupling coefficients are lower now, as expected.
+Comparing this plot with the previous, the coupling coefficients are lower now, as expected.
 
 
 extract channel powers
 ----------------------
 
-Degeneracy throws one last complication at us. Suppose we want to propagate a field through the lantern and get the output powers in each single-mode core. A simple propagation will not give us the information, because the modes at the end of the waveguide might not match the modes we are interested in. I will propagate the fundamental mode through the lantern to illustrate.
+Degeneracy leaves one last complication. Suppose we want to propagate a field through the lantern and get the output powers in each single mode core. A simple propagation will not give us the information, because the modes at the end of the waveguide might not match the modes we are interested in. The propagation below demonstrates this.
 
 .. plot::
     :context: close-figs
@@ -120,19 +120,13 @@ Degeneracy throws one last complication at us. Suppose we want to propagate a fi
     import numpy as np
 
     u0 = [1,0,0,0,0,0] # launch field, LP01 
-    # you can try loading "test" here as well
     zs,us,uf = PLprop.propagate(u0)
 
     PLprop.plot_mode_powers(zs,us)
-    plt.show()
 
-5 of the modes should share the same power, which we clearly do not see. To properly extract the channel powers, we can use ``Propagator.to_channel_basis(uf)``. 
+If the output modes of the waveguide corresponded to the modes of each single mode channel, 5 of the modes should share the same power, which we clearly do not see. To properly extract the channel powers, we can use ``Propagator.to_channel_basis()``. ::
 
-.. plot::
-    :context: close-figs
-    :nofigs:
-
-    # note that this function uses the phased mode amplitudes uf, not the unphased amplitudes in u.
+    # this function takes the phased mode amplitudes uf
     amps = PLprop.to_channel_basis(uf)
     
     print(np.power(np.abs(amps),2))
@@ -141,4 +135,4 @@ This should give the following channel powers (or close to it):
 
 .. testoutput::
 
-    [0.49554017 0.10090713 0.10091332 0.10088415 0.10088725 0.10087432]
+    [0.49546678 0.10094314 0.10086274 0.10092145 0.10089747 0.10091481] 

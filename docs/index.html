@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cbeam: a coupled-mode optical propagator &#8212; cbeam 0.0.3 documentation</title>
+    <title>cbeam: a coupled-mode optical propagator &#8212; cbeam 0.0.4 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=4acdca81"></script>
+    <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -128,7 +128,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.3 documentation</p>
+    <p class="title logo__title">cbeam 0.0.4 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -145,9 +145,10 @@
 <li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. 6-port photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL19.html">5. 19-port photonic lantern</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -364,7 +365,7 @@
                   
   <section id="cbeam-a-coupled-mode-optical-propagator">
 <h1>cbeam: a coupled-mode optical propagator<a class="headerlink" href="#cbeam-a-coupled-mode-optical-propagator" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">cbeam</span></code> is a Python/Julia package which simulates the propagation of light through slowly varying waveguides. It has a completely Pythonic interface, and under the hood uses coupled-mode theory combined with the method of finite elements. This method is much faster than FD-BPM. If you’re interested in the math, check out the arXiv paper <a class="reference external" href="https://arxiv.org/abs/2411.08118">here</a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cbeam</span></code> is a Python package which simulates the propagation of light through slowly varying waveguides. Under the hood, it uses coupled-mode theory combined with the method of finite elements, and is typically much faster than FD-BPM when applicable. If you’re interested in the math, check out the arXiv paper <a class="reference external" href="https://arxiv.org/abs/2411.08118">here</a>.</p>
 <p>If you have questions, suggestions, or would like to contribute, feel free to contact me at <code class="docutils literal notranslate"><span class="pre">jon880&#64;astro.ucla.edu</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -435,21 +436,10 @@
   
   <div class="footer-item">
     
-<p class="component-author">
-By Jon Lin
-</p>
-
   </div>
   
   <div class="footer-item">
     
-
-  <p class="copyright">
-    
-      © Copyright 2024, Jon Lin.
-      <br/>
-    
-  </p>
 
   </div>
   

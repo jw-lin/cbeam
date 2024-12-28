@@ -38,7 +38,7 @@ Let's plot the meshes and refractive indices for both the access waveguide and c
     :context: close-figs
 
     access.plot_mesh()
-    mmi.plot_mesh(alpha=0.1) # lower the mesh line transparency
+    mmi.plot_mesh()
 
 access waveguide
 ------------------
@@ -104,7 +104,7 @@ The total power of the above turns out to be less than 1, indicating that some p
 
 propagation
 -----------
-One nuance in this example is that we don't need to formally propagate, since all the coupling coefficients are 0. The power in each mode is preserved; the only thing we need to do is apply the phase evolution for each mode. This means we can directly view the fields with ``Propagator.make_fields()``. I will plot the field at the expected :math:`z` coordinate for a three-fold self image. 
+One nuance in this example is that we don't need to formally propagate, since all the coupling coefficients are 0. The power in each mode is preserved; the only thing we need to do is apply the phase evolution for each mode. This means we can directly get the propagated fields with ``Propagator.make_field()``. I will plot the field at the expected :math:`z` coordinate for a three-fold self image. 
 
 .. plot::
     :context: close-figs

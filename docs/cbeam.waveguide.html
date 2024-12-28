@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cbeam.waveguide &#8212; cbeam 0.0.3 documentation</title>
+    <title>cbeam.waveguide &#8212; cbeam 0.0.4 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=4acdca81"></script>
+    <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -126,7 +126,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.3 documentation</p>
+    <p class="title logo__title">cbeam 0.0.4 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -143,9 +143,10 @@
 <li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. 6-port photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL19.html">5. 19-port photonic lantern</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -361,6 +362,7 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_mesh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_unvec"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_unvec()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.update"><code class="docutils literal notranslate"><span class="pre">Waveguide.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.linear"><code class="docutils literal notranslate"><span class="pre">Waveguide.linear</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.max_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.max_mesh_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_power"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_power</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_scale"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_scale</span></code></a></li>
@@ -541,7 +543,7 @@ the original parts of the union are plotted in a lighter color.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.plot_mesh">
-<span class="sig-name descname"><span class="pre">plot_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IOR_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.plot_mesh" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">plot_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IOR_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.Waveguide.plot_mesh" title="Link to this definition">#</a></dt>
 <dd><p>plot a mesh and associated refractive index distribution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -628,8 +630,21 @@ updated to z=0 upon initialization.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.linear">
+<span class="sig-name descname"><span class="pre">linear</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.linear" title="Link to this definition">#</a></dt>
+<dd><p>whether the waveguide varies linearly with z
+a linear waveguide will still work fine with linear=false
+but calc will be more efficient if set to true.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.max_mesh_size">
-<span class="sig-name descname"><span class="pre">max_mesh_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10.0</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.max_mesh_size" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">max_mesh_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100.0</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.max_mesh_size" title="Link to this definition">#</a></dt>
 <dd><p>maximum allowed mesh size (~ triangle side length)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -662,7 +677,7 @@ updated to z=0 upon initialization.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cbeam.waveguide.Waveguide.min_mesh_size">
-<span class="sig-name descname"><span class="pre">min_mesh_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.min_mesh_size" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">min_mesh_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.01</span></em><a class="headerlink" href="#cbeam.waveguide.Waveguide.min_mesh_size" title="Link to this definition">#</a></dt>
 <dd><p>minimum allowed mesh size (~ triangle side length)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -831,11 +846,11 @@ however, if you add/use Prim2Ds or Prim3Ds with unvectorized functions, you may 
 
 <dl class="py class">
 <dt class="sig sig-object py" id="cbeam.waveguide.PhotonicLantern">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">PhotonicLantern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rjack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">njack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_ex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taper_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jack_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.PhotonicLantern" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cbeam.waveguide.</span></span><span class="sig-name descname"><span class="pre">PhotonicLantern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rjack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">njack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_ex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taper_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jack_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.PhotonicLantern" title="Link to this definition">#</a></dt>
 <dd><p>generic class for photonic lanterns</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cbeam.waveguide.PhotonicLantern.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rjack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">njack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_ex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taper_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jack_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.PhotonicLantern.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rjack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nclad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">njack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_ex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taper_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jack_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clad_mesh_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cbeam.waveguide.PhotonicLantern.__init__" title="Link to this definition">#</a></dt>
 <dd><p>initialize a photonic lantern waveguide.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -849,11 +864,11 @@ however, if you add/use Prim2Ds or Prim3Ds with unvectorized functions, you may 
 <li><p><strong>njack</strong> – the jacket refractive index</p></li>
 <li><p><strong>z_ex</strong> – the lantern length</p></li>
 <li><p><strong>taper_factor</strong> – the amount the lantern scales by, going from z=0 -&gt; z=z_ex</p></li>
-<li><p><strong>core_res</strong> – the number of line segments to resolve each core-cladding boundary with</p></li>
-<li><p><strong>clad_res</strong> – the number of line segments to resolve the cladding-jacket boundary</p></li>
-<li><p><strong>jack_res</strong> – the number of line segments to resolve the outer jacket boundary</p></li>
-<li><p><strong>core_mesh_size</strong> – the target side length for triangles inside a lantern core, away from the boundary</p></li>
-<li><p><strong>clad_mesh_size</strong> – the target side length for triangles inside the lantern cladding, away from the boundary</p></li>
+<li><p><strong>core_res</strong> – number of line segments to resolve each core-cladding boundary with</p></li>
+<li><p><strong>clad_res</strong> – number of line segments to resolve the cladding-jacket boundary</p></li>
+<li><p><strong>jack_res</strong> – number of line segments to resolve the outer jacket boundary</p></li>
+<li><p><strong>core_mesh_size</strong> – target side length for triangles inside a core. defaults to the size set by core_res</p></li>
+<li><p><strong>clad_mesh_size</strong> – target side length for triangles inside the cladding. defaults to the size set by clad_res</p></li>
 </ul>
 </dd>
 </dl>
@@ -1215,6 +1230,7 @@ not fully tested.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_mesh"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_mesh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.transform_unvec"><code class="docutils literal notranslate"><span class="pre">Waveguide.transform_unvec()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.update"><code class="docutils literal notranslate"><span class="pre">Waveguide.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.linear"><code class="docutils literal notranslate"><span class="pre">Waveguide.linear</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.max_mesh_size"><code class="docutils literal notranslate"><span class="pre">Waveguide.max_mesh_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_power"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_power</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cbeam.waveguide.Waveguide.mesh_dist_scale"><code class="docutils literal notranslate"><span class="pre">Waveguide.mesh_dist_scale</span></code></a></li>
@@ -1315,21 +1331,10 @@ not fully tested.</p>
   
   <div class="footer-item">
     
-<p class="component-author">
-By Jon Lin
-</p>
-
   </div>
   
   <div class="footer-item">
     
-
-  <p class="copyright">
-    
-      © Copyright 2024, Jon Lin.
-      <br/>
-    
-  </p>
 
   </div>
   

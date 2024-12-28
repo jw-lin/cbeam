@@ -8,15 +8,12 @@
 
 import sys
 from pathlib import Path
-import os
-#sys.path.insert(0, os.path.abspath('..'))
-#sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 project = 'cbeam'
-copyright = '2024, Jon Lin'
+release = '0.0.4'
 author = 'Jon Lin'
-release = '0.0.3'
+
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -26,7 +23,6 @@ extensions = ['sphinx.ext.autodoc','sphinx.ext.doctest','matplotlib.sphinxext.pl
 templates_path = ['_templates']
 exclude_patterns = []
 plot_include_source = True
-
 doctest_global_setup = '''
 skip_tests = False
 '''

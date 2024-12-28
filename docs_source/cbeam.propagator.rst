@@ -11,3 +11,14 @@ Propagator class
     :members:
     :exclude-members: generate_isect_mesh,update_degen_groups,prop_setup
     :member-order: groupwise
+
+    .. automethod:: __init__
+
+^^^^^^^^^^^^^^^^^^^^^
+ChainPropagator class
+^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: cbeam.propagator.ChainPropagator
+    :members:
+
+    .. automethod:: __init__

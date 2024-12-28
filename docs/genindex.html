@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; cbeam 0.0.3 documentation</title>
+    <title>Index &#8212; cbeam 0.0.4 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="_static/documentation_options.js?v=4acdca81"></script>
+    <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -125,7 +125,7 @@
   
   
   
-    <p class="title logo__title">cbeam 0.0.3 documentation</p>
+    <p class="title logo__title">cbeam 0.0.4 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -142,9 +142,10 @@
 <li class="toctree-l1"><a class="reference internal" href="basicusage.html">quickstart</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="fib.html">1. fiber mode solving</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PL.html">2. photonic lantern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL.html">2. 6-port photonic lantern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dc.html">3. directional coupler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mmi.html">4. multimode interference coupler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PL19.html">5. 19-port photonic lantern</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="advancedusage.html">advanced usage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -299,9 +300,13 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.waveguide.html#cbeam.waveguide.BoxPipe.__init__">__init__() (cbeam.waveguide.BoxPipe method)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.ChainPropagator.__init__">__init__() (cbeam.propagator.ChainPropagator method)</a>
 
       <ul>
+        <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.__init__">(cbeam.propagator.Propagator method)</a>
+</li>
+        <li><a href="cbeam.waveguide.html#cbeam.waveguide.BoxPipe.__init__">(cbeam.waveguide.BoxPipe method)</a>
+</li>
         <li><a href="cbeam.waveguide.html#cbeam.waveguide.CircularStepIndexFiber.__init__">(cbeam.waveguide.CircularStepIndexFiber method)</a>
 </li>
         <li><a href="cbeam.waveguide.html#cbeam.waveguide.Dicoupler.__init__">(cbeam.waveguide.Dicoupler method)</a>
@@ -329,10 +334,12 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.apply_phase">apply_phase() (cbeam.propagator.Propagator method)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.allow_swaps">allow_swaps (cbeam.propagator.Propagator attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.apply_phase">apply_phase() (cbeam.propagator.Propagator method)</a>
+</li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.assign_IOR">assign_IOR() (cbeam.waveguide.Waveguide method)</a>
 </li>
   </ul></td>
@@ -362,6 +369,8 @@
         <li><a href="cbeam.FEval.html#module-cbeam.FEval">module</a>
 </li>
       </ul></li>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.ChainPropagator">ChainPropagator (class in cbeam.propagator)</a>
+</li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.characterize">characterize() (cbeam.propagator.Propagator method)</a>
 </li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Circle">Circle (class in cbeam.waveguide)</a>
@@ -382,6 +391,8 @@
 </li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.compute_neffs">compute_neffs() (cbeam.propagator.Propagator method)</a>
 </li>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.compute_transfer_matrix">compute_transfer_matrix() (cbeam.propagator.Propagator method)</a>
+</li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.correct_degeneracy">correct_degeneracy() (cbeam.propagator.Propagator method)</a>
 </li>
       <li><a href="cbeam.FEval.html#cbeam.FEval.create_tree">create_tree() (in module cbeam.FEval)</a>
@@ -393,10 +404,6 @@
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.degen_groups">degen_groups (cbeam.propagator.Propagator attribute)</a>
-</li>
-  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Dicoupler">Dicoupler (class in cbeam.waveguide)</a>
 </li>
@@ -446,10 +453,12 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.inner_product">inner_product() (cbeam.propagator.Propagator method)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.init_zstep">init_zstep (cbeam.propagator.Propagator attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.inner_product">inner_product() (cbeam.propagator.Propagator method)</a>
+</li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.isolate">isolate() (cbeam.waveguide.Waveguide method)</a>
 </li>
   </ul></td>
@@ -458,7 +467,13 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.linear">linear (cbeam.waveguide.Waveguide attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.load">load() (cbeam.propagator.Propagator method)</a>
+</li>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.load_init_conds">load_init_conds() (cbeam.propagator.Propagator method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -466,8 +481,12 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.make_field">make_field() (cbeam.propagator.Propagator method)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.ChainPropagator.make_field">make_field() (cbeam.propagator.ChainPropagator method)</a>
+
+      <ul>
+        <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.make_field">(cbeam.propagator.Propagator method)</a>
 </li>
+      </ul></li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.make_interp_funcs">make_interp_funcs() (cbeam.propagator.Propagator method)</a>
 </li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.make_mesh">make_mesh() (cbeam.waveguide.Waveguide method)</a>
@@ -505,6 +524,8 @@
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.min_mesh_size">min_mesh_size (cbeam.waveguide.Waveguide attribute)</a>
 </li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.min_zstep">min_zstep (cbeam.propagator.Propagator attribute)</a>
+</li>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.min_zstep_neff">min_zstep_neff (cbeam.propagator.Propagator attribute)</a>
 </li>
       <li>
     module
@@ -549,16 +570,18 @@
 </li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.plot_neff_diffs">plot_neff_diffs() (cbeam.propagator.Propagator method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.plot_neffs">plot_neffs() (cbeam.propagator.Propagator method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Dicoupler.plot_paths">plot_paths() (cbeam.waveguide.Dicoupler method)</a>
 
       <ul>
         <li><a href="cbeam.waveguide.html#cbeam.waveguide.Tricoupler.plot_paths">(cbeam.waveguide.Tricoupler method)</a>
 </li>
       </ul></li>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.plot_wavefront">plot_wavefront() (cbeam.propagator.Propagator method)</a>
+</li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.plot_waveguide_mode">plot_waveguide_mode() (cbeam.propagator.Propagator method)</a>
 </li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Prim3D.preserve_shape">preserve_shape (cbeam.waveguide.Prim3D attribute)</a>
@@ -569,8 +592,12 @@
 </li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Prim3D">Prim3D (class in cbeam.waveguide)</a>
 </li>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.propagate">propagate() (cbeam.propagator.Propagator method)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.ChainPropagator.propagate">propagate() (cbeam.propagator.ChainPropagator method)</a>
+
+      <ul>
+        <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.propagate">(cbeam.propagator.Propagator method)</a>
 </li>
+      </ul></li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator">Propagator (class in cbeam.propagator)</a>
 </li>
   </ul></td>
@@ -601,12 +628,14 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.solve_at">solve_at() (cbeam.propagator.Propagator method)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.skipped_modes">skipped_modes (cbeam.propagator.Propagator attribute)</a>
 </li>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.solver">solver (cbeam.propagator.Propagator attribute)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.solve_at">solve_at() (cbeam.propagator.Propagator method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.solver">solver (cbeam.propagator.Propagator attribute)</a>
+</li>
       <li><a href="cbeam.FEval.html#cbeam.FEval.sort_mesh">sort_mesh() (in module cbeam.FEval)</a>
 </li>
       <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.swap_modes">swap_modes() (cbeam.propagator.Propagator method)</a>
@@ -619,14 +648,18 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.TestPhotonicLantern">TestPhotonicLantern (class in cbeam.waveguide)</a>
 </li>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.to_channel_basis">to_channel_basis() (cbeam.propagator.Propagator method)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.ChainPropagator.to_channel_basis">to_channel_basis() (cbeam.propagator.ChainPropagator method)</a>
+
+      <ul>
+        <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.to_channel_basis">(cbeam.propagator.Propagator method)</a>
 </li>
+      </ul></li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.transform">transform() (cbeam.waveguide.Waveguide method)</a>
-</li>
-      <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.transform_mesh">transform_mesh() (cbeam.waveguide.Waveguide method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.transform_mesh">transform_mesh() (cbeam.waveguide.Waveguide method)</a>
+</li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Prim3D.transform_point_inside">transform_point_inside() (cbeam.waveguide.Prim3D method)</a>
 </li>
       <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.transform_unvec">transform_unvec() (cbeam.waveguide.Waveguide method)</a>
@@ -675,13 +708,13 @@
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.z_ex">z_ex (cbeam.waveguide.Waveguide attribute)</a>
+      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.z_acc">z_acc (cbeam.propagator.Propagator attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.z_invariant">z_invariant (cbeam.waveguide.Waveguide attribute)</a>
+      <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.z_ex">z_ex (cbeam.waveguide.Waveguide attribute)</a>
 </li>
-      <li><a href="cbeam.propagator.html#cbeam.propagator.Propagator.zstep_tol">zstep_tol (cbeam.propagator.Propagator attribute)</a>
+      <li><a href="cbeam.waveguide.html#cbeam.waveguide.Waveguide.z_invariant">z_invariant (cbeam.waveguide.Waveguide attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -713,21 +746,10 @@
   
   <div class="footer-item">
     
-<p class="component-author">
-By Jon Lin
-</p>
-
   </div>
   
   <div class="footer-item">
     
-
-  <p class="copyright">
-    
-      © Copyright 2024, Jon Lin.
-      <br/>
-    
-  </p>
 
   </div>
   

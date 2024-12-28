@@ -8,7 +8,27 @@ from itertools import combinations
 
 #region miscellaneous functions   
 
-def plot_mesh(mesh,IOR_dict=None,alpha=0.3,ax=None,plot_points=True):
+def get_19port_positions(core_spacing):
+    pos= [[0,0]]
+
+    for i in range(6):
+        xpos = core_spacing*np.cos(i*np.pi/3)
+        ypos = core_spacing*np.sin(i*np.pi/3)
+        pos.append([xpos,ypos])
+    
+    startpos = np.array([2*core_spacing,0])
+    startang = 2*np.pi/3
+    pos.append(startpos)
+    for i in range(11):
+        if i%2==0 and i!=0:
+            startang += np.pi/3
+        nextpos = startpos + np.array([core_spacing*np.cos(startang),core_spacing*np.sin(startang)])
+        pos.append(nextpos)
+        startpos = nextpos
+
+    return np.array(pos)
+
+def plot_mesh(mesh,IOR_dict=None,alpha=0.3,ax=None,plot_points=True,verbose=True):
     """ plot a mesh and associated refractive index distribution
     Args:
     mesh: the mesh to be plotted. if None, we auto-compute a mesh using default values
@@ -23,7 +43,8 @@ def plot_mesh(mesh,IOR_dict=None,alpha=0.3,ax=None,plot_points=True):
     ax.set_aspect('equal')
 
     points = mesh.points
-    print("mesh has ",points.shape[0]," points")
+    if verbose:
+        print("mesh has ",points.shape[0]," points")
     els = mesh.cells[1].data
     materials = mesh.cell_sets.keys()
 
@@ -548,17 +569,21 @@ class Waveguide:
     mesh_dist_power = 1.0 
     
     #: float: minimum allowed mesh size (~ triangle side length)
-    min_mesh_size = 0.1
+    min_mesh_size = 0.01
     
     #: float: maximum allowed mesh size (~ triangle side length)
-    max_mesh_size = 10.
+    max_mesh_size = 100.
+
+    #: bool: whether the waveguide varies linearly with z
+    #: a linear waveguide will still work fine with linear=false
+    #: but calc will be more efficient if set to true.
+    linear = False
 
     recon_midpts = True
 
     #: bool: whether or not the transform() function may take vector input. True for the default transform().
     #: however, if you add/use Prim2Ds or Prim3Ds with unvectorized functions, you may need to set this False.
     vectorized_transform = True
-
     fd_eps = 1e-6
 
     #: bool: whether or not this waveguide changes shape w/ z
@@ -697,7 +722,9 @@ class Waveguide:
         ARGS:
             writeto (str or None): filename for mesh (no extension). if None, no file is saved.  
         """
-        return self.make_mesh_bndry_ref(writeto)
+        m = self.make_mesh_bndry_ref(writeto)
+        m.points = m.points[:,:2]
+        return m
 
     def make_mesh_bndry_ref(self,writeto=None):
         """ construct a mesh with boundary refinement at material interfaces.
@@ -904,7 +931,7 @@ class Waveguide:
                 self.IOR_dict[p.label] = p.prim2D.n  
         return self.IOR_dict
 
-    def plot_mesh(self,z=None,mesh=None,IOR_dict=None,alpha=0.3,ax=None,plot_points=True):
+    def plot_mesh(self,z=None,mesh=None,IOR_dict=None,alpha=0.1,ax=None,plot_points=True,verbose=True):
         """ plot a mesh and associated refractive index distribution
         
         ARGS:
@@ -924,7 +951,7 @@ class Waveguide:
         if IOR_dict is None:
             IOR_dict = self.assign_IOR()
 
-        plot_mesh(transformed_mesh,IOR_dict,alpha,ax,plot_points)
+        plot_mesh(transformed_mesh,IOR_dict,alpha,ax,plot_points,verbose=verbose)
 
     def plot_boundaries(self):
         """ plot the boundaries of all prim3Dgroups. For unioned primitives, all boundaries of 
@@ -1161,11 +1188,10 @@ class Waveguide:
             yp = np.zeros_like(yp0)
             for i in range(xp0.shape[0]):
                 xp[i],yp[i] = self.transform(xp0[i],yp0[i],z0,z)
-
-        mesh.points = np.array([xp,yp]).T
+        mesh.points[:,0] = xp
+        mesh.points[:,1] = yp
         if self.recon_midpts:
             self.reconstruct_midpoints(mesh)
-        
         return mesh
     
     def reconstruct_midpoints(self,mesh):
@@ -1230,6 +1256,7 @@ class CircularStepIndexFiber(Waveguide):
         """
         core = Pipe(ncore,"core",core_res,rcore,(0,0))
         clad = Pipe(nclad,"clad",clad_res,rclad,(0,0))
+        core.mesh_size = 2*np.pi*rcore/core_res
         clad.skip_refinement = True
         els = [clad,core]        
         super().__init__(els)
@@ -1264,10 +1291,10 @@ class RectangularStepIndexFiber(Waveguide):
 class PhotonicLantern(Waveguide):
     ''' generic class for photonic lanterns '''
     
-    vectorized_transform = True
     recon_midpts = False
+    linear=True
 
-    def __init__(self,core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res=30,clad_res=60,jack_res=30,core_mesh_size=0.1,clad_mesh_size=1.0):
+    def __init__(self,core_pos,rcores,rclad,rjack,ncores,nclad,njack,z_ex,taper_factor,core_res=30,clad_res=60,jack_res=30,core_mesh_size=None,clad_mesh_size=None):
         ''' initialize a photonic lantern waveguide.
 
         ARGS: 
@@ -1280,12 +1307,17 @@ class PhotonicLantern(Waveguide):
             njack: the jacket refractive index
             z_ex: the lantern length
             taper_factor: the amount the lantern scales by, going from z=0 -> z=z_ex
-            core_res: the number of line segments to resolve each core-cladding boundary with
-            clad_res: the number of line segments to resolve the cladding-jacket boundary
-            jack_res: the number of line segments to resolve the outer jacket boundary
-            core_mesh_size: the target side length for triangles inside a lantern core, away from the boundary
-            clad_mesh_size: the target side length for triangles inside the lantern cladding, away from the boundary
+            core_res: number of line segments to resolve each core-cladding boundary with
+            clad_res: number of line segments to resolve the cladding-jacket boundary
+            jack_res: number of line segments to resolve the outer jacket boundary
+            core_mesh_size: target side length for triangles inside a core. defaults to the size set by core_res
+            clad_mesh_size: target side length for triangles inside the cladding. defaults to the size set by clad_res
         '''
+
+        if core_mesh_size is None:
+            core_mesh_size = 2*np.pi*np.mean(rcores)/core_res
+        if clad_mesh_size is None:
+            clad_mesh_size = 2*np.pi*rclad/clad_res
 
         taper_func = linear_taper(taper_factor,z_ex)
         self.taper_func = taper_func
@@ -1321,6 +1353,8 @@ class PhotonicLantern(Waveguide):
         
         super().__init__(els)
         self.z_ex = z_ex
+
+        self.min_mesh_size = min(self.min_mesh_size,core_mesh_size,clad_mesh_size)
 
     def transform(self,x0,y0,z0,z):
         scale =  self.taper_func(z)/self.taper_func(z0)
@@ -1555,7 +1589,9 @@ class Tricoupler(Waveguide):
 
 class PlanarTricoupler(Tricoupler):
     """ tricoupler with 2D channel paths """
+    
     recon_midpts = True
+    linear=False
 
     def __init__(self,rcore_center,rcore_outer,ncore,dmax,dmin,nclad,coupling_length,a,core_res,core_mesh_size,clad_mesh_size):
         """ initialize a planar tricoupler waveguide.

@@ -646,7 +646,7 @@ class Propagator:
         resids = v-vi
         resids[self.skipped_modes] = 0.
         err = np.sqrt(np.mean(np.power(resids,2)))
-        tol = max(np.sqrt(np.mean(np.power(v-vlast,2)))/100.,1e-7) * np.power(10.,-np.float(self.z_acc))
+        tol = max(np.sqrt(np.mean(np.power(v-vlast,2)))/100.,1e-7) * np.power(10.,-np.float64(self.z_acc))
         if err < 0.1*tol:
             return 1
         elif err > tol:
@@ -659,7 +659,7 @@ class Propagator:
         resids[self.skipped_modes] = 0.
         err = np.sqrt(np.mean(np.power(resids,2)))
         nsort = sorted(nlast,reverse=True)
-        tol = max((nsort[0]-nsort[1])/100.,1e-9) * np.power(10.,-np.float(self.z_acc))
+        tol = max((nsort[0]-nsort[1])/100.,1e-9) * np.power(10.,-np.float64(self.z_acc))
         if 0.1*tol < err < tol:
             return 0
         elif err < 0.1* tol:

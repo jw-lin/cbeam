@@ -170,7 +170,7 @@ You can see the mode powers are nearly frozen in the back half of the lantern, b
 .. plot::
     :context: close-figs
 
-    f = prop12.make_field(uf,zs[-1])
+    f = prop12.make_field(us[-1],zs[-1])
     prop12.plot_cfield(f,zs[-1],res=0.25,show_mesh=True,xlim=(-100,100),ylim=(-100,100))
 
 Finally, we can extract the channel powers using ::

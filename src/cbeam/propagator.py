@@ -1,6 +1,6 @@
 from __future__ import annotations
 import numpy as np,copy,time,os
-from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_B,plot_eigenvector
+from wavesolve.fe_solver import solve_waveguide,get_eff_index,construct_B,plot_scalar_mode
 from cbeam.waveguide import load_meshio_mesh,Waveguide,plot_mesh
 from scipy.interpolate import UnivariateSpline,interp1d,CubicSpline
 from cbeam import FEval
@@ -60,11 +60,7 @@ def plot_field(field,mesh,ax=None,show_mesh=False):
         ax (opt.): a matplotlib axis where the plot should go. if not None, you will need to call matplotlib.pyplot.show() manually
         show_mesh (opt.): whether or not to draw the mesh in the plot
     """
-    show = False
-    if ax is None:
-        fig,ax = plt.subplots(1,1)
-        show = True
-    plot_eigenvector(mesh,field,show_mesh,ax,show)
+    plot_scalar_mode(mesh,field,show_mesh,ax)
 
 class Propagator:
     """ class for coupled mode propagation of tapered waveguides """
@@ -298,7 +294,7 @@ class Propagator:
         sol = solve_ivp(deriv,(self.zs[-1]-zf,self.zs[-1]-zi),u0,self.solver,rtol=1e-12,atol=1e-10)
         # multiply by phase factors
         uf = self.apply_phase(sol.y[:,-1],zi,zf)
-        return sol.t,sol.y,uf
+        return self.zs[-1]-sol.t,sol.y.T,uf
 
     #endregion
 

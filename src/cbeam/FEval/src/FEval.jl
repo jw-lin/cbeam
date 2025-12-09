@@ -362,7 +362,7 @@ function evaluate(point::Union{AbstractVector{Float64},PyArray{Float64,1}},field
     return val
 end
 
-function evaluate(point::Union{PyMatrix{Float64},Matrix{Float64}},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: Vector{T} where T<:Union{Float64,ComplexF64}
+function evaluate(point::Union{PyArray{Float64,2},Matrix{Float64}},field::Union{PyArray{T,1},Vector{T}},_tritree::tritree) :: Vector{T} where T<:Union{Float64,ComplexF64}
     dtype = eltype(field)
     if typeof(point) <: PyArray
         point = pyconvert(Matrix{Float64},point)
@@ -447,7 +447,7 @@ function transverse_gradient(field::AbstractVector{Float64},tris::Matrix{T} wher
     return total_gradient
 end
 
-function transverse_gradient(field::Union{PyVector{Float64},AbstractVector{Float64}} ,tris::PyMatrix{UInt64},points::PyMatrix{Float64})
+function transverse_gradient(field::Union{PyArray{Float64,1},AbstractVector{Float64}} ,tris::PyArray{UInt64,2},points::PyArray{Float64,2})
     """ compute the gradient of the finite element field wrt x,y - python version """
     tris = pyconvert(Array{UInt32,2},tris) .+ 1
     points = pyconvert(Array{Float64,2},points)
@@ -455,7 +455,7 @@ function transverse_gradient(field::Union{PyVector{Float64},AbstractVector{Float
     transverse_gradient(field,tris,points)
 end
 
-function transverse_gradient(field::PyMatrix{Float64},tris::PyMatrix{UInt64},points::PyMatrix{Float64})
+function transverse_gradient(field::PyArray{Float64,2},tris::PyArray{UInt64,2},points::PyArray{Float64,2})
     """ compute for a series of fields """
     out = Array{Float64}(undef,size(field)[1],size(field)[2],2)
     for i in axes(field,1)

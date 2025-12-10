@@ -707,6 +707,7 @@ class Propagator:
         self.zs = np.load(self.save_dir+'/zvals/zvals'+ps+'.npy')
         if self.Nmax is None:
             self.Nmax = len(self.neffs[0])
+        self.channel_basis_matrix = None # clear old matrix
 
         try:
             self.cmats = np.load(self.save_dir+'/cplcoeffs/cplcoeffs'+ps+'.npy')

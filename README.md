@@ -2,12 +2,14 @@
 
 `cbeam` is a propagator for slowly varying and weakly guiding waveguides, written in Python and Julia. 
 
-Now with website [documentation](https://jw-lin.github.io/cbeam/)!
+[Documentation](https://jw-lin.github.io/cbeam/)
+
+[How to install](https://jw-lin.github.io/cbeam/installation.html)
 
 Current version: v0.0.4
 
 ## Dependencies
-Python: `numpy`,`scipy`,`juliacall`,`wavesolve`,`pygmsh`,`meshio`,`matplotlib`
+Python: `numpy`,`scipy`,`numexpr`,`juliacall`,`wavesolve`,`pygmsh`,`meshio`,`matplotlib`
 
 Julia: `pythoncall`
 
@@ -19,5 +21,6 @@ This package uses coupled-mode theory to simulate propagation through waveguides
 
 ## Acknowledgments
 NSF grants 2109231, 2109232, 2308360, 2308361
+
 
 

@@ -4,3 +4,4 @@ docs/.build*
 docs/_sources
 docs/plot_directive
 docs/.doctrees
+.vscode

@@ -72,7 +72,7 @@ class Propagator:
     #: str: solving method for scipy's solve_ivp, default "RK45"
     solver = "RK45"
     #: bool: whether to add the WKB-like correction to the coupled mode equations (usually negligible)
-    WKB = False
+    WKB = True
 
     # z-stepping params
 
@@ -810,7 +810,7 @@ class Propagator:
 
     def WKB_cor(self,z):
         dbeta_dz = self.k * self.get_dif_neff(z) 
-        return -0.5 * dbeta_dz / self.get_neff(z)
+        return -0.5 * dbeta_dz / (self.k * self.get_neff(z))
 
     def compute_change_of_basis(self,newbasis,z=None,u=None):
         """ compute the (N x N) change of basis matrix between the current N-dimensional eigenbasis at z and a new basis 

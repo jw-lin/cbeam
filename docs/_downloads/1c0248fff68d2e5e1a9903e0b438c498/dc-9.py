@@ -1,0 +1,1 @@
+dc_prop.plot_wavefront(zs,us,zi=dicoupler.z_ex/2)

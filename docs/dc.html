@@ -16,33 +16,33 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
-    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dc';</script>
@@ -52,7 +52,6 @@
     <link rel="prev" title="2. 6-port photonic lantern" href="PL.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -68,8 +67,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -77,6 +87,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -84,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -101,8 +112,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -132,11 +142,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -317,16 +331,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -402,22 +424,22 @@
 <span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;test_dicoupler&quot;</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-1.py">Source code</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/70707a10ffba974fef0b74e32dd25d45/dc-1.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>)</p>
 <p>With the <code class="docutils literal notranslate"><span class="pre">Dicoupler</span></code> class, we specify a coupling length, not the overall waveguide length like we did with the <code class="docutils literal notranslate"><span class="pre">PhotonicLantern</span></code>. The overall waveguide length is auto-computed (in this basic implementation, it’s <span class="math notranslate nohighlight">\(2\times\)</span> the coupling length) and can be accessed through <code class="docutils literal notranslate"><span class="pre">Dicoupler.z_ex</span></code>.
 Let’s make the dicoupler and inspect the channel paths.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam</span> <span class="kn">import</span> <span class="n">waveguide</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cbeam</span><span class="w"> </span><span class="kn">import</span> <span class="n">waveguide</span>
 
 <span class="n">dicoupler</span> <span class="o">=</span> <span class="n">waveguide</span><span class="o">.</span><span class="n">Dicoupler</span><span class="p">(</span><span class="n">rcore</span><span class="p">,</span><span class="n">rcore</span><span class="p">,</span><span class="n">ncore</span><span class="p">,</span><span class="n">ncore</span><span class="p">,</span><span class="n">dmax</span><span class="p">,</span><span class="n">dmin</span><span class="p">,</span><span class="n">nclad</span><span class="p">,</span><span class="n">coupling_length</span><span class="p">,</span><span class="n">bend_length</span><span class="p">,</span><span class="n">core_res</span><span class="p">,</span><span class="n">core_mesh_size</span><span class="o">=</span><span class="n">core_mesh_size</span><span class="p">,</span><span class="n">clad_mesh_size</span><span class="o">=</span><span class="n">clad_mesh_size</span><span class="p">)</span>
 
 <span class="n">dicoupler</span><span class="o">.</span><span class="n">plot_paths</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-2.py">Source code</a>, <a class="reference external" href=".//dc-2.png">png</a>, <a class="reference external" href=".//dc-2.hires.png">hires.png</a>, <a class="reference external" href=".//dc-2.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/74b71b46ae76e37271d2f73924ece068/dc-2.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/5ba49c0d48f396e1f7cf605aa0686f11/dc-2.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/5a0eeb7f4a40d27c72a65ccaa7198e75/dc-2.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/9e363f0cb6dc56aca0b1587f6bb48405/dc-2.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-2.png" class="plot-directive" src="_images/dc-2.png" />
 </figure>
 <p>Next, let’s take a look at the mesh, especially how it transforms with <span class="math notranslate nohighlight">\(z\)</span>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">fig</span><span class="p">,</span><span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="n">dicoupler</span><span class="o">.</span><span class="n">plot_mesh</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -425,7 +447,7 @@ Let’s make the dicoupler and inspect the channel paths.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-3.py">Source code</a>, <a class="reference external" href=".//dc-3.png">png</a>, <a class="reference external" href=".//dc-3.hires.png">hires.png</a>, <a class="reference external" href=".//dc-3.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/506e3e20362921983469bc17de55f617/dc-3.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/100e486e3b0ac4924f84df0eb2e87e4f/dc-3.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/f3428e49dd1aede272b59a8172c1c749/dc-3.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/497e2f93119cb361257b8c293f0863c6/dc-3.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-3.png" class="plot-directive" src="_images/dc-3.png" />
 </figure>
@@ -434,14 +456,14 @@ Let’s make the dicoupler and inspect the channel paths.</p>
 <section id="mode-solving">
 <h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">3.2. </span>mode solving</a><a class="headerlink" href="#mode-solving" title="Link to this heading">#</a></h2>
 <p>Next, I’ll initialize the propagator, and solve for the eigenmodes in the middle of the waveguide.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam</span> <span class="kn">import</span> <span class="n">propagator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cbeam</span><span class="w"> </span><span class="kn">import</span> <span class="n">propagator</span>
 <span class="n">dc_prop</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">wl</span><span class="p">,</span><span class="n">dicoupler</span><span class="p">,</span><span class="n">Nmax</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="n">neff</span><span class="p">,</span><span class="n">modes</span> <span class="o">=</span> <span class="n">dc_prop</span><span class="o">.</span><span class="n">solve_at</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="n">dicoupler</span><span class="o">.</span><span class="n">z_ex</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">modes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">mesh</span><span class="o">=</span><span class="n">dc_prop</span><span class="o">.</span><span class="n">mesh</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-4.py">Source code</a>, <a class="reference external" href=".//dc-4.png">png</a>, <a class="reference external" href=".//dc-4.hires.png">hires.png</a>, <a class="reference external" href=".//dc-4.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/178483df279af2e406704de9bf64d46f/dc-4.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/5e0cbaf08199577e47f5f72673dc590b/dc-4.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/1295c979a015a6676815fc12253b3c38/dc-4.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/e79d614812c70a88e7f3fa98abe1473e/dc-4.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-4.png" class="plot-directive" src="_images/dc-4.png" />
 </figure>
@@ -452,16 +474,16 @@ Let’s make the dicoupler and inspect the channel paths.</p>
 <p>Next, let’s characterize and look at the coupling coefficients. For reference, this takes around 15 seconds on my laptop.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment/uncomment below as necessary</span>
 <span class="c1"># dc_prop.z_acc = -1 # loosen accuracy</span>
-<span class="c1"># dc_prop.characterize(save=True,tag=tag)</span>
-<span class="n">dc_prop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+<span class="n">dc_prop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
+<span class="c1"># dc_prop.load(tag)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-5.py">Source code</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/a8bd3a8cf5a72e8c8fa0d01af0eadbff/dc-5.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>)</p>
 <p>We’ll look at the effective indices of the modes first:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_neffs</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-6.py">Source code</a>, <a class="reference external" href=".//dc-6.png">png</a>, <a class="reference external" href=".//dc-6.hires.png">hires.png</a>, <a class="reference external" href=".//dc-6.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/6373ed3fb4e63551d68b32a7bfd8c14d/dc-6.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/0b84d1610fc5f6b59ccdb5230c070fde/dc-6.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/276c12880c011bc0099fb8e95ecf062b/dc-6.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/45b71eed8549fd54b89eb0cdcd264972/dc-6.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-6.png" class="plot-directive" src="_images/dc-6.png" />
 </figure>
@@ -470,7 +492,7 @@ Let’s make the dicoupler and inspect the channel paths.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-7.py">Source code</a>, <a class="reference external" href=".//dc-7.png">png</a>, <a class="reference external" href=".//dc-7.hires.png">hires.png</a>, <a class="reference external" href=".//dc-7.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/59bba81b6d87bd041fb00fc66c7db0d2/dc-7.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/135d028543755bfcf7ba8f4e5cfcec25/dc-7.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/c8bd394f510ced13bb2b782fdf809098/dc-7.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/3d633e52e7f91efe7fffee7c6f7b43ff/dc-7.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-7.png" class="plot-directive" src="_images/dc-7.png" />
 </figure>
@@ -484,7 +506,7 @@ Let’s make the dicoupler and inspect the channel paths.</p>
 <span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_mode_powers</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-8.py">Source code</a>, <a class="reference external" href=".//dc-8.png">png</a>, <a class="reference external" href=".//dc-8.hires.png">hires.png</a>, <a class="reference external" href=".//dc-8.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/076c51df2b5f43dfbb837dfe6efe3e3b/dc-8.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/b72dc87e684cf25090841eb3138f24b5/dc-8.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/2aad2e88b1aadf165f59fedd723f8a8e/dc-8.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/6650dd06091a3d9490d6c58abab97b5a/dc-8.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-8.png" class="plot-directive" src="_images/dc-8.png" />
 </figure>
@@ -493,7 +515,7 @@ Let’s make the dicoupler and inspect the channel paths.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dc_prop</span><span class="o">.</span><span class="n">plot_wavefront</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">,</span><span class="n">zi</span><span class="o">=</span><span class="n">dicoupler</span><span class="o">.</span><span class="n">z_ex</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-9.py">Source code</a>, <a class="reference external" href=".//dc-9.png">png</a>, <a class="reference external" href=".//dc-9.hires.png">hires.png</a>, <a class="reference external" href=".//dc-9.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/1c0248fff68d2e5e1a9903e0b438c498/dc-9.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/be95adc9d4f988dadc7bd0a425df8f1d/dc-9.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/bb7a2ae05454a4303dbdc936160205d0/dc-9.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/cf0c4dcc05c1e1aaf3916febfa7faf0d/dc-9.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-9.png" class="plot-directive" src="_images/dc-9.png" />
 </figure>
@@ -536,7 +558,7 @@ Let’s make the dicoupler and inspect the channel paths.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//dc-10.py">Source code</a>, <a class="reference external" href=".//dc-10.png">png</a>, <a class="reference external" href=".//dc-10.hires.png">hires.png</a>, <a class="reference external" href=".//dc-10.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/c167ad9d7312542ee72fb359e5daaa62/dc-10.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/13aa42243235ab3f97c4c31fd2fb9769/dc-10.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/1a18900c2b84a6bd993a1da5913ccd2c/dc-10.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/a1a41f4da53229f704551db3b42be23c/dc-10.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/dc-10.png" class="plot-directive" src="_images/dc-10.png" />
 </figure>
@@ -594,8 +616,7 @@ Let’s make the dicoupler and inspect the channel paths.</p>
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -622,6 +643,10 @@ Let’s make the dicoupler and inspect the channel paths.</p>
   
   <div class="footer-item">
     
+<p class="component-author">
+By Jon Lin
+</p>
+
   </div>
   
   <div class="footer-item">
@@ -646,8 +671,8 @@ Let’s make the dicoupler and inspect the channel paths.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

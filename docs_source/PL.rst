@@ -55,15 +55,14 @@ We can do mode solves at specific :math:`z` values as before. Below I plot eigen
 solving through the waveguide
 -----------------------------
 
-We can also characterize the waveguide to get the effective indices and modes as a function of :math:`z`. For reference, this takes around a minute on my laptop. Below I also plot the effective indices.
+We can also characterize the waveguide to get the effective indices and modes as a function of :math:`z`. For reference, this around 80s on my desktop. Below I also plot the effective indices.
 
 .. plot::
     :context: close-figs
 
     # comment/uncomment below as necessary
-    # PLprop.characterize(save=True,tag="test")
-
-    PLprop.load("test")
+    PLprop.characterize(save=True,tag="test")
+    # PLprop.load("test")
 
     PLprop.plot_neffs()
 
@@ -94,14 +93,14 @@ While the above calculation is fine, ``cbeam`` provides a way to "fix" a degener
     # modes 1&2 , 3&4 are degenerate
     PLprop.degen_groups = [[1,2],[3,4]]
 
-I will run a ``characterize()`` again to show how the coupling coefficients change, even though the waveguide and the physics are the same.
+I will run a ``characterize()`` again to show how the coupling coefficients change, even though the waveguide and the physics are the same. This takes around 60 s on my desktop.
 
 .. plot::
     :context: close-figs
 
     # comment/uncomment below as necessary
-    # PLprop.characterize(save=True,tag="test_degen")
-    PLprop.load("test_degen")
+    PLprop.characterize(save=True,tag="test_degen")
+    # PLprop.load("test_degen")
 
     PLprop.plot_coupling_coeffs()
 
@@ -116,7 +115,6 @@ Degeneracy leaves one last complication. Suppose we want to propagate a field th
 .. plot::
     :context: close-figs
 
-    import matplotlib.pyplot as plt
     import numpy as np
 
     u0 = [1,0,0,0,0,0] # launch field, LP01 
@@ -135,4 +133,4 @@ This should give the following channel powers (or close to it):
 
 .. testoutput::
 
-    [0.49546678 0.10094314 0.10086274 0.10092145 0.10089747 0.10091481] 
+    [0.49571021 0.10056241 0.10044566 0.10044533 0.10054812 0.10055042]

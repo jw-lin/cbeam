@@ -80,6 +80,6 @@ To solve the coupled-mode equations, ``cbeam`` uses ``scipy.integrate.solve_IVP(
 
 Whe propagating, there is also the option to include a minor WKB-like correction to the coupled-mode equations. Set this through the attribute
 
-* ``Propagator.WKB`` (bool): this controls whether or not the correction is included in the coupled-mode equations (default ``False``).
+* ``Propagator.WKB`` (bool): this controls whether or not the correction is included in the coupled-mode equations (default ``True``).
 
 The effect of this correction is typically negligible, and becomes important only if mode propagation constants change significantly through the waveguide.

@@ -16,33 +16,33 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
-    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'PL19';</script>
@@ -52,7 +52,6 @@
     <link rel="prev" title="4. multimode interference coupler" href="mmi.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -68,8 +67,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -77,6 +87,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -84,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -101,8 +112,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -132,11 +142,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -317,16 +331,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -403,9 +425,9 @@
 <span class="n">ncores</span> <span class="o">=</span> <span class="p">[</span><span class="n">ncore</span><span class="p">]</span><span class="o">*</span><span class="mi">19</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-1.py">Source code</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/c259a7a8b12289580128d5311134602e/PL19-1.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>)</p>
 <p>Next, we’ll make the lantern. The 19 cores will be placed in a hexagonal array.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.waveguide</span> <span class="kn">import</span> <span class="n">get_19port_positions</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cbeam.waveguide</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_19port_positions</span>
 <span class="n">core_pos</span> <span class="o">=</span> <span class="n">get_19port_positions</span><span class="p">(</span><span class="n">rclad</span><span class="o">/</span><span class="mf">2.5</span><span class="p">)</span>
 
 <span class="c1"># mesh params #</span>
@@ -413,25 +435,24 @@
 <span class="n">clad_res</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">jack_res</span> <span class="o">=</span> <span class="mi">30</span>
 
-<span class="kn">from</span> <span class="nn">cbeam.waveguide</span> <span class="kn">import</span> <span class="n">PhotonicLantern</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cbeam.waveguide</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhotonicLantern</span>
 <span class="n">PL19</span> <span class="o">=</span> <span class="n">PhotonicLantern</span><span class="p">(</span><span class="n">core_pos</span><span class="p">,</span><span class="n">rcores</span><span class="p">,</span><span class="n">rclad</span><span class="p">,</span><span class="n">rjack</span><span class="p">,</span><span class="n">ncores</span><span class="p">,</span><span class="n">nclad</span><span class="p">,</span><span class="n">njack</span><span class="p">,</span><span class="n">z_ex</span><span class="p">,</span><span class="n">taper_factor</span><span class="p">,</span><span class="n">core_res</span><span class="p">,</span><span class="n">clad_res</span><span class="p">,</span><span class="n">jack_res</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-2.py">Source code</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/a4e9e7de3db5c484e002ef6d5dd415a3/PL19-2.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>)</p>
 <p>Finally, we’ll run <code class="docutils literal notranslate"><span class="pre">compute_neffs()</span></code>. The syntax is similar to <code class="docutils literal notranslate"><span class="pre">characterize()</span></code>, and you can save and load files as well. Even though we expect this waveguide to support 19 guided modes, we will solve for the 21 highest effective indices, since there is no guarantee that the 19 highest index modes at the start of the waveguide correspond with the 19 highest index modes at the end of the waveguide. (In practice, you would probably design the waveguide such that there are no crossings in the first place, at least for the modes you care about).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.propagator</span> <span class="kn">import</span> <span class="n">Propagator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cbeam.propagator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Propagator</span>
 
 <span class="n">prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wl</span><span class="p">,</span><span class="n">PL19</span><span class="p">,</span><span class="n">Nmax</span><span class="o">=</span><span class="mi">21</span><span class="p">)</span>
 
 <span class="c1"># comment/uncomment as necessary</span>
-<span class="c1"># this take around 10 minutes on my laptop</span>
-<span class="c1"># prop.compute_neffs()</span>
-<span class="n">prop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;19port_neffs&quot;</span><span class="p">)</span>
+<span class="n">prop</span><span class="o">.</span><span class="n">compute_neffs</span><span class="p">()</span>
+<span class="c1"># prop.load(tag=&quot;19port_neffs&quot;)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-3.py">Source code</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/08bc9dce03b6fcb41d4958ac55f707b6/PL19-3.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>)</p>
 <p>Next, I’ll plot the effective indices, as well as the difference in index between modes 18 and 19, to show that they cross early on.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">zs</span><span class="p">,</span><span class="n">prop</span><span class="o">.</span><span class="n">neffs</span><span class="p">[:,</span><span class="mi">18</span><span class="p">]</span><span class="o">-</span><span class="n">prop</span><span class="o">.</span><span class="n">neffs</span><span class="p">[:,</span><span class="mi">19</span><span class="p">])</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="n">ls</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
@@ -439,14 +460,14 @@
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-4.py">Source code</a>, <a class="reference external" href=".//PL19-4_00_00.png">png</a>, <a class="reference external" href=".//PL19-4_00_00.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-4_00_00.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/01b3c90e59bbffb397b25838264334d6/PL19-4.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/f15a4fb9cf3e04373c9d8c57c42dede2/PL19-4_00_00.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/108feb5a52b43756b1f9f28553f4dc82/PL19-4_00_00.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/0f8830733f84047e9a2807d3f50bf74e/PL19-4_00_00.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL19-4_00_00.png" class="plot-directive" src="_images/PL19-4_00_00.png" />
 </figure>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prop</span><span class="o">.</span><span class="n">plot_neff_diffs</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-4_01_00.png">png</a>, <a class="reference external" href=".//PL19-4_01_00.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-4_01_00.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/7d20a6c17ffc676dc933ac6ea4d65b62/PL19-4_01_00.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/8656f3e865ca0a4be0dc7da2e2b03dad/PL19-4_01_00.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/c1cb4ee24e8de8d631cbd78136c05e28/PL19-4_01_00.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL19-4_01_00.png" class="plot-directive" src="_images/PL19-4_01_00.png" />
 </figure>
@@ -459,7 +480,7 @@
 </section>
 <section id="characterize-the-front-half">
 <h2><a class="toc-backref" href="#id3" role="doc-backlink"><span class="section-number">5.3. </span>characterize the front half</a><a class="headerlink" href="#characterize-the-front-half" title="Link to this heading">#</a></h2>
-<p>Below is the characterization of the front half of the lantern. I also plot the coupling coefficients.</p>
+<p>Below is the characterization of the front half of the lantern. I also plot the coupling coefficients. This takes around 6 minutes on my desktop.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from the previous analysis, we only need to track the top 20 modes</span>
 <span class="c1"># to ensure that all guided modes are tracked</span>
 <span class="n">prop1</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wl</span><span class="p">,</span><span class="n">PL19</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
@@ -472,15 +493,13 @@
 <span class="n">prop1</span><span class="o">.</span><span class="n">skipped_modes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">18</span><span class="p">]</span>
 
 <span class="n">tag1</span> <span class="o">=</span> <span class="s2">&quot;19port_0800_front&quot;</span>
-<span class="c1">#prop1.characterize(0,50000,save=True,tag=tag1)</span>
-<span class="n">prop1</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag1</span><span class="p">)</span>
+<span class="n">prop1</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">50000</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag1</span><span class="p">)</span>
+<span class="c1"># prop1.load(tag1)</span>
 
-<span class="c1"># prop1.compute_neffs(tag=tag1,save=True)</span>
-<span class="n">prop1</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag1</span><span class="p">)</span>
 <span class="n">prop1</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-5.py">Source code</a>, <a class="reference external" href=".//PL19-5.png">png</a>, <a class="reference external" href=".//PL19-5.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-5.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/6eba0ae96247a27e0a445516640585a4/PL19-5.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/f40704bd78843d72f66d5ee2faa30049/PL19-5.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/c72c2644322849f7b6670cf829bb8870/PL19-5.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/e3f38b305f0cce619073391915d65c1e/PL19-5.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL19-5.png" class="plot-directive" src="_images/PL19-5.png" />
 </figure>
@@ -500,13 +519,13 @@
 <span class="c1"># initial modes of prop2</span>
 <span class="n">prop2</span><span class="o">.</span><span class="n">load_init_conds</span><span class="p">(</span><span class="n">prop1</span><span class="p">)</span>
 
-<span class="c1"># prop2.characterize(50000,100000,save=True,tag=tag2)</span>
-<span class="n">prop2</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag2</span><span class="p">)</span>
+<span class="n">prop2</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="mi">50000</span><span class="p">,</span><span class="mi">100000</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag2</span><span class="p">)</span>
+<span class="c1"># prop2.load(tag2)</span>
 
 <span class="n">prop2</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-6.py">Source code</a>, <a class="reference external" href=".//PL19-6.png">png</a>, <a class="reference external" href=".//PL19-6.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-6.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/e5c8b1e87dccdcd53a2ce924156bfcca/PL19-6.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/6b0f62322edcaf86f401af1cd0c88abc/PL19-6.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/f64e06af86dea95590f9b08895b9ccb4/PL19-6.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/8cf3e02451e54fc71e25767036b9f23d/PL19-6.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL19-6.png" class="plot-directive" src="_images/PL19-6.png" />
 </figure>
@@ -516,7 +535,7 @@
 <section id="end-to-end-propagation">
 <h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">5.5. </span>end-to-end propagation</a><a class="headerlink" href="#end-to-end-propagation" title="Link to this heading">#</a></h2>
 <p>We will combine the two propagators using the <code class="docutils literal notranslate"><span class="pre">ChainPropagator</span></code> class, which lets us to send wavefronts through a list of propagators. Below, I launch the <span class="math notranslate nohighlight">\(LP_{01}\)</span> mode.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.propagator</span> <span class="kn">import</span> <span class="n">ChainPropagator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cbeam.propagator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChainPropagator</span>
 <span class="n">prop12</span> <span class="o">=</span> <span class="n">ChainPropagator</span><span class="p">([</span><span class="n">prop1</span><span class="p">,</span><span class="n">prop2</span><span class="p">])</span>
 
 <span class="n">u0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">]</span><span class="o">*</span><span class="mi">20</span>
@@ -529,7 +548,7 @@
 <span class="n">prop12</span><span class="o">.</span><span class="n">plot_mode_powers</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-7.py">Source code</a>, <a class="reference external" href=".//PL19-7.png">png</a>, <a class="reference external" href=".//PL19-7.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-7.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/260646077c02becf607746930408b373/PL19-7.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/a4294ba63eac265f08dfdfc63067268f/PL19-7.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/f339657df20ca1733a4d95b53dd052b3/PL19-7.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/f5ab798e95332ab2eee888f54bbbdba8/PL19-7.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL19-7.png" class="plot-directive" src="_images/PL19-7.png" />
 </figure>
@@ -538,7 +557,7 @@
 <span class="n">prop12</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">zs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">res</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span><span class="n">show_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL19-8.py">Source code</a>, <a class="reference external" href=".//PL19-8.png">png</a>, <a class="reference external" href=".//PL19-8.hires.png">hires.png</a>, <a class="reference external" href=".//PL19-8.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/27927dcaa7b6980821e76a194c0efdf9/PL19-8.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/57e6d87d1aaf80924e6f3bb49011ac5c/PL19-8.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/37c309516cfb61c5d7edd36160cbe2d2/PL19-8.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/b3470d3d36ef317b9f5b1b8c84331762/PL19-8.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL19-8.png" class="plot-directive" src="_images/PL19-8.png" />
 </figure>
@@ -547,7 +566,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">out</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.15500923 0.09659393 0.09643943 0.09675434 0.09645291 0.09614298 0.09628183 0.01389994 0.03049378 0.01387824 0.0304683 0.013861 0.03046653 0.01387356 0.0305389 0.01387932 0.03056357 0.01384288 0.03056049]
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.15452255 0.09629082 0.09613682 0.09645077 0.09615026 0.09584128 0.09597969 0.01385659 0.03039846 0.01383495 0.03037306 0.01381777 0.0303713  0.0138303 0.03044344 0.01383603 0.03046803 0.01379971 0.03046496]
 </pre></div>
 </div>
 <p>In this example, propagations take a few seconds. For repeat
@@ -596,8 +615,7 @@ propagations, it is much faster to use a transfer matrix. This can be done with<
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -624,6 +642,10 @@ propagations, it is much faster to use a transfer matrix. This can be done with<
   
   <div class="footer-item">
     
+<p class="component-author">
+By Jon Lin
+</p>
+
   </div>
   
   <div class="footer-item">
@@ -648,8 +670,8 @@ propagations, it is much faster to use a transfer matrix. This can be done with<
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

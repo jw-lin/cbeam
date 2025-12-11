@@ -63,9 +63,8 @@ Finally, we'll run ``compute_neffs()``. The syntax is similar to ``characterize(
     prop = Propagator(wl,PL19,Nmax=21)
 
     # comment/uncomment as necessary
-    # this take around 10 minutes on my laptop 
-    # prop.compute_neffs()
-    prop.load(tag="19port_neffs")
+    prop.compute_neffs()
+    # prop.load(tag="19port_neffs")
 
 Next, I'll plot the effective indices, as well as the difference in index between modes 18 and 19, to show that they cross early on.
 
@@ -92,7 +91,7 @@ From the effective index information, we can identify groups of degenerate modes
 characterize the front half
 ----------------------------------
 
-Below is the characterization of the front half of the lantern. I also plot the coupling coefficients.
+Below is the characterization of the front half of the lantern. I also plot the coupling coefficients. This takes around 6 minutes on my desktop.
 
 .. plot::
     :context: close-figs
@@ -109,11 +108,9 @@ Below is the characterization of the front half of the lantern. I also plot the 
     prop1.skipped_modes = [18]
 
     tag1 = "19port_0800_front"
-    #prop1.characterize(0,50000,save=True,tag=tag1)
-    prop1.load(tag1)
+    prop1.characterize(0,50000,save=True,tag=tag1)
+    # prop1.load(tag1)
 
-    # prop1.compute_neffs(tag=tag1,save=True)
-    prop1.load(tag=tag1)
     prop1.plot_coupling_coeffs(legend=False)
 
 characterize the back half
@@ -136,8 +133,8 @@ We will make another ``Propagator`` object to perform the back half characteriza
     # initial modes of prop2
     prop2.load_init_conds(prop1) 
 
-    # prop2.characterize(50000,100000,save=True,tag=tag2)
-    prop2.load(tag2)
+    prop2.characterize(50000,100000,save=True,tag=tag2)
+    # prop2.load(tag2)
 
     prop2.plot_coupling_coeffs(legend=False)
 
@@ -180,7 +177,7 @@ Finally, we can extract the channel powers using ::
 
 .. testoutput::
 
-    [0.15500923 0.09659393 0.09643943 0.09675434 0.09645291 0.09614298 0.09628183 0.01389994 0.03049378 0.01387824 0.0304683 0.013861 0.03046653 0.01387356 0.0305389 0.01387932 0.03056357 0.01384288 0.03056049]
+    [0.15452255 0.09629082 0.09613682 0.09645077 0.09615026 0.09584128 0.09597969 0.01385659 0.03039846 0.01383495 0.03037306 0.01381777 0.0303713  0.0138303 0.03044344 0.01383603 0.03046803 0.01379971 0.03046496]
 
 In this example, propagations take a few seconds. For repeat 
 propagations, it is much faster to use a transfer matrix. This can be done with ::

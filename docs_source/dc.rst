@@ -87,8 +87,8 @@ Next, let's characterize and look at the coupling coefficients. For reference, t
     
     # comment/uncomment below as necessary
     # dc_prop.z_acc = -1 # loosen accuracy
-    # dc_prop.characterize(save=True,tag=tag) 
-    dc_prop.load(tag)
+    dc_prop.characterize(save=True,tag=tag) 
+    # dc_prop.load(tag)
 
 We'll look at the effective indices of the modes first:
 

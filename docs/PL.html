@@ -16,33 +16,33 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
-    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=dfd84850"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'PL';</script>
@@ -52,7 +52,6 @@
     <link rel="prev" title="1. fiber mode solving" href="fib.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -68,8 +67,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -77,6 +87,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -84,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -101,8 +112,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -132,11 +142,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -317,16 +331,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -379,8 +401,8 @@
 </nav>
 <p>The photonic lantern is a tapered waveguide that looks like a normal step-index optical fiber on one end, and a multicore fiber (or similarly, a bundle of single-mode fibers) at the other end. In this section we’ll use <code class="docutils literal notranslate"><span class="pre">cbeam</span></code> to simulate the propagation through a 6-port photonic lantern.</p>
 <p>First, let’s construct the lantern, using the <code class="docutils literal notranslate"><span class="pre">PhotonicLantern</span></code> class:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.waveguide</span> <span class="kn">import</span> <span class="n">PhotonicLantern</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cbeam.waveguide</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhotonicLantern</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">wl</span> <span class="o">=</span> <span class="mf">1.55</span>                       <span class="c1"># wavelength, um</span>
 <span class="n">taper_factor</span> <span class="o">=</span> <span class="mf">8.</span>               <span class="c1"># relative scale factor between frontside and backside waveguide geometry</span>
@@ -404,11 +426,11 @@
 <span class="n">lant</span> <span class="o">=</span> <span class="n">PhotonicLantern</span><span class="p">(</span><span class="n">core_pos</span><span class="p">,[</span><span class="n">rcore</span><span class="p">]</span><span class="o">*</span><span class="mi">6</span><span class="p">,</span><span class="n">rclad</span><span class="p">,</span><span class="n">rjack</span><span class="p">,[</span><span class="n">ncore</span><span class="p">]</span><span class="o">*</span><span class="mi">6</span><span class="p">,</span><span class="n">nclad</span><span class="p">,</span><span class="n">njack</span><span class="p">,</span><span class="n">z_ex</span><span class="p">,</span><span class="n">taper_factor</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-1.py">Source code</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/6a1a5fda595124e4db5062e56dc746c1/PL-1.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>)</p>
 <section id="solving-at-z">
 <h2><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">2.1. </span>solving at <span class="math notranslate nohighlight">\(z\)</span></a><a class="headerlink" href="#solving-at-z" title="Link to this heading">#</a></h2>
 <p>We can do mode solves at specific <span class="math notranslate nohighlight">\(z\)</span> values as before. Below I plot eigenmode 0 at the halfway point of the lantern.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cbeam.propagator</span> <span class="kn">import</span> <span class="n">Propagator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cbeam.propagator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Propagator</span>
 <span class="n">wavelength</span> <span class="o">=</span> <span class="mf">1.55</span> <span class="c1"># um</span>
 <span class="n">PLprop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span><span class="n">lant</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span> <span class="c1"># 6 modes</span>
 
@@ -416,23 +438,22 @@
 <span class="n">PLprop</span><span class="o">.</span><span class="n">plot_cfield</span><span class="p">(</span><span class="n">PLmodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">z</span><span class="o">=</span><span class="n">z_ex</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-2.py">Source code</a>, <a class="reference external" href=".//PL-2.png">png</a>, <a class="reference external" href=".//PL-2.hires.png">hires.png</a>, <a class="reference external" href=".//PL-2.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/273749e473f171b2648ba0484df19ae4/PL-2.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/bafc8da8555d4ad9428af22a8db33b30/PL-2.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/5f431bfc76ef7b4428e0a4eae91802e8/PL-2.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/861df8c9ae7d31aadc5d5590d8045e16/PL-2.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL-2.png" class="plot-directive" src="_images/PL-2.png" />
 </figure>
 </section>
 <section id="solving-through-the-waveguide">
 <h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">2.2. </span>solving through the waveguide</a><a class="headerlink" href="#solving-through-the-waveguide" title="Link to this heading">#</a></h2>
-<p>We can also characterize the waveguide to get the effective indices and modes as a function of <span class="math notranslate nohighlight">\(z\)</span>. For reference, this takes around a minute on my laptop. Below I also plot the effective indices.</p>
+<p>We can also characterize the waveguide to get the effective indices and modes as a function of <span class="math notranslate nohighlight">\(z\)</span>. For reference, this around 80s on my desktop. Below I also plot the effective indices.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment/uncomment below as necessary</span>
-<span class="c1"># PLprop.characterize(save=True,tag=&quot;test&quot;)</span>
-
-<span class="n">PLprop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="n">PLprop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="c1"># PLprop.load(&quot;test&quot;)</span>
 
 <span class="n">PLprop</span><span class="o">.</span><span class="n">plot_neffs</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-3.py">Source code</a>, <a class="reference external" href=".//PL-3.png">png</a>, <a class="reference external" href=".//PL-3.hires.png">hires.png</a>, <a class="reference external" href=".//PL-3.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/a914179c80afa785071a2da9936be051/PL-3.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/a0aa98835b800c91bc3a738104045d6c/PL-3.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/b6ae64920a28da127b5a7cc672e2079a/PL-3.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/7110a028125e81d8ea1258911ba483de/PL-3.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL-3.png" class="plot-directive" src="_images/PL-3.png" />
 </figure>
@@ -444,7 +465,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PLprop</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-4.py">Source code</a>, <a class="reference external" href=".//PL-4.png">png</a>, <a class="reference external" href=".//PL-4.hires.png">hires.png</a>, <a class="reference external" href=".//PL-4.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/dda1b38dffe2f533fb87eb0bce5e7012/PL-4.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/2f758e83faa1b1a8304edc11f5b56c4b/PL-4.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/503867ac118878904d7a7b8f4bd4e966/PL-4.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/464803660931da2acc988eb29e7a0135/PL-4.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL-4.png" class="plot-directive" src="_images/PL-4.png" />
 </figure>
@@ -457,16 +478,16 @@
 <span class="n">PLprop</span><span class="o">.</span><span class="n">degen_groups</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]]</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-5.py">Source code</a>)</p>
-<p>I will run a <code class="docutils literal notranslate"><span class="pre">characterize()</span></code> again to show how the coupling coefficients change, even though the waveguide and the physics are the same.</p>
+<p>(<a class="reference download internal" download="" href="_downloads/1c57b59b13e81406ef35fb3087f302cb/PL-5.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>)</p>
+<p>I will run a <code class="docutils literal notranslate"><span class="pre">characterize()</span></code> again to show how the coupling coefficients change, even though the waveguide and the physics are the same. This takes around 60 s on my desktop.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment/uncomment below as necessary</span>
-<span class="c1"># PLprop.characterize(save=True,tag=&quot;test_degen&quot;)</span>
-<span class="n">PLprop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;test_degen&quot;</span><span class="p">)</span>
+<span class="n">PLprop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;test_degen&quot;</span><span class="p">)</span>
+<span class="c1"># PLprop.load(&quot;test_degen&quot;)</span>
 
 <span class="n">PLprop</span><span class="o">.</span><span class="n">plot_coupling_coeffs</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-6.py">Source code</a>, <a class="reference external" href=".//PL-6.png">png</a>, <a class="reference external" href=".//PL-6.hires.png">hires.png</a>, <a class="reference external" href=".//PL-6.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/1a739bfde6fa6b9e030982b6ab61258f/PL-6.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/9620cae02680089d5928f3a00ba9a35f/PL-6.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/9e33ad60bf0818856dd33a603392aa92/PL-6.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/331fddc45b41de35e8bd0cc7378c9096/PL-6.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL-6.png" class="plot-directive" src="_images/PL-6.png" />
 </figure>
@@ -475,8 +496,7 @@
 <section id="extract-channel-powers">
 <h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">2.5. </span>extract channel powers</a><a class="headerlink" href="#extract-channel-powers" title="Link to this heading">#</a></h2>
 <p>Degeneracy leaves one last complication. Suppose we want to propagate a field through the lantern and get the output powers in each single mode core. A simple propagation will not give us the information, because the modes at the end of the waveguide might not match the modes we are interested in. The propagation below demonstrates this.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">u0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># launch field, LP01</span>
 <span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">,</span><span class="n">uf</span> <span class="o">=</span> <span class="n">PLprop</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">u0</span><span class="p">)</span>
@@ -484,7 +504,7 @@
 <span class="n">PLprop</span><span class="o">.</span><span class="n">plot_mode_powers</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span><span class="n">us</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href=".//PL-7.py">Source code</a>, <a class="reference external" href=".//PL-7.png">png</a>, <a class="reference external" href=".//PL-7.hires.png">hires.png</a>, <a class="reference external" href=".//PL-7.pdf">pdf</a>)</p>
+<p>(<a class="reference download internal" download="" href="_downloads/4527ea56d19a853eda0bbab1e3e11b80/PL-7.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="_downloads/473dfec012d3f2435c622b2fd50d574b/PL-7.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/7c4af470d18b292074ef6b85d8bc6976/PL-7.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/4e3c20e13869c3cf2237ac1a159054ec/PL-7.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="_images/PL-7.png" class="plot-directive" src="_images/PL-7.png" />
 </figure>
@@ -496,7 +516,7 @@
 </pre></div>
 </div>
 <p>This should give the following channel powers (or close to it):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.49546678 0.10094314 0.10086274 0.10092145 0.10089747 0.10091481]
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.49571021 0.10056241 0.10044566 0.10044533 0.10054812 0.10055042]
 </pre></div>
 </div>
 </section>
@@ -538,8 +558,7 @@
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -566,6 +585,10 @@
   
   <div class="footer-item">
     
+<p class="component-author">
+By Jon Lin
+</p>
+
   </div>
   
   <div class="footer-item">
@@ -590,8 +613,8 @@
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

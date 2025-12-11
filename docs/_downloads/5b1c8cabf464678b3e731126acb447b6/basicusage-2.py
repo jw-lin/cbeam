@@ -12,8 +12,8 @@ tag = "test"
 prop = Propagator(wavelength,wvg,num_modes)
 
 # characterization - comment/uncomment below as needed
-# prop.characterize(save=True,tag=tag)
-prop.load(tag=tag)
+prop.characterize(save=True,tag=tag)
+# prop.load(tag=tag)
 
 u0 = [1,0,0,0,0,0] # starting mode vector, corresponding to fundamental mode
 

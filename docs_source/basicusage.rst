@@ -136,8 +136,8 @@ putting it all together
     prop = Propagator(wavelength,wvg,num_modes)
 
     # characterization - comment/uncomment below as needed
-    # prop.characterize(save=True,tag=tag)
-    prop.load(tag=tag)
+    prop.characterize(save=True,tag=tag)
+    # prop.load(tag=tag)
 
     u0 = [1,0,0,0,0,0] # starting mode vector, corresponding to fundamental mode
 
@@ -167,7 +167,7 @@ The mesh lines are also shown (areas where there are a lot of mesh lines may app
 4. tips
 --------
 
-* Keep track of how many points are in your mesh. Most testing so far has been done on meshes with 1,000 to around 15,000 points. You use more points but memory and storage may become an issue.
+* Keep track of how many points are in your mesh. Most testing so far has been done on meshes with 1,000 to around 15,000 points. You may use more points but memory and storage may become an issue.
 
 * Be aware of potential sources of discretization error when making meshes for waveguides (e.g. representing circles as polygons).
 

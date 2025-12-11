@@ -519,8 +519,8 @@ document.write(`
 <span class="n">prop</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span><span class="n">wvg</span><span class="p">,</span><span class="n">num_modes</span><span class="p">)</span>
 
 <span class="c1"># characterization - comment/uncomment below as needed</span>
-<span class="c1"># prop.characterize(save=True,tag=tag)</span>
-<span class="n">prop</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
+<span class="n">prop</span><span class="o">.</span><span class="n">characterize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
+<span class="c1"># prop.load(tag=tag)</span>
 
 <span class="n">u0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># starting mode vector, corresponding to fundamental mode</span>
 

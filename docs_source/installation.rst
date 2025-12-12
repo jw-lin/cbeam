@@ -10,11 +10,9 @@ installation
 
 You will need both a **Python3** and a `Julia <https://julialang.org/downloads/>`_ installation. Then, make sure you have the following packages:
 
-**General**: ``Gmsh`` (download  `from the Gmsh page <https://gmsh.info/>`_).
+**General**: ``Gmsh`` (download  from the `Gmsh page <https://gmsh.info/>`_ , it's also ``pip`` installable).
 
 **Python**: ``numpy``, ``scipy``, ``numexpr``, ``juliacall``, ``wavesolve``, ``pygmsh``, ``meshio``, ``matplotlib`` (All ``pip`` installable by name besides ``wavesolve``, download `from the Github repo. <https://github.com/jw-lin/wavesolve>`_)
-
-The Python package ``pypardiso`` is an optional dependency for ``wavesolve``; it speeds up the eigen calcs.
 
 ~~~~~~~~~~~~~~~~~~~~~
 2. download ``cbeam``

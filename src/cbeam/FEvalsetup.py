@@ -5,5 +5,5 @@ import cbeam,os
 def FEvalsetup():
     path = os.path.dirname(cbeam.__file__)
     jlPkg.activate(path+"/FEval")
-    jlPkg.add("PythonCall")
+    jlPkg.resolve()
     jlPkg.precompile()

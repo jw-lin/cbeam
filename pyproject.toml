@@ -8,3 +8,20 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cbeam"
 version = "0.0.4"
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.pytest.ini_options]
+# Import cbeam from the in-repo source tree, not from any installed copy, so the
+# test suite always exercises the code in this working directory.
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "slow: test performs a full waveguide characterization / propagation (deselect with '-m \"not slow\"')",
+    "integration: end-to-end test rewritten from a documentation example",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

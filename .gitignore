@@ -1,5 +1,13 @@
 __pycache__
 docs_source/data
+
+# test / build artifacts
+.pytest_cache
+/data
+*.egg-info
+
+# generated when the FEval Julia project is first instantiated
+src/cbeam/FEval/Manifest.toml
 docs/.build*
 docs/_sources
 docs/plot_directive

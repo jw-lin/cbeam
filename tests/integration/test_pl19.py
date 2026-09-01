@@ -87,6 +87,8 @@ def test_chain_propagator_end_to_end(save_dir, golden):
 
     out = chain.to_channel_basis(uf)
     assert len(out) == 19
-    # heavily degenerate + symmetric: compare sorted power spectra only
-    golden.check("uf_power", np.abs(uf) ** 2, sort=True, atol=1e-2)
-    golden.check("channel_out_power", np.abs(out) ** 2, sort=True, atol=1e-2)
+    # The 19 modes here live in one ~19-fold degenerate subspace, so the
+    # per-mode power split (uf) is gauge-dependent and not a stable fingerprint
+    # (it moves by ~5e-2 between eigensolver bases).  The physical channel-power
+    # spectrum is stable, so only that is pinned.
+    golden.check("channel_out_power", np.abs(out) ** 2, sort=True, atol=1e-3)

@@ -28,3 +28,4 @@ contents
    examples
    advancedusage
    reference
+   testing

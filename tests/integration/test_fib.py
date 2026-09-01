@@ -31,7 +31,7 @@ def test_circular_fiber_mesh(circular_fiber):
     fiber.plot_mesh(mesh=mesh, verbose=False)
 
 
-def test_circular_fiber_modes(circular_fiber, save_dir):
+def test_circular_fiber_modes(circular_fiber, save_dir, golden):
     fiber, ncore, nclad = circular_fiber
     wavelength = 1.55
     Nmax = 10
@@ -42,6 +42,7 @@ def test_circular_fiber_modes(circular_fiber, save_dir):
     assert modes.shape[0] == Nmax
     # effective indices come out sorted high -> low
     assert np.all(np.diff(effective_indices) <= 1e-9)
+    golden.check("neffs", effective_indices, rtol=1e-6, atol=1e-9)
     # the fundamental is guided: nclad < neff < ncore
     assert nclad < effective_indices[0] < ncore
     # modes 1 & 2 are the near-degenerate LP11 pair
@@ -80,7 +81,7 @@ def test_tapered_box_fiber_mesh_widens_with_z(tapered_box_fiber):
 
 
 @pytest.mark.slow
-def test_tapered_box_fiber_compute_neffs(tapered_box_fiber, save_dir):
+def test_tapered_box_fiber_compute_neffs(tapered_box_fiber, save_dir, golden):
     rect_fiber, length = tapered_box_fiber
     wavelength = 1.55
     rect_prop = Propagator(wavelength, rect_fiber, 6, save_dir=save_dir)
@@ -88,6 +89,7 @@ def test_tapered_box_fiber_compute_neffs(tapered_box_fiber, save_dir):
 
     assert zs[0] == 0.0 and zs[-1] == length
     assert neffs.shape == (len(zs), 6)
+    golden.check_vs_z("neffs", zs, neffs)
     # fundamental mode stays the highest-index mode and becomes more bound as
     # the guide widens
     assert np.all(neffs[:, 0] >= neffs[:, 1] - 1e-9)

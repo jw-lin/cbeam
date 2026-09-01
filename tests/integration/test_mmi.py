@@ -40,16 +40,17 @@ def test_plot_meshes(guides):
     mmi.plot_mesh(verbose=False)
 
 
-def test_access_mode_solve(guides, save_dir):
+def test_access_mode_solve(guides, save_dir, golden):
     access, _ = guides
     access_prop = Propagator(WL, access, Nmax=1, save_dir=save_dir)
     ac_neffs, ac_modes = access_prop.solve_at(0)
     assert ac_modes.shape[0] == 1
     assert NCLAD < ac_neffs[0] < NCORE
+    golden.check("neff", ac_neffs, rtol=1e-6, atol=1e-9)
     access_prop.plot_cfield(ac_modes[0].astype(complex), show_mesh=True)
 
 
-def test_resample_and_self_image(guides, save_dir):
+def test_resample_and_self_image(guides, save_dir, golden):
     access, mmi = guides
 
     access_prop = Propagator(WL, access, Nmax=1, save_dir=save_dir + "/acc")
@@ -58,6 +59,7 @@ def test_resample_and_self_image(guides, save_dir):
     mmi_prop = Propagator(WL, mmi, Nmax=8, save_dir=save_dir + "/mmi")
     mmi_prop.characterize(save=False)
     assert mmi_prop.neffs.shape == (1, 8)
+    golden.check("mmi_neffs", mmi_prop.neffs[0], rtol=1e-6, atol=1e-9)
     # z-invariant guide -> no coupling
     assert mmi_prop.cmats is None or np.allclose(mmi_prop.cmats, 0.0)
 
@@ -81,6 +83,7 @@ def test_resample_and_self_image(guides, save_dir):
     total_power = np.sum(np.abs(launch_modes) ** 2)
     assert total_power < 1.0
     assert total_power == pytest.approx(0.93, abs=0.05)
+    golden.check("launch_modes_abs", launch_modes, abs_compare=True, atol=1e-3)
 
     # three-fold self image at L = 3 * Lpi / (4 * N),  N = 3
     betas = mmi_prop.neffs[0] * 2 * np.pi / WL

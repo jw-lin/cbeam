@@ -41,7 +41,7 @@ def test_19port_positions_hex_layout():
     assert np.allclose(core_pos[0], [0, 0])
 
 
-def test_compute_neffs_scan(save_dir):
+def test_compute_neffs_scan(save_dir, golden):
     pl19 = _make_pl19(z_ex=10000)          # doc uses 100000
     prop = Propagator(WL, pl19, Nmax=21, save_dir=save_dir)
     prop.z_acc = -1.0
@@ -51,10 +51,11 @@ def test_compute_neffs_scan(save_dir):
     assert np.all(np.isfinite(neffs))
     # modes are index-ordered at the front of the device
     assert np.all(np.diff(neffs[0]) <= 1e-9)
+    golden.check_vs_z("neffs", zs, neffs, rtol=1e-4, atol=1e-6)
     prop.plot_neff_diffs()
 
 
-def test_chain_propagator_end_to_end(save_dir):
+def test_chain_propagator_end_to_end(save_dir, golden):
     pl19 = _make_pl19(z_ex=8000)
     half = pl19.z_ex / 2
 
@@ -86,3 +87,6 @@ def test_chain_propagator_end_to_end(save_dir):
 
     out = chain.to_channel_basis(uf)
     assert len(out) == 19
+    # heavily degenerate + symmetric: compare sorted power spectra only
+    golden.check("uf_power", np.abs(uf) ** 2, sort=True, atol=1e-2)
+    golden.check("channel_out_power", np.abs(out) ** 2, sort=True, atol=1e-2)

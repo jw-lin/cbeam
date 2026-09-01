@@ -46,12 +46,13 @@ def test_lantern_structure(lantern):
 
 
 @pytest.mark.slow
-def test_solve_at_midpoint(lantern, save_dir):
+def test_solve_at_midpoint(lantern, save_dir, golden):
     prop = Propagator(WL, lantern, 6, save_dir=save_dir)
     neff, modes = prop.solve_at(z=lantern.z_ex / 2.0)
     nclad, ncore, njack = 1.444, 1.444 + 8.8e-3, 1.444 - 5.5e-3
     assert len(neff) == 6
     assert np.all(np.diff(neff) <= 1e-9)          # index-ordered
+    golden.check("neff", neff, rtol=1e-6, atol=1e-9)
     # every tracked mode sits inside the waveguide index range (not radiating)
     assert np.all(neff > njack)
     assert np.all(neff < ncore)
@@ -61,7 +62,7 @@ def test_solve_at_midpoint(lantern, save_dir):
 
 
 @pytest.mark.slow
-def test_characterize_propagate_and_channel_powers(lantern, save_dir):
+def test_characterize_propagate_and_channel_powers(lantern, save_dir, golden):
     prop = Propagator(WL, lantern, 6, save_dir=save_dir)
     prop.z_acc = -1.0
     # the full device: the isolated single-mode cores only become well separated
@@ -72,6 +73,7 @@ def test_characterize_propagate_and_channel_powers(lantern, save_dir):
     assert neffs.shape[1] == 6
     assert cmats.shape[1:] == (6, 6)
     assert np.isfinite(cmats).all()
+    golden.check_vs_z("neffs", zs, neffs)
 
     prop.plot_neffs()
     prop.plot_coupling_coeffs()
@@ -91,10 +93,14 @@ def test_characterize_propagate_and_channel_powers(lantern, save_dir):
     assert powers[0] == pytest.approx(0.5, abs=0.15)
     assert powers[1:].min() > 0.03
     assert powers[0] > powers[1:].max()
+    # the 6 cores are symmetric, so which core carries which power can permute
+    # between eigensolver runs -> compare the sorted power spectrum
+    golden.check("channel_powers", powers, sort=True, atol=2e-3)
+    golden.check("uf_total_power", np.sum(np.abs(uf) ** 2), atol=2e-3)
 
 
 @pytest.mark.slow
-def test_degen_groups_run(lantern, save_dir):
+def test_degen_groups_run(lantern, save_dir, golden):
     """The doc fixes the degenerate eigenbasis via ``degen_groups`` and shows the
     coupling coefficients shrink.  We just check the calculation still runs and
     conserves power."""
@@ -106,6 +112,8 @@ def test_degen_groups_run(lantern, save_dir):
     # within a degenerate pair the effective indices are forced equal
     assert np.allclose(neffs[:, 1], neffs[:, 2])
     assert np.allclose(neffs[:, 3], neffs[:, 4])
+    golden.check_vs_z("neffs", zs, neffs)
 
     zs, us, uf = prop.propagate([1, 0, 0, 0, 0, 0])
     assert np.sum(np.abs(uf) ** 2) == pytest.approx(1.0, abs=5e-3)
+    golden.check("uf_power", np.abs(uf) ** 2, sort=True, atol=2e-3)

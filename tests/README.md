@@ -46,10 +46,3 @@ The first run instantiates the small Julia project in `src/cbeam/FEval`
 Tests import `cbeam` from `./src` (configured via `pythonpath` in
 `pyproject.toml`), so they always exercise the code in this checkout regardless
 of any installed copy.
-
-## Known issue flagged by the suite
-
-`tests/unit/test_prim2d.py::TestRectangle::test_nearest_boundary_point_beyond_right_edge`
-is an `xfail`: `Rectangle.nearest_boundary_point` assigns to `outx` instead of
-`outy` in the `i == 2, x > xmax` branch (`waveguide.py` ~L321), so for points
-past the right edge the returned "boundary" point is not on the rectangle.

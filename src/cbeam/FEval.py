@@ -1,7 +1,11 @@
 from juliacall import Main as jl
 import numpy as np
 import os,cbeam
-from juliacall import Pkg as jlPkg
+
+# older juliacall re-exported Pkg (``from juliacall import Pkg``); newer versions
+# dropped it. access Julia's Pkg through Main instead, which works everywhere.
+jl.seval("import Pkg")
+jlPkg = jl.Pkg
 
 jlPkg.activate(os.path.dirname(cbeam.__file__)+"/FEval")
 jl.seval("using FEval")

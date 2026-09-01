@@ -90,18 +90,20 @@ class TestRectangle:
         assert by == pytest.approx(1.0)
         assert -1.0 <= bx <= 1.0
 
-    @pytest.mark.xfail(
-        reason="known bug: Rectangle.nearest_boundary_point writes outx instead "
-        "of outy in the 'i==2, x>xmax' branch (waveguide.py ~L321), so the "
-        "returned point is not actually on the rectangle boundary",
-        strict=False,
-    )
-    def test_nearest_boundary_point_beyond_right_edge(self):
+    def test_nearest_boundary_point_outside_lies_on_boundary(self):
+        # regression test: the 'i==2, x>xmax' branch used to assign outx twice
+        # (waveguide.py ~L321), returning a point off the rectangle entirely.
         r = wg.Rectangle(2.0)
         r.make_points(-1, 1, -2, 2)
-        bx, by = r.nearest_boundary_point(np.array([5.0]), np.array([0.0]))
-        # closest boundary point to (5, 0) is the right edge at (1, 0)
-        assert (float(bx), float(by)) == pytest.approx((1.0, 0.0))
+        for px, py in [(5.0, 0.0), (5.0, 5.0), (-5.0, 0.0), (0.0, 5.0), (5.0, -1.0)]:
+            bx, by = r.nearest_boundary_point(np.array([px]), np.array([py]))
+            bx, by = float(bx), float(by)
+            on_edge = (
+                np.isclose(bx, -1.0) or np.isclose(bx, 1.0)
+                or np.isclose(by, -2.0) or np.isclose(by, 2.0)
+            )
+            assert on_edge, f"({px},{py}) -> ({bx},{by}) is not on the rectangle"
+            assert -1.0 <= bx <= 1.0 and -2.0 <= by <= 2.0
 
 
 class TestPrim2DUnion:

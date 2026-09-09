@@ -8,6 +8,7 @@ Everything here is cheap (both waveguides are z-invariant).
 
 import numpy as np
 import pytest
+from scipy.signal import find_peaks
 
 from cbeam.waveguide import RectangularStepIndexFiber
 from cbeam.propagator import Propagator
@@ -100,10 +101,8 @@ def test_resample_and_self_image(guides, save_dir, golden):
     inten += np.abs(FEval.evaluate(line, np.imag(f), tree)) ** 2
     if inten.max() > 0:
         inten /= inten.max()
-    # count local maxima above 25% of the peak
-    peaks = np.sum(
-        (inten[1:-1] > 0.25)
-        & (inten[1:-1] >= inten[:-2])
-        & (inten[1:-1] >= inten[2:])
-    )
-    assert 2 <= peaks <= 4
+    # count peaks above 25% of the max intensity; require a minimum separation
+    # of 15 samples (~1.9 units) so a single broad lobe isn't double-counted -
+    # the lobes are ~20 units apart, well above that
+    peak_idx, _ = find_peaks(inten, height=0.25, distance=15)
+    assert len(peak_idx) == 3

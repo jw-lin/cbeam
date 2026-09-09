@@ -97,7 +97,7 @@ def test_characterize_propagate_and_channel_powers(lantern, save_dir, golden):
     # split ~evenly across the 5 outer ports; a lopsided split can still pass the
     # loose bounds above but would indicate a symmetry bug
     outer = powers[1:]
-    assert np.ptp(outer) / outer.mean() < 0.15
+    assert np.ptp(outer) / outer.mean() < 0.015
     # the 6 cores are symmetric, so which core carries which power can permute
     # between eigensolver runs -> compare the sorted power spectrum
     golden.check("channel_powers", powers, sort=True, atol=2e-3)

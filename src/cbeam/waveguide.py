@@ -318,7 +318,7 @@ class Rectangle(Prim2D):
         outy[cond7] = bounds[2]
         cond8 = (i==2) & (x>bounds[1])
         outx[cond8] = bounds[1]
-        outx[cond8] = bounds[2]
+        outy[cond8] = bounds[2]
 
         cond9 = (i==3) & (bounds[0]<=x) & (x<=bounds[1])
         outx[cond9] = x[cond9]

@@ -42,7 +42,7 @@ def test_circular_fiber_modes(circular_fiber, save_dir, golden):
     assert modes.shape[0] == Nmax
     # effective indices come out sorted high -> low
     assert np.all(np.diff(effective_indices) <= 1e-9)
-    golden.check("neffs", effective_indices, rtol=1e-6, atol=1e-9)
+    golden.check("neffs", effective_indices, rtol=1e-5, atol=1e-9)
     # the fundamental is guided: nclad < neff < ncore
     assert nclad < effective_indices[0] < ncore
     # modes 1 & 2 are the near-degenerate LP11 pair

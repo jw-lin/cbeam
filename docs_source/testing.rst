@@ -91,6 +91,39 @@ A few notes:
 * Nothing is written to ``./data``; each ``Propagator`` in the suite gets a
   temporary ``save_dir``.
 
+backends
+~~~~~~~~
+
+``cbeam.backend`` reads ``CBEAM_BACKEND`` once, at import time, so the two
+backends are exercised by running the suite twice::
+
+    CBEAM_BACKEND=numpy pytest        # the default
+    CBEAM_BACKEND=jax   pytest        # requires jax + diffrax
+
+Waveguide geometry and ``Gmsh`` meshing always run on host NumPy regardless of
+``CBEAM_BACKEND``; the unit tests that only touch that code carry
+``@pytest.mark.numpy_only`` and are skipped on the jax run. Everything that
+solves modes, characterizes or propagates is run on both. The jax propagation
+path uses a different ODE integrator (``diffrax`` ``Dopri5`` vs SciPy
+``RK45``); its results agree with the NumPy path to ``~1e-8`` and the golden
+check (below) widens its tolerances accordingly. Note the jax ``propagate()``
+returns only the final mode vector, not the whole ``z`` trajectory.
+
+golden numerical-regression layer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On top of the physical-invariant assertions, each slow integration test pins
+its stable numeric outputs (effective-index scans, sorted channel/mode power
+spectra) against a committed reference set in ``tests/integration/_golden/``::
+
+    CBEAM_GOLDEN=check pytest    # the default: compare, ~1e-9 tol on numpy
+    CBEAM_GOLDEN=record pytest   # rewrite the reference set (deliberate changes only)
+    CBEAM_GOLDEN=off pytest      # skip the comparison entirely
+
+A missing reference file skips (does not fail) the comparison for that test.
+See ``tests/integration/_golden/README.md`` for provenance and per-quantity
+tolerances.
+
 --------------------------------
 3. a typical successful run
 --------------------------------

@@ -5,6 +5,10 @@ import pytest
 
 from cbeam import waveguide as wg
 
+# waveguide geometry / gmsh meshing is pinned to numpy regardless of
+# CBEAM_BACKEND, so this module has no distinct jax code path.
+pytestmark = pytest.mark.numpy_only
+
 
 class TestPrim3DBase:
     def test_init_and_index_passthrough(self):

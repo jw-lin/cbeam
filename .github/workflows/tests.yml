@@ -36,6 +36,13 @@ jobs:
           path: ~/.julia
           key: ${{ runner.os }}-julia-${{ hashFiles('src/cbeam/FEval/Project.toml') }}
 
+      # gmsh's Linux wheel dynamically links against the system OpenGL/GLU
+      # libs for its (unused, headless-CI) GUI capabilities; ubuntu-latest
+      # doesn't ship libGLU by default, so `import gmsh` fails with
+      # "OSError: libGLU.so.1: cannot open shared object file" otherwise.
+      - name: Install system dependencies for gmsh
+        run: sudo apt-get update && sudo apt-get install -y libglu1-mesa
+
       # dependency list follows docs_source/installation.rst
       - name: Install Python dependencies
         run: |

@@ -9,6 +9,10 @@ import pytest
 
 from cbeam import waveguide as wg
 
+# waveguide geometry / gmsh meshing is pinned to numpy regardless of
+# CBEAM_BACKEND, so this module has no distinct jax code path.
+pytestmark = pytest.mark.numpy_only
+
 
 class TestCircularStepIndexFiber:
     def test_is_z_invariant_step_index(self):

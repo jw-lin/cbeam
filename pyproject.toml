@@ -11,6 +11,7 @@ version = "0.0.4"
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+jax = ["jax", "diffrax"]
 
 [tool.pytest.ini_options]
 # Import cbeam from the in-repo source tree, not from any installed copy, so the

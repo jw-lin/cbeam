@@ -61,8 +61,45 @@ def _ensure_feval_instantiated() -> None:
     jl.Pkg.precompile()
 
 
+# --------------------------------------------------------------------------- #
+# Backend selection.
+#
+# ``cbeam.backend`` reads CBEAM_BACKEND once, at import time, and binds ``xp`` to
+# numpy or jax.numpy for the life of the process -- there is no runtime switch.
+# So the two backends are exercised by running the suite twice:
+#
+#     CBEAM_BACKEND=numpy pytest        # the default
+#     CBEAM_BACKEND=jax   pytest        # needs jax + diffrax installed
+#
+# Tests whose code path is host-only (waveguide geometry / gmsh meshing is
+# pinned to numpy regardless of CBEAM_BACKEND) carry ``@pytest.mark.numpy_only``
+# and are skipped under the jax run -- the numpy run already covers them and
+# nothing about them changes on jax.
+# --------------------------------------------------------------------------- #
+ACTIVE_BACKEND = os.environ.get("CBEAM_BACKEND", "numpy").lower()
+
+
 def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line(
+        "markers",
+        "numpy_only: test exercises only host/numpy code; skipped on the jax run",
+    )
     _ensure_feval_instantiated()
+
+
+def pytest_collection_modifyitems(config, items):
+    if ACTIVE_BACKEND != "jax":
+        return
+    skip_np = pytest.mark.skip(reason="numpy_only: no distinct jax code path")
+    for item in items:
+        if "numpy_only" in item.keywords:
+            item.add_marker(skip_np)
+
+
+@pytest.fixture(scope="session")
+def backend() -> str:
+    """The active cbeam backend for this process: ``"numpy"`` or ``"jax"``."""
+    return ACTIVE_BACKEND
 
 
 # --------------------------------------------------------------------------- #
@@ -108,8 +145,18 @@ def np():
 # The reference set under _golden/ is generated from the ``tests`` branch and
 # committed, so a run on any other branch is compared against it.
 # --------------------------------------------------------------------------- #
-GOLDEN_DIR = REPO_ROOT / "tests" / "integration" / "_golden"
+GOLDEN_DIR = pathlib.Path(
+    os.environ.get("CBEAM_GOLDEN_DIR", REPO_ROOT / "tests" / "integration" / "_golden")
+)
 GOLDEN_MODE = os.environ.get("CBEAM_GOLDEN", "check").lower()
+
+# The golden reference set is recorded on the numpy backend.  The jax path uses
+# a different ODE integrator (diffrax Dopri5 vs scipy RK45), host<->device
+# transfers and GPU reduction order, so its results agree physically but not to
+# numpy round-off.  When checking a jax run, widen every golden tolerance to at
+# least these floors (override via env for experiments).
+GOLDEN_JAX_RTOL = float(os.environ.get("CBEAM_GOLDEN_JAX_RTOL", "1e-5"))
+GOLDEN_JAX_ATOL = float(os.environ.get("CBEAM_GOLDEN_JAX_ATOL", "1e-6"))
 
 
 class _Golden:
@@ -140,6 +187,13 @@ class _Golden:
             arr = np_.sort(arr, axis=None) if arr.ndim <= 1 else np_.sort(arr, axis=-1)
         return arr
 
+    @staticmethod
+    def _tol(rtol, atol):
+        """Widen tolerances to the jax floors when checking a jax run."""
+        if ACTIVE_BACKEND == "jax":
+            return max(rtol, GOLDEN_JAX_RTOL), max(atol, GOLDEN_JAX_ATOL)
+        return rtol, atol
+
     # -- public API -----------------------------------------------------
     def check(self, name, value, *, rtol=1e-6, atol=1e-9,
               abs_compare=False, sort=False):
@@ -163,6 +217,7 @@ class _Golden:
         assert exp.shape == arr.shape, (
             f"{name}: value shape {arr.shape} != golden shape {exp.shape}"
         )
+        rtol, atol = self._tol(rtol, atol)
         np_.testing.assert_allclose(
             arr, exp, rtol=rtol, atol=atol,
             err_msg=f"{name}: max|delta|={np_.abs(arr - exp).max():.3e}",
@@ -192,6 +247,7 @@ class _Golden:
             [np_.interp(zs[m], exp_z, exp[:, j]) for j in range(exp.shape[1])],
             axis=1,
         )
+        rtol, atol = self._tol(rtol, atol)
         np_.testing.assert_allclose(
             arr[m], exp_i, rtol=rtol, atol=atol,
             err_msg=(f"{name}: max|delta|={np_.abs(arr[m] - exp_i).max():.3e} "

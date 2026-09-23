@@ -33,8 +33,26 @@ To get the Julia dependencies and precompile the Julia code, run ::
 
 e.g. in an IPython session. You only need to do this once per installation. Now you should be able to run the :doc:`examples </examples>`.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4. optional: the JAX backend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``cbeam`` runs on plain NumPy/SciPy by default. To instead run mode-solving,
+characterization and propagation on JAX (autodiff, GPU support, ``diffrax``
+ODE integration), install the extra ::
+
+    pip install "cbeam[jax]"
+
+and set the ``CBEAM_BACKEND`` environment variable before importing ``cbeam`` ::
+
+    export CBEAM_BACKEND=jax
+
+Waveguide geometry and ``Gmsh`` meshing always run on host NumPy regardless of
+this setting. See :doc:`testing` for how the test suite exercises both
+backends.
+
 ~~~~~~~~~~~
-4. updating
+5. updating
 ~~~~~~~~~~~
 
 To update ``cbeam``, run ::

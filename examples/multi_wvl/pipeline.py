@@ -181,28 +181,15 @@ class MultiWavelengthPropagationPipeline:
             self.base_params, wl, PL_N=self._shared_PL_N,
             auto_mode_bookkeeping=self.auto_mode_bookkeeping, verbose=self.verbose)
 
-        try:
-            # field_gen_pupil_template reuses the wavelength-independent
-            # DM mask / influence-function matrix built for the first
-            # wavelength instead of rebuilding it for every one --
-            # requires the field_gen_pupil_template patch to
-            # IncidentFieldGenerator / BatchPropagationPipeline in
-            # batch_propagation_pipeline.py.
-            pipeline = BatchPropagationPipeline(
-                prop12, p_lambda, self.ifunc,
-                field_gen_on_gpu=self.field_gen_on_gpu,
-                field_gen_chunk_size=self.field_gen_chunk_size,
-                field_gen_pupil_template=self._pupil_template,
-            )
-        except TypeError:
-            # Unpatched batch_propagation_pipeline.py -- fall back to the
-            # original constructor (still correct, just redoes the
-            # pupil-data load/stack for every wavelength).
-            pipeline = BatchPropagationPipeline(
-                prop12, p_lambda, self.ifunc,
-                field_gen_on_gpu=self.field_gen_on_gpu,
-                field_gen_chunk_size=self.field_gen_chunk_size,
-            )
+        # field_gen_pupil_template reuses the wavelength-independent DM mask /
+        # influence-function matrix built for the first wavelength instead of
+        # rebuilding it for every one.
+        pipeline = BatchPropagationPipeline(
+            prop12, p_lambda, self.ifunc,
+            field_gen_on_gpu=self.field_gen_on_gpu,
+            field_gen_chunk_size=self.field_gen_chunk_size,
+            field_gen_pupil_template=self._pupil_template,
+        )
 
         if self._pupil_template is None:
             fg = pipeline._field_gen_np
@@ -245,11 +232,12 @@ class MultiWavelengthPropagationPipeline:
             strongly as an aberration walks the PSF off the multimode
             face, and with wavelength as the PSF breathes relative to
             rclad). We recover that here by multiplying each field's
-            channel amplitudes by its coupling efficiency `eff` (the L2
-            norm of the projected field *before* that renormalisation).
-            `eff` is a consistent relative measure, not an absolute
-            "fraction of incident power" -- use it for comparisons, not as
-            an absolute transmission.
+            channel amplitudes by its coupling efficiency `eff`: the
+            fraction of the focal-plane field amplitude that coupled into
+            the lantern's tracked modes. Every pupil field carries the same
+            total power at every wavelength, so np.abs(...)**2 summed over
+            fibers is the absolute fraction of the incident power that
+            reaches the outputs.
 
             Power is NOT taken here -- phase is preserved in case you want
             it (e.g. to sanity-check mode purity); take np.abs(...)**2 for

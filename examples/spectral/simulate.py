@@ -69,8 +69,11 @@ class SpectralImageSimulator:
             Per-fiber power.  1D is treated as monochromatic and replicated
             across the wavelength grid.  Ignored when ``spectra`` is given.
         spectra : ndarray (n_wavelengths, n_fibers), optional
-            Per-fiber flux at each wavelength.  ``n_wavelengths`` must equal
-            ``config.n_spectral_bins`` (the simulator's wavelength grid).
+            Per-fiber flux density (per nm) at each wavelength; bin k
+            contributes ``spectra[k] * delta_lambda`` ADU spread over the
+            detector pixels its wavelength span covers.  ``n_wavelengths``
+            must equal ``config.n_spectral_bins`` (the simulator's wavelength
+            grid).  SpectralExtractor returns the same quantity.
         add_noise : bool
             Add dark current, Poisson shot noise and read noise.
         exposure_time : float
@@ -107,15 +110,15 @@ class SpectralImageSimulator:
         fiber_positions = self.compute_fiber_positions(n_fibers)
         image = np.zeros((cfg.detector_height, cfg.detector_width), dtype=np.float64)
 
-        x_centers = self.disp.wavelength_to_pixel(self.wavelengths)
+        # Each bin's flux * delta_lambda is spread uniformly over the pixels
+        # its wavelength span disperses onto (see
+        # DispersionModel.bin_pixel_weights), so a continuous spectrum gives
+        # a continuous trace whatever the binning.
+        bin_width_px = self.delta_lambda * self.disp.pix_per_nm
+        spread = self.disp.bin_pixel_weights() / bin_width_px        # (n_bins, n_x)
+        traces = (np.maximum(spectra, 0.0) * self.delta_lambda).T @ spread
         for fiber_idx in range(n_fibers):
-            y_center = fiber_positions[fiber_idx]
-            for wave_idx in range(n_wavelengths):
-                flux = spectra[wave_idx, fiber_idx]
-                if flux <= 0:
-                    continue
-                self._add_psf_spot(
-                    image, y_center, x_centers[wave_idx], flux * self.delta_lambda)
+            self._add_trace(image, fiber_positions[fiber_idx], traces[fiber_idx])
 
         # seeing + instrument PSF
         image = gaussian_filter(
@@ -127,24 +130,16 @@ class SpectralImageSimulator:
         return image, fiber_positions
 
     # ------------------------------------------------------------------
-    def _add_psf_spot(self, image, y_center, x_center, flux):
-        """Deposit ``flux`` at a fractional (y, x), split bilinearly over the
-        four surrounding pixels so sub-pixel dispersion positions survive the
-        later Gaussian convolution."""
-        cfg = self.cfg
+    def _add_trace(self, image, y_center, trace):
+        """Add one fiber's dispersed trace (flux per detector column) at a
+        fractional row, split linearly over the two surrounding rows so the
+        sub-pixel position survives the later Gaussian convolution."""
         y0 = int(np.floor(y_center))
-        x0 = int(np.floor(x_center))
         fy = y_center - y0
-        fx = x_center - x0
         for dy, wy in ((0, 1.0 - fy), (1, fy)):
             yy = y0 + dy
-            if wy == 0.0 or not (0 <= yy < cfg.detector_height):
-                continue
-            for dx, wx in ((0, 1.0 - fx), (1, fx)):
-                xx = x0 + dx
-                if wx == 0.0 or not (0 <= xx < cfg.detector_width):
-                    continue
-                image[yy, xx] += flux * wy * wx
+            if wy > 0.0 and 0 <= yy < self.cfg.detector_height:
+                image[yy, :] += wy * trace
 
     def _add_detector_noise(self, image, exposure_time):
         """Dark current + Poisson shot noise + Gaussian read noise.

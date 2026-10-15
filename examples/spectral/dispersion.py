@@ -23,6 +23,11 @@ class DispersionModel:
     dispersion axis, with the band centre pinned to the detector centre."""
 
     def __init__(self, config: SpectralConfig):
+        if config.dispersion_axis != 1:
+            raise ValueError(
+                "only dispersion_axis=1 (wavelength along the detector rows, "
+                "i.e. horizontal) is implemented; got "
+                f"dispersion_axis={config.dispersion_axis}")
         self.cfg = config
         # pixels per nm along the dispersion axis
         self.pix_per_nm = (
@@ -60,3 +65,29 @@ class DispersionModel:
         return np.linspace(
             self.cfg.lambda_min, self.cfg.lambda_max, self.cfg.n_spectral_bins
         )
+
+    def bin_width_nm(self) -> float:
+        """Width of one spectral bin: the spacing of wavelength_grid()."""
+        cfg = self.cfg
+        return (cfg.lambda_max - cfg.lambda_min) / (cfg.n_spectral_bins - 1)
+
+    def bin_pixel_weights(self) -> np.ndarray:
+        """(n_spectral_bins, axis_length) overlap, in pixels, of each spectral
+        bin's span along the dispersion axis with each detector pixel.
+
+        Bin k covers ``wavelength_to_pixel(lambda_k) +- bin_width/2`` and pixel
+        j covers ``[j - 0.5, j + 0.5]`` (pixel centres at integer
+        coordinates), so the bins tile the dispersed band without gaps or
+        overlaps and every row sums to the bin's width in pixels (less any
+        part falling off the detector).  The simulator spreads each bin's
+        flux over these pixels and the extractor integrates over the same
+        ones, which makes the simulate -> extract round trip flux-conserving
+        for any binning.
+        """
+        centres = self.wavelength_to_pixel(self.wavelength_grid())
+        half = 0.5 * self.bin_width_nm() * self.pix_per_nm
+        lo, hi = centres - half, centres + half
+        edges_lo = np.arange(self.axis_length) - 0.5
+        overlap = (np.minimum(hi[:, None], edges_lo[None, :] + 1.0)
+                   - np.maximum(lo[:, None], edges_lo[None, :]))
+        return np.clip(overlap, 0.0, None)

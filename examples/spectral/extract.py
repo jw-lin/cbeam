@@ -25,6 +25,8 @@ class SpectralExtractor:
         # built for so a later call with different positions rebuilds them
         self.profiles: Optional[List[np.ndarray]] = None
         self._profiles_key: Optional[bytes] = None
+        # optimal extraction: re-estimates of the variance from the model
+        self.n_variance_iterations = 2
 
     # ------------------------------------------------------------------
     def extract_spectra(
@@ -107,12 +109,18 @@ class SpectralExtractor:
                 min(cfg.detector_height, y_pix + half_width + 1))
 
     def _resample_to_wavelength_grid(self, spectrum_x, variance_x):
-        """Resample a per-column (detector x) spectrum/variance onto the config
-        wavelength grid, using the simulator's dispersion relation."""
-        x_coords = np.arange(spectrum_x.shape[0])
-        x_pixels = self.disp.wavelength_to_pixel(self.disp.wavelength_grid())
-        spec = np.interp(x_pixels, x_coords, spectrum_x, left=0.0, right=0.0)
-        var = np.interp(x_pixels, x_coords, variance_x, left=np.inf, right=np.inf)
+        """Turn a per-column (detector x) flux/variance into flux density per
+        spectral bin: integrate over the pixels each bin's wavelength span
+        disperses onto -- the same DispersionModel.bin_pixel_weights the
+        simulator spreads it with -- and divide by the bin width.  A bin
+        touching a column with infinite variance gets infinite variance."""
+        w = self.disp.bin_pixel_weights()                  # (n_bins, n_x)
+        dlam = self.disp.bin_width_nm()
+        spec = w @ spectrum_x / dlam
+        touched = w > 0
+        finite = np.where(np.isfinite(variance_x), variance_x, 0.0)
+        var = (w ** 2) @ finite / dlam ** 2
+        var = np.where((touched & ~np.isfinite(variance_x)).any(axis=1), np.inf, var)
         return spec, var
 
     def _aperture_extraction(self, image, variance_map, y_min, y_max):
@@ -125,21 +133,31 @@ class SpectralExtractor:
         """
         Horne 1986: flux = sum(P*D/V) / sum(P**2/V), var = 1 / sum(P**2/V),
         with P the normalised spatial profile, D the data, V the variance.
+        The first pass uses the variance estimated from the data itself; that
+        weights low-fluctuating pixels up and biases the flux low, so -- as
+        in Horne's algorithm -- V is then recomputed from the model F*P and
+        the estimate repeated.
         Columns where the trace is not illuminated (denominator ~ 0) are
         returned as flux 0, variance inf rather than blown up by a fudge term.
         """
+        cfg = self.cfg
         sub_image = image[y_min:y_max, :]
         sub_variance = variance_map[y_min:y_max, :]
         profile = self.profiles[fiber_idx][:, np.newaxis]      # (n_spatial, 1)
 
-        weights = profile ** 2 / sub_variance
-        numerator = np.sum(profile * sub_image * weights, axis=0)
-        denominator = np.sum(profile ** 2 * weights, axis=0)
+        for it in range(1 + self.n_variance_iterations):
+            numerator = np.sum(profile * sub_image / sub_variance, axis=0)
+            denominator = np.sum(profile ** 2 / sub_variance, axis=0)
+            if it == self.n_variance_iterations:
+                break
+            flux = numerator / denominator
+            model_e = np.maximum(profile * flux[np.newaxis, :], 0.0) * cfg.gain
+            sub_variance = (model_e + cfg.read_noise ** 2) / cfg.gain ** 2
 
         # denominator is > 0 wherever the (strictly positive) profile overlaps
-        # finite-variance pixels; guard the degenerate case explicitly instead
-        # of the old `+ 1e-10` fudge, which silently produced huge flux/variance
-        # spikes in any column where the trace carried no signal.
+        # finite-variance pixels; guard the degenerate case explicitly rather
+        # than with an additive fudge term, which would produce huge
+        # flux/variance spikes in any column where the trace carries no signal.
         valid = np.isfinite(denominator) & (denominator > 0)
         safe_denom = np.where(valid, denominator, 1.0)
         spectrum = np.where(valid, numerator / safe_denom, 0.0)

@@ -1,13 +1,11 @@
-# Auto-split from the former single-file multi_wvl_pipeline.py.
 """Per-wavelength ChainPropagator construction, with load-or-characterize caching."""
 from __future__ import annotations
-import contextlib
-import io
 import os
 import numpy as np
 from typing import List, Optional, Tuple
 
 from cbeam.propagator import Propagator, ChainPropagator
+from cbeam.waveguide import PhotonicLantern
 
 from batch_pipeline.constants import (
     default_degenerate_groups_front, default_degenerate_groups_back,
@@ -31,38 +29,15 @@ def _ensure_uint64_cells(mesh) -> None:
 
 def _load_and_backfill_cmats(prop: Propagator, tag: str, verbose: bool = True) -> None:
     """
-    Call Propagator.load(tag), and if cbeam reports a missing coupling-
-    matrix cache (its own internal fallback proceeds without erroring,
-    which is why _load_or_characterize's try/except never catches this
-    case), explicitly compute and *save* the coupling matrices now.
-
-    Without this, a missing cplcoeffs cache file means every future run
-    pays the coupling-matrix computation cost again from scratch (we've
-    seen ~10-30 s per propagator segment), since cbeam's own fallback
-    proceeds silently but does not appear to persist the result. Calling
-    compute_cmats(save=True, tag=tag) reuses whatever .load() already
-    restored (zs, vs, mesh all default to self.zs/self.vs/self.mesh when
-    not passed explicitly) and writes the missing file this one time, so
-    later .load() calls for this tag are fast again.
-
-    Detection is done by capturing stdout during load() and checking for
-    cbeam's own "no coupling matrix file found" message, since the exact
-    internal attribute cbeam uses to track cmat state isn't part of its
-    documented API. This is a heuristic, not a guarantee -- if cbeam
-    changes that message wording in a future version, this stops
-    detecting the condition (silently falls back to "trust load()", i.e.
-    today's behavior) rather than breaking.
+    Propagator.load(tag), then make sure the coupling matrices are cached
+    too. cbeam's load() treats a missing cplcoeffs file as non-fatal (it
+    prints a message and carries on without them), and computing them is
+    ~10-30 s per segment, so if the file is missing compute them now and
+    save them, reusing the zs / vs / mesh load() just restored -- later
+    loads of this tag are then fast again.
     """
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        prop.load(tag)
-    captured = buf.getvalue()
-
-    if verbose and captured.strip():
-        print(captured, end="" if captured.endswith("\n") else "\n")
-
-    lowered = captured.lower()
-    if "coupling matrix" in lowered and ("not found" in lowered or "no coupling" in lowered):
+    prop.load(tag)
+    if not os.path.exists(_cache_file(prop, "cplcoeffs", tag)):
         if verbose:
             print(f"    [{tag}] coupling-matrix cache missing -- computing "
                   f"and saving it now so future loads of this tag are fast ...")
@@ -130,13 +105,15 @@ _CACHE_SUBDIRS = ("eigenvalues", "eigenmodes", "zvals")
 _DEFAULT_SAVE_DIR = "./data"
 
 
+def _cache_file(prop: Propagator, sub: str, tag: str) -> str:
+    """Path of one cached item, e.g. <save_dir>/zvals/zvals_<tag>.npy."""
+    base = getattr(prop, "save_dir", None) or _DEFAULT_SAVE_DIR
+    return os.path.join(base, sub, f"{sub}_{tag}.npy")
+
+
 def _characterization_cached(prop: Propagator, tag: str) -> bool:
     """True iff the files Propagator.load(tag) needs are already on disk."""
-    base = getattr(prop, "save_dir", None) or _DEFAULT_SAVE_DIR
-    return all(
-        os.path.exists(os.path.join(base, sub, f"{sub}_{tag}.npy"))
-        for sub in _CACHE_SUBDIRS
-    )
+    return all(os.path.exists(_cache_file(prop, sub, tag)) for sub in _CACHE_SUBDIRS)
 
 
 
@@ -181,8 +158,8 @@ def build_and_characterize_lantern_at_wavelength(
         When True and neither skipped_modes nor degen_groups is given,
         and this wavelength is about to be characterised from scratch
         (no cache), derive degen_groups (front + back separately) and
-        skipped_modes automatically from a compute_neffs() probe -- see
-        infer_lantern_mode_bookkeeping(). No effect when the cache is
+        skipped_modes automatically from FEM solves at the two lantern
+        ends -- see infer_lantern_mode_bookkeeping(). No effect when the cache is
         already present (the probe would be wasted).
     z_split : float or None
         z coordinate separating the "front" and "back" Propagator

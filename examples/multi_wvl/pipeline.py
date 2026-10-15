@@ -1,4 +1,3 @@
-# Auto-split from the former single-file multi_wvl_pipeline.py.
 """MultiWavelengthPropagationPipeline: one wavelength engine built/released at a time."""
 from __future__ import annotations
 import gc
@@ -83,15 +82,12 @@ class MultiWavelengthPropagationPipeline:
     and a coupling-matrix trajectory (`cmats`, n_z_steps x n_modes x
     n_modes, complex128) for both the front and back segments. Depending
     on mesh size and adaptive step count these can individually reach the
-    GB range. An earlier version of this class built and kept a
-    BatchPropagationPipeline for every native wavelength in self.engines
-    simultaneously -- fine for a handful of wavelengths, but it scales
-    memory linearly with n_wavelengths and can OOM-kill the process
-    (observed as a silent kernel crash, no Python traceback, after "a
-    few" wavelengths loaded) for larger native grids.
+    GB range, so keeping every wavelength's engine resident scales memory
+    linearly with n_wavelengths and can OOM-kill the process (a silent
+    kernel crash, with no Python traceback) for larger native grids.
 
-    This version builds one wavelength's engine at a time inside
-    propagate_batch(), extracts only the small result actually needed
+    Instead, propagate_batch() builds one wavelength's engine at a time,
+    extracts only the small result actually needed
     (uf_batch sliced to n_fibers complex numbers per field -- not the
     underlying GB-scale trajectory arrays), and explicitly drops the
     engine + forces garbage collection (Python and, best-effort, Julia --
@@ -147,9 +143,7 @@ class MultiWavelengthPropagationPipeline:
         self.verbose = verbose
 
         # DM mask / influence-function matrix -- wavelength independent,
-        # so num_modes is available immediately without building any
-        # engine (contrast with the earlier version, where you had to
-        # reach into mwp.engines[wl].pipeline._field_gen_np.num_modes).
+        # so num_modes is available immediately without building any engine.
         self.num_modes = len(ifunc.influence_function)
 
         # Wavelength-independent lantern geometry, built once and shared
@@ -284,10 +278,8 @@ class MultiWavelengthPropagationPipeline:
             if not self.cache_engines:
                 # Drop the heavy per-wavelength state (mesh, mode-field
                 # trajectory, coupling-matrix trajectory -- these can run
-                # into the GB range per wavelength) before moving on.
-                # This is the fix for OOM kernel crashes after a few
-                # wavelengths: without it, all n_wavelengths engines stay
-                # resident simultaneously.
+                # into the GB range per wavelength) before moving on, so
+                # only one wavelength's engine is ever resident.
                 del engine, u0_batch, uf_batch
                 _force_release_memory()
 
@@ -303,6 +295,12 @@ class MultiWavelengthPropagationPipeline:
         """
         Interpolate complex per-fiber coefficients from a coarse native
         wavelength grid onto a finer output grid.
+
+        Each native wavelength is solved independently, so the overall phase
+        of its channel coefficients is arbitrary (eigenvector sign /
+        gauge): the interpolated *phase* carries no physical meaning across
+        wavelengths, and only the amplitude -- hence the power spectra from
+        get_power_spectra() -- is meaningful.
 
         Amplitude and (unwrapped) phase are interpolated separately rather
         than interpolating real/imaginary parts directly -- linear

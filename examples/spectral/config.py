@@ -1,4 +1,3 @@
-# Split out of the former single-file spectral_extraction_module.py.
 """SpectralConfig: every tunable parameter of the simulate/extract pipeline."""
 from __future__ import annotations
 from dataclasses import dataclass

@@ -1,4 +1,3 @@
-# Auto-split from the former single-file multi_wvl_pipeline.py.
 """Automatic per-wavelength degen_groups / skipped_modes from two endpoint FEM solves."""
 from __future__ import annotations
 import shutil
@@ -98,11 +97,6 @@ def infer_lantern_mode_bookkeeping(
     """
     Derive ``(degen_groups_front, degen_groups_back, skipped_modes)`` for
     the lantern at one wavelength from two endpoint FEM solves.
-
-    (Earlier versions took a ``z_split`` positional and an ``n_probe``
-    keyword for a partial ``compute_neffs`` sweep; the current implementation
-    uses two clean endpoint solves and needs neither.  ``diagnose_mode_
-    bookkeeping`` still swallows those keywords for old notebook cells.)
 
     Parameters
     ----------
@@ -228,8 +222,8 @@ def diagnose_mode_bookkeeping(
     inferred structure for every wavelength you plan to (re)characterise
     before committing the CPU time.
     """
-    # absorb the old no-op knobs so existing notebook cells that still pass
-    # `n_probe=` / `z_split=` keep working (see infer_lantern_mode_bookkeeping)
+    # accepted and ignored: n_probe / z_split configured a partial n_eff sweep
+    # that the two endpoint solves replace
     infer_kwargs.pop("n_probe", None)
     infer_kwargs.pop("z_split", None)
 

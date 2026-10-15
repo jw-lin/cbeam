@@ -1,4 +1,3 @@
-# Split out of the former single-file spectral_extraction_module.py.
 """All matplotlib output for the spectral pipeline (the only module that imports it)."""
 from __future__ import annotations
 import numpy as np

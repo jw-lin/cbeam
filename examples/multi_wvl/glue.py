@@ -1,4 +1,3 @@
-# Auto-split from the former single-file multi_wvl_pipeline.py.
 """Glue helpers feeding multi-wavelength output into the ``spectral`` package."""
 from __future__ import annotations
 import numpy as np
@@ -16,11 +15,10 @@ def spectra_for_field(power_spectra: np.ndarray, field_idx: int) -> np.ndarray:
 def build_spectral_config_from_wavelength_grid(wl_nm: np.ndarray, **overrides):
     """
     Build a SpectralConfig whose lambda_min/lambda_max/n_spectral_bins match
-    a wavelength grid produced by get_power_spectra(), so the spectral-
-    extraction module's wavelength axis stays consistent with the
-    physically propagated one (and with the dispersion fix discussed
-    earlier -- SpectralExtractor must invert the same wavelength<->pixel
-    relation SpectralImageSimulator used to build the image).
+    a wavelength grid produced by get_power_spectra(), so the spectral
+    package's wavelength axis is the physically propagated one
+    (SpectralImageSimulator and SpectralExtractor both map it to detector
+    pixels through the same DispersionModel).
     """
     from spectral.config import SpectralConfig
 

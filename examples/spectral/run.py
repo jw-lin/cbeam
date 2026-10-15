@@ -1,4 +1,3 @@
-# Split out of the former single-file spectral_extraction_module.py.
 """Standalone demo: simulate 19 fiber spectra, disperse, extract, score."""
 from __future__ import annotations
 import numpy as np

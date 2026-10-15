@@ -1,16 +1,10 @@
-# Split out of the former single-file spectral_extraction_module.py.
 """DispersionModel: the one wavelength <-> detector-pixel mapping.
 
 Both halves of the pipeline need this relation and they must agree exactly:
-``SpectralImageSimulator`` uses ``wavelength_to_pixel`` to lay each fiber
-trace down on the detector, and ``SpectralExtractor`` must invert *that same*
-relation when it resamples the along-trace cut back onto the wavelength grid.
-
-Before this was factored out, the simulator applied
-``(w - lambda_min) * pix_per_nm + centre_offset`` while the extractor used an
-unrelated ``(w - lambda_min) * detector_width / (lambda_max - lambda_min)`` --
-so the extractor sampled the wrong detector columns and the recovered spectra
-were mostly empty.  Keeping both directions here stops them drifting again.
+``SpectralImageSimulator`` uses it to lay each fiber trace down on the
+detector, and ``SpectralExtractor`` must invert *that same* relation when it
+integrates the along-trace cut back onto the wavelength grid -- keeping both
+directions in one place keeps them consistent.
 """
 from __future__ import annotations
 import numpy as np

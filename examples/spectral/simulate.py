@@ -1,4 +1,3 @@
-# Split out of the former single-file spectral_extraction_module.py.
 """SpectralImageSimulator: build the 2D dispersed detector image. No matplotlib."""
 from __future__ import annotations
 import numpy as np
@@ -59,6 +58,7 @@ class SpectralImageSimulator:
         spectra: Optional[np.ndarray] = None,
         add_noise: bool = True,
         exposure_time: float = 1.0,
+        rng=None,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Build a 2D spectral image from fiber fluxes.
@@ -78,6 +78,9 @@ class SpectralImageSimulator:
             Add dark current, Poisson shot noise and read noise.
         exposure_time : float
             Seconds, for the dark-current term.
+        rng : None | int | np.random.Generator
+            Noise source. None (default) uses numpy's global random state;
+            an int seed or a Generator makes the noise reproducible.
 
         Returns
         -------
@@ -125,7 +128,7 @@ class SpectralImageSimulator:
             image, sigma=(self.psf_sigma_spatial, self.psf_sigma_spectral))
 
         if add_noise:
-            image = self._add_detector_noise(image, exposure_time)
+            image = self._add_detector_noise(image, exposure_time, rng)
 
         return image, fiber_positions
 
@@ -141,7 +144,7 @@ class SpectralImageSimulator:
             if wy > 0.0 and 0 <= yy < self.cfg.detector_height:
                 image[yy, :] += wy * trace
 
-    def _add_detector_noise(self, image, exposure_time):
+    def _add_detector_noise(self, image, exposure_time, rng=None):
         """Dark current + Poisson shot noise + Gaussian read noise.
 
         ``image`` is in ADU and ``gain`` is electrons per ADU, so the noise is
@@ -150,6 +153,7 @@ class SpectralImageSimulator:
         cfg = self.cfg
         electrons = np.maximum(image, 0.0) * cfg.gain
         electrons = electrons + cfg.dark_current * exposure_time
-        electrons = np.random.poisson(electrons).astype(np.float64)
-        electrons = electrons + np.random.normal(0.0, cfg.read_noise, electrons.shape)
+        rand = np.random if rng is None else np.random.default_rng(rng)
+        electrons = rand.poisson(electrons).astype(np.float64)
+        electrons = electrons + rand.normal(0.0, cfg.read_noise, electrons.shape)
         return np.maximum(electrons / cfg.gain, 0.0)

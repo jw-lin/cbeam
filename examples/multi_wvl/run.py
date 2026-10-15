@@ -1,4 +1,3 @@
-# Auto-split from the former single-file multi_wvl_pipeline.py.
 """End-to-end multi-wavelength propagation demo."""
 from __future__ import annotations
 import numpy as np
@@ -7,16 +6,19 @@ from .pipeline import MultiWavelengthPropagationPipeline
 from .glue import spectra_for_field, build_spectral_config_from_wavelength_grid
 
 
-def example_multiwavelength_propagation():
+def example_multiwavelength_propagation(photons_per_nm: float = 1e5):
     """
     End-to-end example: propagate a batch of aberration configurations at
     several native wavelengths, interpolate onto a fine grid, and hand the
     result to the spectral extraction module.
+
+    photons_per_nm : source flux entering the lantern per nm per exposure;
+        scales the coupled power fractions into detected photons.
     """
-    import specula
-    specula.init(0)
-    from specula.data_objects.ifunc import IFunc
-    from batch_pipeline.config import get_simulation_parameters, create_random_aberration_configs
+    from batch_pipeline import (
+        get_simulation_parameters, create_random_aberration_configs,
+        load_ifunc, center_ifunc_mask,
+    )
     from spectral.simulate import SpectralImageSimulator
     from spectral.extract import SpectralExtractor
 
@@ -25,13 +27,14 @@ def example_multiwavelength_propagation():
     print("=" * 60)
 
     base_params = get_simulation_parameters()
-    ifunc = IFunc.restore(base_params["ifunc_file"])
+    ifunc = load_ifunc(base_params["ifunc_file"])   # specula if installed
+    center_ifunc_mask(ifunc)
 
     # Coarse native solve grid: physically propagate at these wavelengths.
     # Any wavelength without a cached characterization will be solved and
     # cached automatically on this call -- with 21 points and no existing
     # cache, expect on the order of a few hours the first time this runs
-    # (see the COST NOTE at the top of this file / the class docstring).
+    # (see "Notes on cost" in MultiWavelengthPropagationPipeline).
     native_wl_nm = np.linspace(700.0, 900.0, 21)
 
     mwp = MultiWavelengthPropagationPipeline(
@@ -65,7 +68,7 @@ def example_multiwavelength_propagation():
     simulator = SpectralImageSimulator(spectral_cfg)
     extractor = SpectralExtractor(spectral_cfg)
 
-    spectra_field0 = spectra_for_field(power_spectra, field_idx=0)
+    spectra_field0 = photons_per_nm * spectra_for_field(power_spectra, field_idx=0)
     image, fiber_positions = simulator.create_spectral_image(
         modal_powers=None, spectra=spectra_field0, add_noise=True, exposure_time=1.0,
     )
@@ -74,9 +77,6 @@ def example_multiwavelength_propagation():
     print(f"Extracted spectra shape: {extracted.shape}")
     return power_spectra, wl_out, image, extracted
 
-
-if __name__ == "__main__":
-    example_multiwavelength_propagation()
 
 if __name__ == "__main__":
     example_multiwavelength_propagation()

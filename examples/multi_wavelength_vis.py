@@ -3,8 +3,8 @@
 # =====================================================================
 # Plotting helpers for the outputs of MultiWavelengthPropagationPipeline
 # (power_spectra, wl_nm) and, optionally, the downstream detector-plane
-# stage (SpectralImageSimulator / SpectralExtractor from
-# spectral_extraction_module.py).
+# stage (SpectralImageSimulator / SpectralExtractor from the spectral
+# package).
 #
 # All functions take plain arrays (power_spectra, wl_nm, amplitudes) --
 # nothing here depends on pipeline internals, so they work equally well
@@ -280,6 +280,7 @@ def plot_detector_stage_for_field(
     wl_nm: np.ndarray,
     field_idx: int,
     fiber_indices: Optional[Sequence[int]] = None,
+    photons_per_nm: float = 1e5,
 ):
     """
     Run one field's spectra through SpectralImageSimulator /
@@ -289,7 +290,12 @@ def plot_detector_stage_for_field(
     so you can call it directly on multi-wavelength pipeline output
     without re-deriving spectra_field0 / spectral_cfg each time.
 
-    ``multi_wvl_pipeline`` is imported inside the function on purpose:
+    ``power_spectra`` are coupled power fractions (see
+    MultiWavelengthPropagationPipeline.propagate_batch); ``photons_per_nm``
+    is the source flux entering the lantern, per nm of bandwidth per
+    exposure, that turns them into detected photons (gain 1 -> ADU).
+
+    ``multi_wvl`` is imported inside the function on purpose:
     every *other* function in this module needs only numpy + matplotlib and
     works on saved arrays, so importing the (cbeam / juliacall / specula)
     stack is deferred to this one call.  The ``spectral`` imports are light
@@ -298,7 +304,7 @@ def plot_detector_stage_for_field(
     from spectral.simulate import SpectralImageSimulator
     from spectral.extract import SpectralExtractor
     from spectral.plots import visualize_spectral_image, visualize_extracted_spectra
-    from multi_wvl_pipeline import (
+    from multi_wvl.glue import (
         spectra_for_field, build_spectral_config_from_wavelength_grid,
     )
 
@@ -306,7 +312,7 @@ def plot_detector_stage_for_field(
     simulator = SpectralImageSimulator(spectral_cfg)
     extractor = SpectralExtractor(spectral_cfg)
 
-    spectra_field = spectra_for_field(power_spectra, field_idx=field_idx)
+    spectra_field = photons_per_nm * spectra_for_field(power_spectra, field_idx=field_idx)
     image, fiber_positions = simulator.create_spectral_image(
         modal_powers=None, spectra=spectra_field, add_noise=True, exposure_time=1.0,
     )

@@ -1,5 +1,15 @@
-# Auto-split from the former single-file multi_wvl_pipeline.py.
-"""Wavelength-dependent parameter scaling and the (wavelength-independent) lantern geometry."""
+"""Wavelength-dependent parameter scaling and the (wavelength-independent) lantern geometry.
+
+CHROMATIC MODEL: the lantern is one fixed physical object, so its geometry
+and its refractive indices (the dopant contrast between core, cladding and
+jacket) are taken as wavelength independent. Material dispersion shifts all
+indices nearly together; that common-mode shift is neglected (see
+sellmeier_n_silica() to size it). The chromatic response therefore comes
+from the vacuum wavelength alone -- k0 = 2*pi/lambda and the normalised
+frequency V ~ 1/lambda the per-wavelength mode basis is solved at -- plus
+the Fraunhofer focal-plane sampling of the input PSF, which scales with
+lambda.
+"""
 from __future__ import annotations
 import numpy as np
 from typing import Optional
@@ -36,7 +46,7 @@ def sellmeier_n_silica(wavelength_um: float) -> float:
     Refractive index of fused silica (Malitson 1965 Sellmeier fit).
 
     Kept as a utility for sizing the common-mode material-dispersion shift
-    (see the CHROMATIC MODEL note above) -- it is *not* applied to the
+    (see the CHROMATIC MODEL note in the module docstring) -- it is *not* applied to the
     lantern indices by scale_params_to_wavelength(), by design.
 
     Parameters
@@ -66,7 +76,7 @@ def scale_params_to_wavelength(
     Return a copy of *base_params* retuned for *wavelength_nm*.
 
     The lantern is a fixed physical object (see the CHROMATIC MODEL note
-    above), so the refractive-index keys are left untouched -- geometry
+    in the module docstring), so the refractive-index keys are left untouched -- geometry
     and dopant contrast are wavelength-independent. Only the two genuinely
     wavelength-dependent inputs are changed:
 

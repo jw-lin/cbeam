@@ -1,4 +1,3 @@
-# Split out of the former single-file spectral_extraction_module.py.
 """Dispersive imaging of photonic-lantern outputs + optimal spectral extraction.
 
 Pipeline stages:

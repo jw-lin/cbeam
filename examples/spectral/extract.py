@@ -1,4 +1,3 @@
-# Split out of the former single-file spectral_extraction_module.py.
 """SpectralExtractor: optimal / aperture extraction of 1D spectra. No matplotlib."""
 from __future__ import annotations
 import numpy as np
@@ -14,8 +13,11 @@ class SpectralExtractor:
 
     Optimal extraction follows Horne (1986, PASP 98, 609): a normalised
     spatial profile per fiber, variance-weighted collapse along the spatial
-    axis, then resampling onto the wavelength grid through the *same*
+    axis, then integration onto the wavelength grid through the *same*
     dispersion relation the simulator used (DispersionModel).
+
+    No dark frame is subtracted, so the extracted flux includes the dark
+    current the simulator adds (``dark_current * exposure_time`` per pixel).
     """
 
     def __init__(self, config: SpectralConfig):

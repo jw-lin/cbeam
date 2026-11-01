@@ -11,6 +11,7 @@ numpy or the jax backend (`CBEAM_BACKEND`).
 
 | | |
 |---|---|
+| `BatchedMinimal.ipynb` | start here: cbeam alone, on the 6-port lantern of the docs -- one `propagate()` call for a batch of fields vs. a loop, and output-core powers for the whole batch |
 | `Batched.ipynb` | timing of batched vs. one-field-at-a-time `propagate()`, numpy and jax |
 | `BatchedPiston.ipynb` | the full pipeline: DM-aberrated input pupils -> batched propagation -> output fields -> per-core signals |
 | `python -m batch_pipeline.run` | the same pipeline as a script |

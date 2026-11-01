@@ -2,9 +2,7 @@
 # MULTI-WAVELENGTH RESULTS VISUALIZATION
 # =====================================================================
 # Plotting helpers for the outputs of MultiWavelengthPropagationPipeline
-# (power_spectra, wl_nm) and, optionally, the downstream detector-plane
-# stage (SpectralImageSimulator / SpectralExtractor from the spectral
-# package).
+# (power_spectra, wl_nm).
 #
 # All functions take plain arrays (power_spectra, wl_nm, amplitudes) --
 # nothing here depends on pipeline internals, so they work equally well
@@ -269,64 +267,3 @@ def plot_per_fiber_throughput_vs_amplitude(
         ax.grid(True, alpha=0.3)
         if len(fiber_indices) <= 8:
             ax.legend(fontsize=8, ncol=2)
-
-
-# =====================================================================
-# DETECTOR-STAGE CONVENIENCE WRAPPER
-# =====================================================================
-
-def plot_detector_stage_for_field(
-    power_spectra: np.ndarray,
-    wl_nm: np.ndarray,
-    field_idx: int,
-    fiber_indices: Optional[Sequence[int]] = None,
-    photons_per_nm: float = 1e5,
-):
-    """
-    Run one field's spectra through SpectralImageSimulator /
-    SpectralExtractor (from the ``spectral`` package) and plot the
-    simulated detector image alongside the extracted spectra -- the same
-    two visualize_* calls used in ``spectral.run``'s own example, wrapped
-    so you can call it directly on multi-wavelength pipeline output
-    without re-deriving spectra_field0 / spectral_cfg each time.
-
-    ``power_spectra`` are coupled power fractions (see
-    MultiWavelengthPropagationPipeline.propagate_batch); ``photons_per_nm``
-    is the source flux entering the lantern, per nm of bandwidth per
-    exposure, that turns them into detected photons (gain 1 -> ADU).
-
-    ``multi_wvl`` is imported inside the function on purpose:
-    every *other* function in this module needs only numpy + matplotlib and
-    works on saved arrays, so importing the (cbeam / juliacall / specula)
-    stack is deferred to this one call.  The ``spectral`` imports are light
-    (numpy/scipy/matplotlib) and sit here just to keep them by their use.
-    """
-    from spectral.simulate import SpectralImageSimulator
-    from spectral.extract import SpectralExtractor
-    from spectral.plots import visualize_spectral_image, visualize_extracted_spectra
-    from multi_wvl.glue import (
-        spectra_for_field, build_spectral_config_from_wavelength_grid,
-    )
-
-    spectral_cfg = build_spectral_config_from_wavelength_grid(wl_nm)
-    simulator = SpectralImageSimulator(spectral_cfg)
-    extractor = SpectralExtractor(spectral_cfg)
-
-    spectra_field = photons_per_nm * spectra_for_field(power_spectra, field_idx=field_idx)
-    image, fiber_positions = simulator.create_spectral_image(
-        modal_powers=None, spectra=spectra_field, add_noise=True, exposure_time=1.0,
-    )
-    extracted, variance = extractor.extract_spectra(image, fiber_positions, method="optimal")
-
-    visualize_spectral_image(image, fiber_positions, spectral_cfg,
-                              title=f"Field {field_idx} -- simulated detector image")
-
-    n_fibers = power_spectra.shape[2]
-    if fiber_indices is None:
-        fiber_indices = [0, n_fibers // 4, n_fibers // 2, 3 * n_fibers // 4, n_fibers - 1]
-    visualize_extracted_spectra(
-        extracted, wl_nm, variance, fiber_indices=list(fiber_indices),
-        title=f"Field {field_idx} -- extracted spectra",
-    )
-
-    return image, extracted, variance

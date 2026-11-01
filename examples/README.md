@@ -28,17 +28,16 @@ Besides cbeam's own requirements:
 The first run characterizes the lantern (several minutes per wavelength);
 later runs load the cached characterization from `examples/data/`.
 
-## Multi-wavelength propagation and spectrograph
+## Multi-wavelength propagation
 
 `multi_wvl/` propagates a batch of aberrated fields at every wavelength of a
 native grid -- one lantern characterization per wavelength, built and released
 one at a time -- and returns each output fiber's spectrum as the fraction of
-the incident power reaching it. `spectral/` disperses those spectra onto a
-simulated spectrograph detector and extracts them back (optimal extraction).
+the incident power reaching it.
 
 | | |
 |---|---|
-| `multi_wavelength.ipynb` | 41 wavelengths (700-900 nm) x a petal-piston ramp: output spectra, input coupling vs. wavelength, detector stage |
+| `multi_wavelength.ipynb` | 41 wavelengths (700-900 nm) x a petal-piston ramp: output spectra, input coupling vs. wavelength |
 | `multi_wavelength_vis.py` | the notebook's plotting helpers |
 | `python -m multi_wvl.run` | a shorter end-to-end run as a script |
 

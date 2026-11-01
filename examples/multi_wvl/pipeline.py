@@ -227,7 +227,7 @@ class MultiWavelengthPropagationPipeline:
 
             Power is NOT taken here -- phase is preserved in case you want
             it (e.g. to sanity-check mode purity); take np.abs(...)**2 for
-            detector-plane flux.
+            the power.
         """
         n_wl = len(self.native_wavelengths_nm)
         n_fields = np.asarray(aberration_coeff_batch).shape[0]
@@ -355,7 +355,7 @@ class MultiWavelengthPropagationPipeline:
         """
         Convenience wrapper: propagate at all native wavelengths, optionally
         interpolate onto a finer output grid, and return real per-fiber
-        power (flux) spectra ready for SpectralImageSimulator.
+        power (flux) spectra.
 
         The interpolation is done on the *complex* coefficients (amplitude
         and unwrapped phase separately, via interpolate_complex_spectra) and

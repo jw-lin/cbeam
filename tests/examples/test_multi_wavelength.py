@@ -1,7 +1,7 @@
-"""Smoke tests for ``examples/multi_wvl`` and ``examples/spectral``.
+"""Smoke tests for ``examples/multi_wvl``.
 
-Fast only: wavelength scaling, degenerate-multiplet splitting, the spectral
-interpolation, and the spectrograph simulate -> extract round trip. A full
+Fast only: wavelength scaling, degenerate-multiplet splitting and the spectral
+interpolation. A full
 multi-wavelength propagation needs one lantern characterization per
 wavelength (minutes each), which ``test_batch_pipeline.py`` already covers
 for a single wavelength.
@@ -20,8 +20,6 @@ if str(EXAMPLES) not in sys.path:
 import batch_pipeline as bp  # noqa: E402
 import multi_wvl as mw  # noqa: E402
 from multi_wvl.bookkeeping import _multiplets  # noqa: E402
-from spectral import SpectralConfig, SpectralImageSimulator, SpectralExtractor  # noqa: E402
-from spectral.dispersion import DispersionModel  # noqa: E402
 
 
 # --------------------------------------------------------------------------- #
@@ -59,51 +57,3 @@ def test_interpolate_complex_spectra():
     wl_out = np.linspace(700, 800, 11)
     np.testing.assert_allclose(np.abs(interp(spec * gauge, wl, wl_out)),
                                np.abs(interp(spec, wl, wl_out)), rtol=1e-12)
-
-
-# --------------------------------------------------------------------------- #
-# spectral
-# --------------------------------------------------------------------------- #
-def _spectra(sim):
-    return 1000 + 400 * np.sin(sim.wavelengths[:, None] / 15 + np.arange(19))
-
-
-def test_dispersion_axis_other_than_1_is_rejected():
-    with pytest.raises(ValueError):
-        DispersionModel(SpectralConfig(dispersion_axis=0))
-
-
-def test_bin_pixel_weights_tile_the_band():
-    disp = DispersionModel(SpectralConfig(n_spectral_bins=41))
-    w = disp.bin_pixel_weights()
-    width_px = disp.bin_width_nm() * disp.pix_per_nm
-    np.testing.assert_allclose(w.sum(axis=1), width_px)
-    covered = w.sum(axis=0)
-    inner = covered[covered > 0][1:-1]                 # away from the band ends
-    np.testing.assert_allclose(inner, 1.0)             # no gaps, no overlaps
-
-
-@pytest.mark.parametrize("n_bins", [41, 200])
-@pytest.mark.parametrize("method", ["optimal", "aperture"])
-def test_spectral_round_trip_conserves_flux(n_bins, method):
-    cfg = SpectralConfig(n_spectral_bins=n_bins)
-    sim, ext = SpectralImageSimulator(cfg), SpectralExtractor(cfg)
-    true = _spectra(sim)
-    image, pos = sim.create_spectral_image(None, spectra=true, add_noise=False)
-    out, var = ext.extract_spectra(image, pos, method=method)
-    assert out.shape == true.shape == var.shape
-    np.testing.assert_allclose(out[2:-2], true[2:-2], rtol=5e-3)
-
-
-def test_optimal_extraction_variance_and_bias():
-    cfg = SpectralConfig(n_spectral_bins=200, dark_current=0.0)
-    sim, ext = SpectralImageSimulator(cfg), SpectralExtractor(cfg)
-    true = _spectra(sim)
-    z = []
-    for seed in range(10):
-        image, pos = sim.create_spectral_image(None, spectra=true, rng=seed)
-        out, var = ext.extract_spectra(image, pos, method="optimal")
-        z.append(((out - true) / np.sqrt(var))[2:-2])
-    z = np.array(z)
-    assert abs(z.mean()) < 0.1           # unbiased
-    assert z.std() == pytest.approx(1.0, abs=0.05)   # variance is the real scatter

@@ -1,5 +1,5 @@
 """multi_wvl -- per-wavelength photonic-lantern propagation, split into
-params / bookkeeping / construct / pipeline / glue / run submodules."""
+params / bookkeeping / construct / pipeline / run submodules."""
 from __future__ import annotations
 
 from .params import (
@@ -13,7 +13,6 @@ from .bookkeeping import (
 )
 from .construct import build_and_characterize_lantern_at_wavelength
 from .pipeline import WavelengthEngine, MultiWavelengthPropagationPipeline
-from .glue import spectra_for_field, build_spectral_config_from_wavelength_grid
 from .run import example_multiwavelength_propagation
 
 __all__ = [
@@ -21,6 +20,5 @@ __all__ = [
     "probe_neffs", "diagnose_mode_bookkeeping",
     "build_and_characterize_lantern_at_wavelength",
     "WavelengthEngine", "MultiWavelengthPropagationPipeline",
-    "spectra_for_field", "build_spectral_config_from_wavelength_grid",
     "example_multiwavelength_propagation",
 ]

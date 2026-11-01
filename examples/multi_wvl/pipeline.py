@@ -123,7 +123,6 @@ class MultiWavelengthPropagationPipeline:
         field_gen_on_gpu: bool = False,
         field_gen_chunk_size: Optional[int] = default_gen_chunk_size,
         cache_engines: bool = False,
-        auto_mode_bookkeeping: bool = False,
         verbose: bool = True,
     ):
         self.base_params = base_params
@@ -134,12 +133,6 @@ class MultiWavelengthPropagationPipeline:
         self.field_gen_on_gpu = field_gen_on_gpu
         self.field_gen_chunk_size = field_gen_chunk_size
         self.cache_engines = cache_engines
-        # Passed to build_and_characterize_lantern_at_wavelength: when a
-        # wavelength has to be characterised from scratch, derive its
-        # degen_groups / skipped_modes from an n_eff probe instead of
-        # reusing the 800 nm hard-coded config. No effect on cached
-        # wavelengths.
-        self.auto_mode_bookkeeping = auto_mode_bookkeeping
         self.verbose = verbose
 
         # DM mask / influence-function matrix -- wavelength independent,
@@ -172,8 +165,7 @@ class MultiWavelengthPropagationPipeline:
     def _build_engine(self, wl: float) -> WavelengthEngine:
         """Build a single wavelength's ChainPropagator + BatchPropagationPipeline."""
         p_lambda, prop12 = build_and_characterize_lantern_at_wavelength(
-            self.base_params, wl, PL_N=self._shared_PL_N,
-            auto_mode_bookkeeping=self.auto_mode_bookkeeping, verbose=self.verbose)
+            self.base_params, wl, PL_N=self._shared_PL_N, verbose=self.verbose)
 
         # field_gen_pupil_template reuses the wavelength-independent DM mask /
         # influence-function matrix built for the first wavelength instead of

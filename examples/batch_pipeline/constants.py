@@ -28,12 +28,9 @@ DEFAULT_SUBPIXEL_N      = 5      # side of the NxN sub-pixel sampling window
 N_RINGS   = 3
 N_SIGNALS = len(hex_ring_positions(N_RINGS, 1.0))   # lantern output cores; 19 for N_RINGS=3
 
-default_degenerate_groups_front = {}
-default_degenerate_groups_back = {}
-default_skipped_modes_front = {}
-default_skipped_modes_back = {}
-
-default_degenerate_groups_front[3] = [[1,2],[3,4],[6,7],[8,9],[10,11],[12,13],[15,16]]
-default_degenerate_groups_back[3] = [[i for i in range(20) if i != 18]]
-default_skipped_modes_front[3] = {18}
-default_skipped_modes_back[3] = {18}
+# degenerate mode pairs at the lantern input (z=0), per number of rings: the
+# modes there do not depend on the mesh, so these pairs are fixed. The skipped
+# (cladding) modes of the back segment are found by build_and_characterize_lantern.
+default_degenerate_groups_front = {
+    3: [[1,2],[3,4],[6,7],[8,9],[10,11],[12,13],[15,16]],
+}

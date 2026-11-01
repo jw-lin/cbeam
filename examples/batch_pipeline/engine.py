@@ -14,8 +14,7 @@ from .ifunc import to_numpy
 from .constants import (
     backend, jax, jnp, _jax_device,
     default_chunk_size, default_gen_chunk_size, DEFAULT_GRID_RESOLUTION,
-    default_degenerate_groups_front, default_degenerate_groups_back,
-    default_skipped_modes_front, default_skipped_modes_back,
+    default_degenerate_groups_front,
     L1, L2,
 )
 
@@ -52,6 +51,17 @@ def wavelength_tag(wavelength_nm: float) -> str:
 def build_and_characterize_lantern(p, reuse_cache=False):
     """Set up the PhotonicLantern and return a ChainPropagator.
 
+    Mode bookkeeping: the front segment tracks every mode (only its
+    degenerate pairs are grouped -- they come from the input end, whose modes
+    do not depend on the mesh). The back segment skips the mode(s) that have
+    become cladding modes by the junction (effective index below the
+    cladding index) and treats the rest -- the core supermodes -- as one
+    degenerate group. Which mode index ends up in the cladding depends on how
+    the tracker labels the modes through the taper, so it is read off the
+    front segment instead of being fixed in advance: a fixed choice (mode 18,
+    as in docs_source/PL19.rst) is right only for some meshes, and on others
+    it zeroes a core mode instead, leaving that core dark.
+
     reuse_cache : if True, a previously saved characterization matching the
         (port-count, wavelength) tag is loaded instead of being recomputed.
         The tag does NOT encode taper_factor / resolutions / radii, so only
@@ -86,23 +96,24 @@ def build_and_characterize_lantern(p, reuse_cache=False):
     nr = p["nrings"]
     if nr not in default_degenerate_groups_front:
         raise ValueError(
-            f"no default degen_groups / skipped_modes configured for nrings={nr}; "
-            f"only nrings={sorted(default_degenerate_groups_front)} is set up. "
-            f"Add entries to default_*_front/back, or set prop.degen_groups=[] / "
-            f"prop.skipped_modes=set() explicitly to run without mode bookkeeping."
-        )
+            f"no default degen_groups configured for nrings={nr}; only "
+            f"nrings={sorted(default_degenerate_groups_front)} is set up. Add the "
+            f"input-end degenerate pairs to default_degenerate_groups_front.")
+    n_modes = p["n_output_positions"] + 1
 
-    prop1 = Propagator(p["wl"], PL_nrings, p["n_output_positions"] + 1)
+    prop1 = Propagator(p["wl"], PL_nrings, n_modes)
     # copy so an in-place mutation by the propagator can't poison the module
     # globals for the next call
     prop1.degen_groups  = [list(g) for g in default_degenerate_groups_front[nr]]
-    prop1.skipped_modes = set(default_skipped_modes_front[nr])
-    _characterize_or_load(prop1, 0, L1_, tag_base + "_front")
+    prop1.skipped_modes = set()
+    _characterize_or_load(prop1, 0, L1_, tag_base + "_front-all")
 
-    prop2 = Propagator(p["wl"], PL_nrings, p["n_output_positions"] + 1)
-    prop2.degen_groups  = [list(g) for g in default_degenerate_groups_back[nr]]
-    prop2.skipped_modes = set(default_skipped_modes_back[nr])
-    _characterize_or_load(prop2, L1_, L1_ + L2_, tag_base + "_back", seed=prop1)
+    n_junction = np.real(np.asarray(prop1.neffs[-1]))
+    cladding = {k for k in range(n_modes) if n_junction[k] < p["nclad"]}
+    prop2 = Propagator(p["wl"], PL_nrings, n_modes)
+    prop2.degen_groups  = [[k for k in range(n_modes) if k not in cladding]]
+    prop2.skipped_modes = cladding
+    _characterize_or_load(prop2, L1_, L1_ + L2_, tag_base + "_back-clad", seed=prop1)
 
     return ChainPropagator([prop1, prop2])
 

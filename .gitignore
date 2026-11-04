@@ -13,3 +13,5 @@ docs/_sources
 docs/plot_directive
 docs/.doctrees
 .vscode
+# characterization cache written by the examples (./data relative to examples/)
+examples/data

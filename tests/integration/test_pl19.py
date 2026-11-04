@@ -7,6 +7,7 @@ end-to-end wiring on a heavily shortened device.  All are ``slow``.
 """
 
 import numpy as np
+from scipy.interpolate import LinearNDInterpolator
 import pytest
 
 from cbeam.waveguide import get_19port_positions, PhotonicLantern
@@ -120,12 +121,16 @@ def test_chain_propagator_end_to_end(save_dir, golden):
     # form one degenerate group, so the mode amplitudes us[-1] and the basis
     # they multiply are both gauge-dependent, but their sum is not (up to a
     # global phase).  So |f| is comparable across runs and backends, and is
-    # what pins this reconstruction.  numpy and jax were measured to agree
-    # here to ~3e-9; the 1e-3 budget is deliberate slack for the eigensolver
-    # nondeterminism documented in Propagator.compute_modes().
+    # what pins this reconstruction -- sampled at the 19 output core centres,
+    # so the check does not depend on the mesh (gmsh versions differ in node
+    # count).  numpy and jax agree here to ~3e-9; two meshes of 9225 and 9861
+    # nodes to 1.4e-3 of max|f|, hence the budget.
     fabs = np.abs(np.asarray(f))
     assert fabs.max() > 0
-    golden.check("field_abs", fabs, rtol=1e-3, atol=1e-3 * float(fabs.max()))
+    out_mesh = prop2.make_mesh_at_z(float(zs[-1]))
+    centres = np.asarray(get_19port_positions(9.0 / 2.5)) * 12.0      # cores at the output face
+    fabs_cores = LinearNDInterpolator(out_mesh.points[:, :2], fabs)(centres[:, 0], centres[:, 1])
+    golden.check("field_abs_at_cores", fabs_cores, rtol=1e-2, atol=5e-3 * float(fabs.max()))
     chain.plot_cfield(f, zs[-1], res=2.0, show_mesh=True,
                       xlim=(-100, 100), ylim=(-100, 100))
 

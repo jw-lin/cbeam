@@ -3,6 +3,8 @@
 ```
 tests/
 ├── conftest.py          shared fixtures + one-time FEval (Julia) project setup
+├── examples/            smoke tests for the code under examples/
+│   └── test_batch_pipeline.py      examples/batch_pipeline (batched propagation)
 ├── unit/                fast, isolated tests of individual classes / functions
 │   ├── test_misc.py                helper functions in cbeam.waveguide
 │   ├── test_prim2d.py              Prim2D, Circle, Rectangle, Prim2DUnion

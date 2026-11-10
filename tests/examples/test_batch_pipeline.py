@@ -119,7 +119,7 @@ def test_flat_pupil_focuses_on_axis():
     fg.precompute_interpolation_weights(_mesh_points())
 
     E_pupil = fg.generate_field_profiles_batch(np.zeros((1, fg.num_modes)))
-    E_focal = fg.apply_ef_to_lantern(E_pupil)
+    E_focal = fg.apply_ef_to_waveguide(E_pupil)
     E_mesh = fg.resample_to_mesh(E_focal)
 
     n_pix = int(fg.mask_np.sum())
@@ -142,12 +142,12 @@ def test_field_generation_numpy_vs_jax(backend):
     fg_np = IncidentFieldGenerator(p, ifunc, xp=np)
     fg_np.precompute_interpolation_weights(pts)
     ref = fg_np.resample_to_mesh(
-        fg_np.apply_ef_to_lantern(fg_np.generate_field_profiles_batch(coeffs)))
+        fg_np.apply_ef_to_waveguide(fg_np.generate_field_profiles_batch(coeffs)))
 
     fg_jx = IncidentFieldGenerator(p, ifunc, xp=jnp)
     fg_jx.precompute_interpolation_weights(jnp.asarray(pts))
     out = fg_jx.resample_to_mesh(
-        fg_jx.apply_ef_to_lantern_jax(fg_jx.generate_field_profiles_batch(jnp.asarray(coeffs))))
+        fg_jx.apply_ef_to_waveguide_jax(fg_jx.generate_field_profiles_batch(jnp.asarray(coeffs))))
 
     scale = np.abs(ref).max()
     np.testing.assert_allclose(np.asarray(out), ref, rtol=0, atol=1e-9 * scale)
@@ -201,9 +201,48 @@ def test_batch_collect_subpixel_signals():
     np.testing.assert_allclose(out, ref, rtol=1e-12)
 
 
+def test_earlier_method_names_still_work():
+    assert IncidentFieldGenerator.apply_ef_to_lantern is IncidentFieldGenerator.apply_ef_to_waveguide
+    assert (IncidentFieldGenerator.apply_ef_to_lantern_jax
+            is IncidentFieldGenerator.apply_ef_to_waveguide_jax)
+
+
 # --------------------------------------------------------------------------- #
 # whole pipeline
 # --------------------------------------------------------------------------- #
+def test_pipeline_on_a_single_propagator(save_dir):
+    """Any characterized Propagator works, not only a lantern's ChainPropagator:
+    here a straight (z-invariant) multimode fiber."""
+    from cbeam import waveguide, propagator
+
+    p = _field_params(64)
+    fiber = waveguide.CircularStepIndexFiber(10, 30, 1.445, 1.44)
+    prop = propagator.Propagator(p["wl"], fiber, Nmax=6, save_dir=save_dir)
+    prop.characterize(save=False)
+
+    pipeline = bp.BatchPropagationPipeline(prop, p, _synthetic_ifunc())
+    assert pipeline.propagator is prop and pipeline.prop12 is prop
+    assert pipeline.z_in == pipeline.z_out == 0.0
+
+    coeffs = np.zeros((3, 3))
+    coeffs[1, 0] = 100.0                # tip
+    coeffs[2, 2] = 80.0                 # focus
+    u0, eff = pipeline.generate_batch_modal_coefficients(
+        coeffs, return_coupling_efficiency=True)
+    u0, eff = np.asarray(u0), np.asarray(eff)
+    assert u0.shape == (3, 6)
+    np.testing.assert_allclose(np.linalg.norm(u0, axis=1), 1.0, atol=1e-12)
+    assert np.all(np.isfinite(eff) & (eff > 0))
+    # the unaberrated PSF, centred on the fiber, excites mostly its fundamental mode
+    assert np.abs(u0[0, 0]) ** 2 > 0.5
+
+    uf, zs, us = pipeline.propagate_batch(u0)
+    np.testing.assert_allclose(np.sum(np.abs(np.asarray(uf)) ** 2, axis=1), 1.0, atol=1e-9)
+    E = pipeline.reconstruct_batch_output_fields(uf)
+    assert E.shape == (3, pipeline.wvg_props_output["n_mesh_points"])
+
+
+
 @pytest.mark.slow
 @pytest.mark.integration
 def test_batch_pipeline_end_to_end(tmp_path, monkeypatch):

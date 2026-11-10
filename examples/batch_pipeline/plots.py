@@ -28,7 +28,7 @@ def diagnose_input_psf(pipeline):
     mask = fg_np.mask_np
     mask_center_y = np.mean(np.where(mask > 0)[0])
     mask_center_x = np.mean(np.where(mask > 0)[1])
-    # apply_ef_to_lantern's ifftshift puts pupil pixel N//2 on the optical
+    # apply_ef_to_waveguide's ifftshift puts pupil pixel N//2 on the optical
     # axis, so that is the centre the mask has to sit on.
     expected_center = mask.shape[0] // 2
     # center_ifunc_mask moves the mask by whole pixels, so a sub-pixel
@@ -47,7 +47,7 @@ def diagnose_input_psf(pipeline):
 
     # 3. Extract field at key stages
     Ef_input = fg_np.generate_field_profiles_batch(zero_coeffs)
-    Ef_focal_grid = fg_np.apply_ef_to_lantern(Ef_input)[0]
+    Ef_focal_grid = fg_np.apply_ef_to_waveguide(Ef_input)[0]
     Ef_focal_mesh = fg_np.resample_to_mesh(Ef_focal_grid[None, ...])[0]
 
     intensity_grid = np.abs(Ef_focal_grid) ** 2

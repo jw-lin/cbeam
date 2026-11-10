@@ -118,17 +118,21 @@ def build_and_characterize_lantern(p, reuse_cache=False):
     return ChainPropagator([prop1, prop2])
 
 
-def get_waveguide_properties(prop12, mesh_z=0):
+def get_waveguide_properties(propagator, mesh_z=0):
     """Extract waveguide modal properties at a given z position.
+
+    ``propagator`` is any characterized ``Propagator`` or ``ChainPropagator``
+    (for a chain, the segment that contains ``mesh_z`` is used).
 
     The returned mesh is the physical cross-section at ``mesh_z``: a
     propagator's own ``.mesh`` is the z=0 reference mesh, which for a taper
-    differs from the real one by the local scale factor (``taper_factor`` at
-    the far end of a PhotonicLantern).
+    differs from the real one by the local scale factor (e.g. ``taper_factor``
+    at the far end of a PhotonicLantern).
     """
     from wavesolve.fe_solver import construct_B  # only used here
 
-    p_segment  = prop12.get_prop(mesh_z)
+    p_segment  = (propagator.get_prop(mesh_z) if hasattr(propagator, "get_prop")
+                  else propagator)
     mesh_obj   = p_segment.make_mesh_at_z(mesh_z)
     p_segment.wvg.assign_IOR()          # ensure wvg.IOR_dict is populated
     modes      = p_segment.vs
@@ -211,7 +215,7 @@ class ModalProjector:
 class IncidentFieldGenerator:
     """Build batches of DM-aberrated pupil fields from influence-function
     coefficients, form their focal-plane image (zero-padded FFT) and sample it
-    on the lantern's input mesh."""
+    on the waveguide's input mesh."""
 
     def __init__(self, p, ifunc, xp=np, pupil_template=None):
         self.p     = p
@@ -273,7 +277,7 @@ class IncidentFieldGenerator:
         print(f"  Pixel scale: {pixel_scale} μm/pixel")
 
         # Axis mapping.  cbeam stores mesh.points[:, 0] = x, [:, 1] = y (see
-        # waveguide.py).  The FFT image E_lantern is indexed [row, col] in the
+        # waveguide.py).  The FFT image E_focal is indexed [row, col] in the
         # standard image convention (row = y, col = x) -- the same convention
         # used by diagnose_input_psf and interpolate_output_to_grid.  So the
         # column index (ix0) is built from physical x and the row index (iy0)
@@ -348,14 +352,16 @@ class IncidentFieldGenerator:
             Ef_input_batch = Ef_input_batch.at[:, self.mask_np].set(E_flat_batch)
         return Ef_input_batch
 
-    def apply_ef_to_lantern_jax(self, Ef_input_batch):
-        """Pad and FFT-transform using JAX (runs on the selected device)."""
+    def apply_ef_to_waveguide_jax(self, Ef_input_batch):
+        """Focal-plane image of a batch of pupil fields: pad and FFT-transform
+        using JAX (runs on the selected device)."""
         pad_width, _       = self._pad_geometry()
         Ef_input_batch_dev = jax.device_put(Ef_input_batch, _jax_device)
         return _apply_pupil_jax_core(Ef_input_batch_dev, pad_width)
 
-    def apply_ef_to_lantern(self, Ef_input_batch):
-        """Pad and FFT-transform using SciPy (CPU, multithreaded)."""
+    def apply_ef_to_waveguide(self, Ef_input_batch):
+        """Focal-plane image of a batch of pupil fields: pad and FFT-transform
+        using SciPy (CPU, multithreaded)."""
         N                     = self.grid_size
         pad_width, padded_size = self._pad_geometry()
 
@@ -374,24 +380,38 @@ class IncidentFieldGenerator:
             axes=(1, 2),
         )
 
-    def resample_to_mesh(self, E_lantern_batch):
+    def resample_to_mesh(self, E_focal_batch):
         """Bilinear interpolation from the padded FFT grid onto the FE mesh."""
-        val00 = E_lantern_batch[:, self.iy0, self.ix0]
-        val01 = E_lantern_batch[:, self.iy0, self.ix1]
-        val10 = E_lantern_batch[:, self.iy1, self.ix0]
-        val11 = E_lantern_batch[:, self.iy1, self.ix1]
+        val00 = E_focal_batch[:, self.iy0, self.ix0]
+        val01 = E_focal_batch[:, self.iy0, self.ix1]
+        val10 = E_focal_batch[:, self.iy1, self.ix0]
+        val11 = E_focal_batch[:, self.iy1, self.ix1]
         return (val00 * self.w00 + val01 * self.w01 +
                 val10 * self.w10 + val11 * self.w11)
+
+    # earlier names, kept for existing callers
+    apply_ef_to_lantern     = apply_ef_to_waveguide
+    apply_ef_to_lantern_jax = apply_ef_to_waveguide_jax
 
 
 class BatchPropagationPipeline:
     """
-    Orchestrates batch propagation of modal fields through a photonic lantern.
+    Orchestrates batch propagation of modal fields through a waveguide.
+
+    Works with any characterized ``Propagator`` or ``ChainPropagator`` (a
+    photonic lantern, a fiber, a coupler, ...): the input fields are sampled on
+    its mesh at the start of the characterized range, projected onto the modes
+    there, propagated, and the output fields are rebuilt from the modes at the
+    end of the range.  The input fields themselves are DM-aberrated pupils
+    imaged onto the input face (``IncidentFieldGenerator``), so ``p`` and
+    ``ifunc`` describe the telescope side.
 
     Parameters
     ----------
-    prop12 :               ChainPropagator
-    p :                    simulation parameter dict
+    propagator :           characterized Propagator or ChainPropagator
+    p :                    simulation parameter dict (``wavelength_nm``,
+                           ``pad_factor``, ``pixel_scale_um`` for the pupil
+                           and its focal-plane image)
     ifunc :                influence-function object
     field_gen_on_gpu :     bool, optional (default False)
         When True *and* the JAX backend is active, field generation runs on
@@ -411,13 +431,13 @@ class BatchPropagationPipeline:
         Can be overridden per call via the ``chunk_size`` keyword.
     """
 
-    def __init__(self, prop12, p, ifunc,
+    def __init__(self, propagator, p, ifunc,
                  field_gen_on_gpu=False,
                  field_gen_chunk_size=default_gen_chunk_size,
                  field_gen_pupil_template=None):
         
-        self.prop12 = prop12
-        self.p      = p
+        self.propagator = propagator
+        self.p          = p
 
         # The *propagation* xp follows the global backend.
         self.xp = jnp if backend == 'jax' else np
@@ -444,9 +464,12 @@ class BatchPropagationPipeline:
         self._modal_proj_jax = None
         self._ifunc_ref      = ifunc  # kept for lazy JAX init
 
-        wvg_props_input = get_waveguide_properties(prop12, mesh_z=0)
+        # input / output planes: the ends of the characterized range
+        zs = propagator.zs
+        self.z_in, self.z_out = float(zs[0]), float(zs[-1])
+        wvg_props_input = get_waveguide_properties(propagator, mesh_z=self.z_in)
         self.wvg_props_input  = wvg_props_input
-        self.wvg_props_output = get_waveguide_properties(prop12, mesh_z=p["z_ex"])
+        self.wvg_props_output = get_waveguide_properties(propagator, mesh_z=self.z_out)
 
         self._field_gen_np.precompute_interpolation_weights(
             wvg_props_input['points'])
@@ -458,6 +481,11 @@ class BatchPropagationPipeline:
         # Delaunay cache for output interpolation; filled lazily by
         # interpolate_output_to_grid() the first time each resolution is used.
         self._delaunay_cache = {}
+
+    @property
+    def prop12(self):
+        """Earlier name of ``propagator``, kept for existing callers."""
+        return self.propagator
 
     # ------------------------------------------------------------------
     def _build_jax_field_gen(self):
@@ -569,10 +597,10 @@ class BatchPropagationPipeline:
         """
         Ef_input  = fg.generate_field_profiles_batch(coeff_chunk)
         if use_gpu:
-            E_lantern = fg.apply_ef_to_lantern_jax(Ef_input)
+            E_focal = fg.apply_ef_to_waveguide_jax(Ef_input)
         else:
-            E_lantern = fg.apply_ef_to_lantern(Ef_input)
-        Ef_focal_mesh   = fg.resample_to_mesh(E_lantern)
+            E_focal = fg.apply_ef_to_waveguide(Ef_input)
+        Ef_focal_mesh   = fg.resample_to_mesh(E_focal)
         u0_chunk, eff = proj.project_batch(Ef_focal_mesh)
         return np.asarray(u0_chunk), np.asarray(eff) / fg.focal_plane_norm
 
@@ -767,7 +795,7 @@ class BatchPropagationPipeline:
                 chunk = jnp.asarray(chunk, dtype=jnp.complex128,
                                     device=_jax_device)
 
-            zs, us_grid, uf = self.prop12.propagate(chunk)
+            zs, us_grid, uf = self.propagator.propagate(chunk)
 
             uf_chunks.append(np.asarray(uf))
             zs_last = np.asarray(zs)
@@ -784,7 +812,7 @@ class BatchPropagationPipeline:
             us_batch = None
             print("  (us_batch not returned for multi-chunk runs to save memory)")
         else:
-            # prop12.propagate returns the trajectory as (n_z, n_fields, n_modes);
+            # propagator.propagate returns the trajectory as (n_z, n_fields, n_modes);
             # transpose to the (n_fields, n_z, n_modes) layout this method promises.
             us_batch = (np.transpose(us_grid_single, (1, 0, 2))
                         if us_grid_single.ndim == 3 else us_grid_single)

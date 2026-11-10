@@ -30,3 +30,9 @@ Besides cbeam's own requirements:
 
 The first run characterizes the lantern (several minutes per wavelength);
 later runs load the cached characterization from `examples/data/`.
+
+## Chromatic response
+
+To characterize any waveguide over a range of wavelengths, see the
+`cbeam.chromatic` module and its example in the documentation
+(`docs_source/chromatic.rst`).

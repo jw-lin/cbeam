@@ -6,8 +6,11 @@ write their characterization cache to `examples/data/`, which is git-ignored).
 ## Batched propagation
 
 `batch_pipeline/` propagates whole batches of input fields through a
-characterized 19-port photonic lantern in a single `propagate()` call, on the
-numpy or the jax backend (`CBEAM_BACKEND`).
+characterized waveguide in a single `propagate()` call, on the numpy or the jax
+backend (`CBEAM_BACKEND`). `BatchPropagationPipeline` takes any characterized
+`Propagator` or `ChainPropagator`; the input fields are DM-aberrated telescope
+pupils imaged onto its input face. The notebooks use a 19-port photonic
+lantern.
 
 | | |
 |---|---|

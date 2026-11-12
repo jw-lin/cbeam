@@ -16,5 +16,6 @@ contents
     fib
     PL
     dc
+    chromatic
     mmi
     PL19

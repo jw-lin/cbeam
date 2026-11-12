@@ -178,9 +178,8 @@ class Propagator:
         there's no such thing as safely changing it in place after
         construction -- self.k would go stale, and so would every spline
         built from self.neffs/self.cmats. This isn't a hypothetical
-        concern: the multi-wavelength pipeline already only ever constructs
-        a fresh Propagator per wavelength (see e.g.
-        examples/multi_wvl/pipeline.py), never mutates one's .wl.
+        concern: a chromatic sweep (cbeam.chromatic.sweep) constructs a
+        fresh Propagator per wavelength, never mutates one's .wl.
         """
         return self._wl
 
@@ -1101,8 +1100,8 @@ class Propagator:
             # never inside the ODE.  Its coefficient tensor is
             # (4, n_z, Nmodes, Npoints) complex128 — several GB for a photonic
             # lantern — so putting it on the GPU (with front + back propagators
-            # resident at once in the multi-wavelength pipeline) is what drives
-            # the CUDA OOM.  A plain scipy CubicSpline on numpy is the same
+            # of a ChainPropagator resident at once, e.g. in a chromatic sweep)
+            # is what drives the CUDA OOM.  A plain scipy CubicSpline on numpy is the same
             # not-a-knot interpolant and costs zero device memory.
             if make_v and self.vs is not None:
                 import scipy.interpolate as _si

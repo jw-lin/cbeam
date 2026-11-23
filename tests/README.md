@@ -12,14 +12,16 @@ tests/
 │   ├── test_waveguide.py           the base Waveguide class (mesh, transform, IOR)
 │   ├── test_waveguide_classes.py   every pre-defined Waveguide subclass
 │   ├── test_feval.py               cbeam.FEval (Julia-backed field evaluator)
-│   └── test_propagator.py          Propagator / ChainPropagator helpers + z-invariant path
+│   ├── test_propagator.py          Propagator / ChainPropagator helpers + z-invariant path
+│   └── test_chromatic.py           cbeam.chromatic with stand-in propagators
 └── integration/         end-to-end tests, each a rewrite of a documentation example
     ├── test_quickstart.py          docs_source/basicusage.rst
     ├── test_fib.py                 docs_source/fib.rst
     ├── test_photonic_lantern.py    docs_source/PL.rst
     ├── test_dicoupler.py           docs_source/dc.rst
     ├── test_mmi.py                 docs_source/mmi.rst
-    └── test_pl19.py                docs_source/PL19.rst
+    ├── test_pl19.py                docs_source/PL19.rst
+    └── test_chromatic_dicoupler.py docs_source/chromatic.rst (the dc.rst coupler over a band)
 ```
 
 ## Running

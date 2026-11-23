@@ -8,4 +8,5 @@ documentation for ``cbeam`` submodules below!
     
     cbeam.waveguide
     cbeam.propagator
+    cbeam.chromatic
     cbeam.FEval

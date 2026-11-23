@@ -38,9 +38,8 @@ class TestConstruction:
         # backend) cached ODE-step function are all specific to the
         # wavelength it was characterized at -- self.k, and anything built
         # from it, would go stale if .wl could change after construction.
-        # The multi-wavelength pipeline already only ever constructs a
-        # fresh Propagator per wavelength (see e.g.
-        # examples/multi_wvl/pipeline.py), so this formalizes an invariant
+        # A chromatic sweep (cbeam.chromatic.sweep) constructs a fresh
+        # Propagator per wavelength, so this formalizes an invariant
         # nothing relies on being able to break.
         with pytest.raises(AttributeError):
             prop.wl = 1.31

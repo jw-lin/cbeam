@@ -6,10 +6,10 @@ using_jax = backend_choice == "jax"
 if using_jax:
     # Grow-on-demand + return-to-driver GPU allocation.  Without this JAX
     # preallocates ~75% of the device on first use and never gives it back, so
-    # a workload that builds/discards big arrays per iteration (e.g. the
-    # multi-wavelength lantern pipeline: characterize -> propagate -> release,
-    # one wavelength at a time) OOMs even though its steady-state footprint is
-    # small.  Respect an explicit user setting if one is already present.
+    # a workload that builds/discards big arrays per iteration (e.g. a
+    # chromatic sweep: characterize -> propagate -> release, one wavelength at
+    # a time, see cbeam.chromatic) OOMs even though its steady-state footprint
+    # is small.  Respect an explicit user setting if one is already present.
     os.environ.setdefault("TF_GPU_ALLOCATOR", "cuda_malloc_async")
     os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
     import jax
